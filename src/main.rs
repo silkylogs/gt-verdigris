@@ -1,5 +1,6 @@
 extern crate sdl2;
 
+use game::Renderer;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -28,7 +29,8 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    //let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    let mut renderer = Renderer::new(window)?;
 
     let mut event_pump = sdl_context.event_pump()?;
 
@@ -50,17 +52,7 @@ fn main() -> Result<(), String> {
             }
         }
 
-        canvas.clear();
-        canvas.set_draw_color(Color::GREEN);
-        canvas.fill_rect(Rect::new(
-            game_state.player.pos_x as i32,
-            game_state.player.pos_y as i32,
-            5,
-            5,
-        ))?;
-        canvas.set_draw_color(Color::BLACK);
-
-        canvas.present();
+        renderer.draw(game_state.clone())?;
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
 
