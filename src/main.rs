@@ -1,14 +1,12 @@
 extern crate sdl2;
 
-use game::Renderer;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use sdl2::sys::{KeyCode, KeySym, SDL_KeyCode, SDL_Rect};
+//use sdl2::sys::{KeyCode, KeySym, SDL_KeyCode, SDL_Rect};
 use std::time::Duration;
 
 mod game;
+mod renderer;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -28,10 +26,7 @@ fn main() -> Result<(), String> {
         .opengl()
         .build()
         .map_err(|e| e.to_string())?;
-
-    //let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-    let mut renderer = Renderer::new(window)?;
-
+    let mut renderer = renderer::Renderer::new(window)?;
     let mut event_pump = sdl_context.event_pump()?;
 
     'running: loop {
@@ -43,10 +38,10 @@ fn main() -> Result<(), String> {
                     ..
                 } => break 'running,
                 Event::KeyDown { keycode: Some(Keycode::D), .. } => {
-                    game_state.player.pos_x += 1.0;
+                    game_state.player.pos_x += 10.0;
                 }
                 Event::KeyDown { keycode: Some(Keycode::S), .. } => {
-                    game_state.player.pos_y += 1.0;
+                    game_state.player.pos_y += 10.0;
                 }
                 _ => {}
             }
