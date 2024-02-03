@@ -3,15 +3,26 @@ extern crate sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
+use sdl2::rect::Rect;
+use sdl2::sys::{KeyCode, KeySym, SDL_KeyCode, SDL_Rect};
 use std::time::Duration;
 
+mod game;
+
 fn main() -> Result<(), String> {
-    println!("{}", 2 + 2);
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
+    let mut game_state = game::Game {
+        window_title: "Green Top: Verdigris".to_string(),
+        player: game::Player {
+            pos_x: 0.0,
+            pos_y: 0.0,
+        },
+    };
+
     let window = video_subsystem
-        .window("Green Top: verdigris", 800, 600)
+        .window(&game_state.window_title, 800, 600)
         .position_centered()
         .opengl()
         .build()
@@ -19,9 +30,6 @@ fn main() -> Result<(), String> {
 
     let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
 
-    canvas.set_draw_color(Color::RGB(0x33, 0x32, 0x23));
-    canvas.clear();
-    canvas.present();
     let mut event_pump = sdl_context.event_pump()?;
 
     'running: loop {
@@ -32,11 +40,26 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::D), .. } => {
+                    game_state.player.pos_x += 1.0;
+                }
+                Event::KeyDown { keycode: Some(Keycode::S), .. } => {
+                    game_state.player.pos_y += 1.0;
+                }
                 _ => {}
             }
         }
 
         canvas.clear();
+        canvas.set_draw_color(Color::GREEN);
+        canvas.fill_rect(Rect::new(
+            game_state.player.pos_x as i32,
+            game_state.player.pos_y as i32,
+            5,
+            5,
+        ))?;
+        canvas.set_draw_color(Color::BLACK);
+
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
