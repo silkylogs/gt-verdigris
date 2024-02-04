@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use crate::game::*;
 use crate::sdl2::pixels::Color;
 use crate::sdl2::rect::Point;
@@ -7,8 +5,7 @@ use crate::sdl2::render::WindowCanvas;
 use crate::sdl2::video::Window;
 use sdl2::rect::Rect;
 use sdl2::render::TextureQuery;
-use sdl2::sys::ttf;
-use sdl2::ttf::Sdl2TtfContext;
+use sdl2::ttf::Font;
 
 // handle the annoying Rect i32
 macro_rules! rect(
@@ -24,11 +21,11 @@ fn get_centered_rect(rect_width: u32, rect_height: u32, cons_width: u32, cons_he
 
     let (w, h) = if wr > 1f32 || hr > 1f32 {
         if wr > hr {
-            println!("Scaling down! The text will look worse!");
+            //println!("Scaling down! The text will look worse!");
             let h = (rect_height as f32 / wr) as i32;
             (cons_width as i32, h)
         } else {
-            println!("Scaling down! The text will look worse!");
+            //println!("Scaling down! The text will look worse!");
             let w = (rect_width as f32 / hr) as i32;
             (w, cons_height as i32)
         }
@@ -41,8 +38,6 @@ fn get_centered_rect(rect_width: u32, rect_height: u32, cons_width: u32, cons_he
     rect!(cx, cy, w, h)
 }
 
-
-
 pub struct Renderer {
     canvas: WindowCanvas,
 }
@@ -50,9 +45,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(window: Window) -> Result<Renderer, String> {
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-        Ok(Renderer { 
-            canvas: canvas, 
-        })
+        Ok(Renderer { canvas: canvas })
     }
 
     fn draw_background(&mut self) -> Result<(), String> {
@@ -82,49 +75,49 @@ impl Renderer {
     }
 
     // Assumes ttf_context is initialized
-    pub fn draw_text(
-        &mut self,
-        ttf_context: &Sdl2TtfContext, text: &str, 
-        font_path: &Path) -> Result<(), String>
-    {
+    pub fn draw_text(&mut self, text: &str, color: Color, font: &Font) -> Result<(), String> {
         let texture_creator = self.canvas.texture_creator();
-
-        let mut font = ttf_context.load_font(font_path, 128)?;
-        font.set_style(sdl2::ttf::FontStyle::NORMAL);
 
         let surface = font
             .render(text)
-            .blended(Color::RGBA(255, 0, 0, 255))
+            .blended(color)
             .map_err(|e| e.to_string())?;
+
         let texture = texture_creator
             .create_texture_from_surface(&surface)
             .map_err(|e| e.to_string())?;
 
+        let window_dimensions = self.canvas.window().size();
         let TextureQuery { width, height, .. } = texture.query();
-        let target = get_centered_rect(width, height, 800 - 64, 600-64);
-
         let padding = 64;
-        let target = get_centered_rect(width, height, 800 - padding, 600 - padding);
+        let target = get_centered_rect(
+            width,
+            height,
+            window_dimensions.0 - padding,
+            window_dimensions.1 - padding,
+        );
 
         self.canvas.copy(&texture, None, Some(target))?;
-        //self.canvas.present();
 
         Ok(())
     }
 
-    pub fn draw_all(&mut self, game_context: &Game, ttf_context: &Sdl2TtfContext) -> Result<(), String> {
+    pub fn draw_all(
+        &mut self,
+        game_context: &Game,
+        font: &Font,
+    ) -> Result<(), String> {
         self.draw_background()?;
         self.draw_player(&game_context.player)?;
-
         self.draw_text(
-            ttf_context, 
-            "todo!(\"clean up text rendering\")", 
-            std::path::Path::new("./Arial.ttf"))?;
+            "Hello, world!",
+            Color::GREY,
+            font,
+        )?;
         Ok(())
     }
 
     pub fn present(&mut self) {
         self.canvas.present();
     }
-
 }
