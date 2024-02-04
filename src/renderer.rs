@@ -61,7 +61,7 @@ impl Renderer {
         Ok(())
     }
 
-    fn draw_player(&mut self, player: Player) -> Result<(), String> {
+    fn draw_player(&mut self, player: &Player) -> Result<(), String> {
         let sprite = player.sprite.clone();
         let w = sprite.width();
         let h = sprite.height();
@@ -112,9 +112,9 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn draw_all(&mut self, game_context: Game, ttf_context: &Sdl2TtfContext) -> Result<(), String> {
+    pub fn draw_all(&mut self, game_context: &Game, ttf_context: &Sdl2TtfContext) -> Result<(), String> {
         self.draw_background()?;
-        self.draw_player(game_context.player)?;
+        self.draw_player(&game_context.player)?;
 
         self.draw_text(
             ttf_context, 

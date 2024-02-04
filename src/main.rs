@@ -85,8 +85,7 @@ fn main() -> Result<(), String> {
             }
         }
 
-        
-        renderer.draw_all(game_state.clone(), &ttf_context)?;
+        renderer.draw_all(&game_state, &ttf_context)?;
         renderer.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
