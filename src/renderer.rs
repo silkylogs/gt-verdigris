@@ -1,3 +1,4 @@
+use crate::editor::Editor;
 use crate::game::*;
 use crate::sdl2::pixels::Color;
 use crate::sdl2::rect::Point;
@@ -38,6 +39,10 @@ fn get_centered_rect(rect_width: u32, rect_height: u32, cons_width: u32, cons_he
     rect!(cx, cy, w, h)
 }
 
+fn get_rect(rect_x: u32, rect_y: u32, rect_w: u32, rect_h: u32) -> Rect {
+    rect!(rect_x, rect_y, rect_w, rect_h)
+}
+
 pub struct Renderer {
     canvas: WindowCanvas,
 }
@@ -48,8 +53,8 @@ impl Renderer {
         Ok(Renderer { canvas: canvas })
     }
 
-    fn draw_background(&mut self) -> Result<(), String> {
-        self.canvas.set_draw_color(Color::BLACK);
+    fn draw_background(&mut self, color: Color) -> Result<(), String> {
+        self.canvas.set_draw_color(color);
         self.canvas.clear();
         Ok(())
     }
@@ -75,7 +80,13 @@ impl Renderer {
     }
 
     // Assumes ttf_context is initialized
-    pub fn draw_text(&mut self, text: &str, color: Color, font: &Font) -> Result<(), String> {
+    fn draw_text(
+        &mut self, 
+        text: &str, color: Color, 
+        font: &Font, 
+        (x, y): (u32, u32),
+        (w, h): (u32, u32)
+    ) -> Result<(), String> {
         let texture_creator = self.canvas.texture_creator();
 
         let surface = font
@@ -87,33 +98,35 @@ impl Renderer {
             .create_texture_from_surface(&surface)
             .map_err(|e| e.to_string())?;
 
+        /*
+        // Note: these are the quantities available for transforming text
         let window_dimensions = self.canvas.window().size();
         let TextureQuery { width, height, .. } = texture.query();
         let padding = 64;
-        let target = get_centered_rect(
-            width,
-            height,
-            window_dimensions.0 - padding,
-            window_dimensions.1 - padding,
-        );
+        */
+        let target = rect!(x, y, w, h);
 
         self.canvas.copy(&texture, None, Some(target))?;
 
         Ok(())
     }
 
-    pub fn draw_all(
-        &mut self,
-        game_context: &Game,
-        font: &Font,
-    ) -> Result<(), String> {
-        self.draw_background()?;
-        self.draw_player(&game_context.player)?;
+    fn draw_editor(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
+        self.draw_background(editor.col_bg)?;
         self.draw_text(
-            "Hello, world!",
-            Color::GREY,
-            font,
+            &editor.title, 
+            Color::WHITE, font, 
+            (0, 0), 
+            (self.canvas.window().size().0 / 2, self.canvas.window().size().1 / 32)
         )?;
+        Ok(())
+    }
+
+    pub fn draw_all(&mut self, game_context: &Game, font: &Font, editor: &Editor) -> Result<(), String> {
+        //self.draw_background()?;
+        self.draw_player(&game_context.player)?;
+        self.draw_editor(editor, font)?;
+        self.draw_text("This is being drawn direct to screen", Color::GREY, font, (0, 300), (800, 50))?;
         Ok(())
     }
 

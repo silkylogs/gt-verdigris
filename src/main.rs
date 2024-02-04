@@ -5,6 +5,7 @@ extern crate sdl2;
 mod bitmap;
 mod game;
 mod renderer;
+mod editor;
 
 use bitmap::Bitmap;
 use game::WindowDetails;
@@ -13,6 +14,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
+use editor::Editor;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -25,6 +27,11 @@ fn main() -> Result<(), String> {
             pos_y: 200.0,
             sprite: Bitmap::new(20, 20).unwrap(),
         },
+    };
+
+    let game_editor = Editor {
+        title: "Game editor window".to_owned(),
+        col_bg: Color::RGB(20, 20, 25),
     };
 
     let window = video_subsystem
@@ -95,7 +102,7 @@ fn main() -> Result<(), String> {
             }
         }
 
-        renderer.draw_all(&game_state, &font)?;
+        renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
