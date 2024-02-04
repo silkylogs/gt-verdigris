@@ -7,6 +7,7 @@ pub struct Bitmap {
     colors: Vec<Color>,
 }
 
+// todo!("Reimplement this struct to clear up the unsightly .clone() calls")
 impl Bitmap {
     pub fn new(w: u32, h: u32) -> Option<Bitmap> {
         let memory = vec![Color::BLUE; (w * h).try_into().unwrap()];
