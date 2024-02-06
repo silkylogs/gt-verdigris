@@ -1,6 +1,6 @@
 use sdl2::{pixels::Color, rect::Rect};
 
-use crate::game::{self, WindowDetails};
+use crate::{game::WindowDetails, input::MouseInput};
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
@@ -110,4 +110,10 @@ impl Editor {
             Color::GREY,
         ));
     }
+    
+    // pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
+    //     if mouse_state.rmb {
+    //         if mouse_state.x
+    //     }
+    // }
 }

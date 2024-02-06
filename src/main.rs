@@ -125,12 +125,12 @@ fn main() -> Result<(), String> {
                 } => {
                     let temp_state = mouse_just_polled_state;
 
-                    let temp_lmb_pressed = match temp_state.lmb {
+                    let temp_lmb_pressed = match temp_state.lmb() {
                         ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
                         _ => false,
                     };
 
-                    let temp_rmb_pressed = match temp_state.rmb {
+                    let temp_rmb_pressed = match temp_state.rmb() {
                         ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
                         _ => false,
                     };
@@ -151,12 +151,12 @@ fn main() -> Result<(), String> {
                 } => {
                     let temp_state = mouse_just_polled_state;
 
-                    let temp_lmb_pressed = match temp_state.lmb {
+                    let temp_lmb_pressed = match temp_state.lmb() {
                         ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
                         _ => false,
                     };
 
-                    let temp_rmb_pressed = match temp_state.rmb {
+                    let temp_rmb_pressed = match temp_state.rmb() {
                         ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
                         _ => false,
                     };
@@ -202,6 +202,7 @@ fn main() -> Result<(), String> {
         }
 
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
+        // game_editor.apply_mouse_input(&applied_mouse_state);
         dbg!(applied_mouse_state);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;

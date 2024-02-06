@@ -8,8 +8,8 @@ pub enum ButtonStatus {
 
 #[derive(Copy, Clone, Debug)]
 pub struct MouseInput {
-    pub lmb: ButtonStatus,
-    pub rmb: ButtonStatus,
+    lmb: ButtonStatus,
+    rmb: ButtonStatus,
     x: u32,
     y: u32,
 }
@@ -24,6 +24,18 @@ impl MouseInput {
         }
     }
 
+    pub fn lmb(&self) -> ButtonStatus {
+        self.lmb
+    }
+
+    pub fn rmb(&self) -> ButtonStatus {
+        self.rmb
+    }
+
+    pub fn coords(&self) -> (u32, u32) {
+        (self.x, self.y)
+    }
+
     pub fn poll_buttons(&mut self, lmb_pressed: bool, rmb_pressed: bool) {
         self.lmb = match lmb_pressed {
             true => ButtonStatus::Pressed,
@@ -34,6 +46,7 @@ impl MouseInput {
             false => ButtonStatus::NotPressed,
         };
     }
+
     pub fn poll_motion(&mut self, x: u32, y: u32) {
         self.x = x;
         self.y = y;
