@@ -14,9 +14,12 @@ use game::WindowDetails;
 use input::MouseInput;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
+
+use crate::input::ButtonStatus;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -106,7 +109,7 @@ fn main() -> Result<(), String> {
 
     'running: loop {
         let mouse_prev_state = mouse_just_polled_state;
-        
+
         // Misc event handling
         for event in event_pump.poll_iter() {
             match event {
@@ -116,16 +119,62 @@ fn main() -> Result<(), String> {
                     ..
                 } => break 'running,
 
-                Event::MouseMotion {
-                    mousestate, x, y, ..
+                // TODO: maybe use the clicks for something else
+                Event::MouseButtonDown {
+                    mouse_btn, clicks, ..
                 } => {
+                    let temp_state = mouse_just_polled_state;
 
-                    mouse_just_polled_state.poll_state(
-                        mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left), 
-                        mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Right),
-                        x as u32,
-                        y as u32
-                    );
+                    let temp_lmb_pressed = match temp_state.lmb {
+                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
+                        _ => false,
+                    };
+
+                    let temp_rmb_pressed = match temp_state.rmb {
+                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
+                        _ => false,
+                    };
+
+                    match mouse_btn {
+                        MouseButton::Left => {
+                            mouse_just_polled_state.poll_buttons(true, temp_rmb_pressed)
+                        }
+                        MouseButton::Right => {
+                            mouse_just_polled_state.poll_buttons(temp_lmb_pressed, true)
+                        }
+                        _ => {}
+                    }
+                }
+
+                Event::MouseButtonUp {
+                    mouse_btn, clicks, ..
+                } => {
+                    let temp_state = mouse_just_polled_state;
+
+                    let temp_lmb_pressed = match temp_state.lmb {
+                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
+                        _ => false,
+                    };
+
+                    let temp_rmb_pressed = match temp_state.rmb {
+                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
+                        _ => false,
+                    };
+
+                    match mouse_btn {
+                        MouseButton::Left => {
+                            mouse_just_polled_state.poll_buttons(false, temp_rmb_pressed)
+                        }
+                        MouseButton::Right => {
+                            mouse_just_polled_state.poll_buttons(temp_lmb_pressed, false)
+                        }
+                        _ => {}
+                    }
+                }
+
+                Event::MouseMotion { x, y, .. } => {
+                    // Potentially buggy
+                    mouse_just_polled_state.poll_motion(x as u32, y as u32);
                 }
 
                 // TODO: to mitigate the issue of stuttering after holding the key,
