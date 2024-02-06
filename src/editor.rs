@@ -36,19 +36,20 @@ impl EditorWindow {
         client_area_padding: u32,
         bg_col: Color,
     ) -> EditorWindow {
+        let title_bar_height = 20;
         EditorWindow {
             title: title,
             title_col: title_col,
             title_bar_col: title_bar_col,
             title_bar_width: overall_width,
-            title_bar_height: 20,
+            title_bar_height: title_bar_height,
 
             upper_left_x: upper_left_x,
             upper_left_y: upper_left_y,
             overall_width: overall_width,
             overall_height: overall_height,
-            client_area_width: overall_width - client_area_padding,
-            client_area_height: overall_height - client_area_padding,
+            client_area_width: overall_width - client_area_padding * 2,
+            client_area_height: overall_height - client_area_padding * 2 - title_bar_height,
             client_area_padding: client_area_padding,
             bg_col: bg_col,
         }
@@ -60,26 +61,24 @@ impl EditorWindow {
             self.upper_left_x as i32,
             self.upper_left_y as i32,
             self.title_bar_width,
-            self.title_bar_height
+            self.title_bar_height,
         )
     }
 
     pub fn client_area_rect(&self) -> Result<Rect, String> {
-        let upper_x: i32 = (
-            self.upper_left_x + 
-            self.client_area_padding)
-            .try_into().unwrap();
-        let upper_y: i32 = (
-            self.upper_left_x + 
-            self.client_area_padding +
-            self.title_bar_height)
-            .try_into().unwrap();
+        let upper_x: i32 = (self.upper_left_x + self.client_area_padding)
+            .try_into()
+            .unwrap();
+        let upper_y: i32 = (self.upper_left_y + self.client_area_padding + self.title_bar_height)
+            .try_into()
+            .unwrap();
+        
 
         Ok(Rect::new(
             upper_x,
             upper_y,
             self.client_area_width,
-            self.client_area_height
+            self.client_area_height,
         ))
     }
 }

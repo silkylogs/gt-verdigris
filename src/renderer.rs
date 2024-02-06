@@ -99,13 +99,9 @@ impl Renderer {
                 title_bar_rect.w / 2,
                 title_bar_rect.h
             );
-            self.draw_text(
-                &window.title,
-                window.title_col,
-                font,
-                title_rect,
-            )?;
+            self.draw_text(&window.title, window.title_col, font, title_rect)?;
 
+            // Buggy!
             let client_rect = window.client_area_rect().unwrap();
             self.canvas.set_draw_color(Color::MAGENTA); // test
             self.canvas.draw_rect(client_rect)?;
