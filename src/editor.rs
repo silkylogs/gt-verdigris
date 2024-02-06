@@ -1,4 +1,4 @@
-use sdl2::pixels::{Color, PixelFormat};
+use sdl2::pixels::Color;
 
 use crate::game::WindowDetails;
 

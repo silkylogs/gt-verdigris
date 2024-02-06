@@ -40,7 +40,6 @@ fn main() -> Result<(), String> {
         width: 300, height: 200,
         bg_col: Color::RGB(20, 20, 25),
     });
-    //game_editor.add_default_window(game_window_details.clone());
     game_editor.add_window(EditorWindow {
         title: "Window 2".to_owned(),
         pos_x: 200, pos_y: 250,
