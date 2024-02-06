@@ -31,7 +31,7 @@ impl Editor {
             pos_y: 0,
             width: game_window.width,
             height: game_window.height,
-            bg_col: Color::MAGENTA,
+            bg_col: Color::GREY,
         };
 
         self.add_window(default_window);

@@ -112,8 +112,7 @@ impl Renderer {
     }
 
     fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
-        //for window in &editor.window_stack {
-        let window = &editor.window_stack[0];
+        for window in &editor.window_stack {
             let window_rect = rect!(
                 window.pos_x, window.pos_y,
                 window.width, window.height
@@ -132,7 +131,7 @@ impl Renderer {
                     self.canvas.window().size().1 / 32,
                 ),
             )?;
-        //}
+        }
         Ok(())
     }
 

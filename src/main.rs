@@ -8,7 +8,7 @@ mod game;
 mod renderer;
 
 use bitmap::Bitmap;
-use editor::Editor;
+use editor::{Editor, EditorWindow};
 use game::WindowDetails;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -34,12 +34,12 @@ fn main() -> Result<(), String> {
 
     let mut game_editor = Editor::new();
     game_editor.add_default_window(game_window_details.clone());
-    // Editor::new(
-    //     "Game editor window",
-    //     Color::RGB(20, 20, 25),
-    //     (0, 0),
-    //     (800, 600),
-    // );
+    game_editor.add_window(EditorWindow {
+        title: "Window 2".to_owned(),
+        pos_x: 200, pos_y: 100,
+        width: 400, height: 300,
+        bg_col: Color::RGB(20, 20, 25),
+    });
 
     let window = video_subsystem
         .window(
