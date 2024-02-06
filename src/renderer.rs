@@ -79,13 +79,13 @@ impl Renderer {
         Ok(())
     }
 
-    // Assumes ttf_context is initialized
     fn draw_text(
-        &mut self, 
-        text: &str, color: Color, 
-        font: &Font, 
+        &mut self,
+        text: &str,
+        color: Color,
+        font: &Font,
         (x, y): (u32, u32),
-        (w, h): (u32, u32)
+        (w, h): (u32, u32),
     ) -> Result<(), String> {
         let texture_creator = self.canvas.texture_creator();
 
@@ -111,22 +111,61 @@ impl Renderer {
         Ok(())
     }
 
-    fn draw_editor(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
-        self.draw_background(editor.col_bg)?;
-        self.draw_text(
-            &editor.title, 
-            Color::WHITE, font, 
-            (0, 0), 
-            (self.canvas.window().size().0 / 2, self.canvas.window().size().1 / 32)
-        )?;
+    fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
+        for window in &editor.window_stack {
+            let window_rect = rect!(
+                window.pos_x, window.pos_y,
+                window.width, window.height
+            );
+            self.canvas.set_draw_color(window.bg_col);
+            self.canvas.draw_rect(window_rect);
+
+            // TODO: This is a placeholder, dont forget to position the text before drawing it
+            self.draw_text(
+                &window.title,
+                Color::WHITE,
+                font,
+                (0, 0),
+                (
+                    self.canvas.window().size().0 / 2,
+                    self.canvas.window().size().1 / 32,
+                ),
+            )?;
+        }
         Ok(())
     }
 
-    pub fn draw_all(&mut self, game_context: &Game, font: &Font, editor: &Editor) -> Result<(), String> {
+    // fn draw_editor(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
+    //     self.draw_background(editor.main_window_col_bg)?;
+    //     self.draw_text(
+    //         &editor.main_window.title,
+    //         Color::WHITE,
+    //         font,
+    //         (0, 0),
+    //         (
+    //             self.canvas.window().size().0 / 2,
+    //             self.canvas.window().size().1 / 32,
+    //         ),
+    //     )?;
+    //     Ok(())
+    // }
+
+    pub fn draw_all(
+        &mut self,
+        game_context: &Game,
+        font: &Font,
+        editor: &Editor,
+    ) -> Result<(), String> {
         //self.draw_background()?;
         self.draw_player(&game_context.player)?;
-        self.draw_editor(editor, font)?;
-        self.draw_text("This is being drawn direct to screen", Color::GREY, font, (0, 300), (800, 50))?;
+        self.draw_editor_windows(editor, font)?;
+        self.draw_text(
+            "This is being drawn direct to screen",
+            Color::GREY,
+            font,
+            (0, 300),
+            (800, 50),
+        )?;
         Ok(())
     }
 

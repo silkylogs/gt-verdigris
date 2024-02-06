@@ -3,25 +3,28 @@
 extern crate sdl2;
 
 mod bitmap;
+mod editor;
 mod game;
 mod renderer;
-mod editor;
 
 use bitmap::Bitmap;
+use editor::Editor;
 use game::WindowDetails;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
-use editor::Editor;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
+    let game_window_details = WindowDetails::new(
+        "Green Top: Verdigris".to_string(), 
+        800, 600);
     let mut game_state = game::Game {
-        window: WindowDetails::new("Green Top: Verdigris".to_string(), 800, 600),
+        window: game_window_details.clone(),
         player: game::Player {
             pos_x: 200.0,
             pos_y: 200.0,
@@ -29,10 +32,14 @@ fn main() -> Result<(), String> {
         },
     };
 
-    let game_editor = Editor {
-        title: "Game editor window".to_owned(),
-        col_bg: Color::RGB(20, 20, 25),
-    };
+    let mut game_editor = Editor::new();
+    game_editor.add_default_window(game_window_details.clone());
+    // Editor::new(
+    //     "Game editor window",
+    //     Color::RGB(20, 20, 25),
+    //     (0, 0),
+    //     (800, 600),
+    // );
 
     let window = video_subsystem
         .window(
