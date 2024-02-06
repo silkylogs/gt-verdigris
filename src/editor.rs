@@ -1,4 +1,4 @@
-use sdl2::pixels::Color;
+use sdl2::pixels::{Color, PixelFormat};
 
 use crate::game::WindowDetails;
 
@@ -31,7 +31,7 @@ impl Editor {
             pos_y: 0,
             width: game_window.width,
             height: game_window.height,
-            bg_col: Color::RGB(32, 30, 30),
+            bg_col: Color::MAGENTA,
         };
 
         self.add_window(default_window);

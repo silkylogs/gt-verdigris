@@ -112,13 +112,14 @@ impl Renderer {
     }
 
     fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
-        for window in &editor.window_stack {
+        //for window in &editor.window_stack {
+        let window = &editor.window_stack[0];
             let window_rect = rect!(
                 window.pos_x, window.pos_y,
                 window.width, window.height
             );
             self.canvas.set_draw_color(window.bg_col);
-            self.canvas.draw_rect(window_rect);
+            self.canvas.fill_rect(window_rect)?;
 
             // TODO: This is a placeholder, dont forget to position the text before drawing it
             self.draw_text(
@@ -131,24 +132,9 @@ impl Renderer {
                     self.canvas.window().size().1 / 32,
                 ),
             )?;
-        }
+        //}
         Ok(())
     }
-
-    // fn draw_editor(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
-    //     self.draw_background(editor.main_window_col_bg)?;
-    //     self.draw_text(
-    //         &editor.main_window.title,
-    //         Color::WHITE,
-    //         font,
-    //         (0, 0),
-    //         (
-    //             self.canvas.window().size().0 / 2,
-    //             self.canvas.window().size().1 / 32,
-    //         ),
-    //     )?;
-    //     Ok(())
-    // }
 
     pub fn draw_all(
         &mut self,
@@ -156,16 +142,9 @@ impl Renderer {
         font: &Font,
         editor: &Editor,
     ) -> Result<(), String> {
-        //self.draw_background()?;
+        self.draw_background(Color::BLACK)?;
         self.draw_player(&game_context.player)?;
         self.draw_editor_windows(editor, font)?;
-        self.draw_text(
-            "This is being drawn direct to screen",
-            Color::GREY,
-            font,
-            (0, 300),
-            (800, 50),
-        )?;
         Ok(())
     }
 
