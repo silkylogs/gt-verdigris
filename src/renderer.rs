@@ -125,10 +125,10 @@ impl Renderer {
                 &window.title,
                 Color::WHITE,
                 font,
-                (0, 0),
+                (window.pos_x, window.pos_y),
                 (
-                    self.canvas.window().size().0 / 2,
-                    self.canvas.window().size().1 / 32,
+                    window.width / 2,
+                    window.height / 32,
                 ),
             )?;
         }

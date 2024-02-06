@@ -35,10 +35,23 @@ fn main() -> Result<(), String> {
     let mut game_editor = Editor::new();
     game_editor.add_default_window(game_window_details.clone());
     game_editor.add_window(EditorWindow {
-        title: "Window 2".to_owned(),
-        pos_x: 200, pos_y: 100,
-        width: 400, height: 300,
+        title: "Window 1".to_owned(),
+        pos_x: 100, pos_y: 100,
+        width: 300, height: 200,
         bg_col: Color::RGB(20, 20, 25),
+    });
+    //game_editor.add_default_window(game_window_details.clone());
+    game_editor.add_window(EditorWindow {
+        title: "Window 2".to_owned(),
+        pos_x: 200, pos_y: 250,
+        width: 300, height: 200,
+        bg_col: Color::RGB(30, 30, 35),
+    });
+    game_editor.add_window(EditorWindow {
+        title: "Window 3".to_owned(),
+        pos_x: 355, pos_y: 300,
+        width: 250, height: 200,
+        bg_col: Color::RGB(40, 40, 45),
     });
 
     let window = video_subsystem
