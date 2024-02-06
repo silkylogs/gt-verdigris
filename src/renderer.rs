@@ -54,8 +54,7 @@ impl Renderer {
         text: &str,
         color: Color,
         font: &Font,
-        (x, y): (u32, u32),
-        (w, h): (u32, u32),
+        target_rect: Rect,
     ) -> Result<(), String> {
         let texture_creator = self.canvas.texture_creator();
 
@@ -74,32 +73,42 @@ impl Renderer {
         let TextureQuery { width, height, .. } = texture.query();
         let padding = 64;
         */
-        let target = rect!(x, y, w, h);
 
-        self.canvas.copy(&texture, None, Some(target))?;
+        self.canvas.copy(&texture, None, Some(target_rect))?;
 
         Ok(())
     }
 
     fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
         for window in &editor.window_stack {
-            let window_rect = rect!(
-                window.pos_x, window.pos_y,
-                window.width, window.height
+            let overall_window_rect = rect!(
+                window.upper_left_x,
+                window.upper_left_y,
+                window.overall_width,
+                window.overall_height
             );
             self.canvas.set_draw_color(window.bg_col);
-            self.canvas.fill_rect(window_rect)?;
+            self.canvas.fill_rect(overall_window_rect)?;
 
+            let title_bar_rect = window.title_bar_rect();
+            self.canvas.set_draw_color(window.title_bar_col);
+            self.canvas.fill_rect(title_bar_rect)?;
+            let title_rect = rect!(
+                title_bar_rect.x,
+                title_bar_rect.y,
+                title_bar_rect.w / 2,
+                title_bar_rect.h
+            );
             self.draw_text(
                 &window.title,
-                Color::WHITE,
+                window.title_col,
                 font,
-                (window.pos_x, window.pos_y),
-                (
-                    window.width / 2,
-                    window.height / 32,
-                ),
+                title_rect,
             )?;
+
+            let client_rect = window.client_area_rect().unwrap();
+            self.canvas.set_draw_color(Color::MAGENTA); // test
+            self.canvas.draw_rect(client_rect)?;
         }
         Ok(())
     }

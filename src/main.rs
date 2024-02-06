@@ -20,9 +20,7 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let game_window_details = WindowDetails::new(
-        "Green Top: Verdigris".to_string(), 
-        800, 600);
+    let game_window_details = WindowDetails::new("Green Top: Verdigris".to_string(), 800, 600);
     let mut game_state = game::Game {
         window: game_window_details.clone(),
         player: game::Player {
@@ -33,25 +31,17 @@ fn main() -> Result<(), String> {
     };
 
     let mut game_editor = Editor::new();
-    game_editor.add_default_window(game_window_details.clone());
-    game_editor.add_window(EditorWindow {
-        title: "Window 1".to_owned(),
-        pos_x: 100, pos_y: 100,
-        width: 300, height: 200,
-        bg_col: Color::RGB(20, 20, 25),
-    });
-    game_editor.add_window(EditorWindow {
-        title: "Window 2".to_owned(),
-        pos_x: 200, pos_y: 250,
-        width: 300, height: 200,
-        bg_col: Color::RGB(30, 30, 35),
-    });
-    game_editor.add_window(EditorWindow {
-        title: "Window 3".to_owned(),
-        pos_x: 355, pos_y: 300,
-        width: 250, height: 200,
-        bg_col: Color::RGB(40, 40, 45),
-    });
+    game_editor.add_window(EditorWindow::new(
+        "Window 1".to_owned(),
+        Color::YELLOW,
+        Color::BLUE,
+        100,
+        100,
+        300,
+        200,
+        2,
+        Color::RGB(20, 20, 25),
+    ));
 
     let window = video_subsystem
         .window(
@@ -96,6 +86,18 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+
+                Event::MouseMotion {
+                    mousestate, x, y, ..
+                } => {
+                    println!(
+                        "{:?}, {}, {}",
+                        mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left),
+                        x,
+                        y
+                    );
+                    //todo!("Implement mouse support");
+                }
 
                 // TODO: to mitigate the issue of stuttering after holding the key,
                 // try creating a wrapper around SDL_GetKeyboardState()
