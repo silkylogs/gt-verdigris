@@ -72,7 +72,6 @@ impl EditorWindow {
         let upper_y: i32 = (self.upper_left_y + self.client_area_padding + self.title_bar_height)
             .try_into()
             .unwrap();
-        
 
         Ok(Rect::new(
             upper_x,

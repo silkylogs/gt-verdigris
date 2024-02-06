@@ -5,11 +5,13 @@ extern crate sdl2;
 mod bitmap;
 mod editor;
 mod game;
+mod input;
 mod renderer;
 
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
 use game::WindowDetails;
+use input::MouseInput;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -100,7 +102,11 @@ fn main() -> Result<(), String> {
         }
     }
 
+    let mut mouse_just_polled_state = MouseInput::new_default();
+
     'running: loop {
+        let mouse_prev_state = mouse_just_polled_state;
+        
         // Misc event handling
         for event in event_pump.poll_iter() {
             match event {
@@ -113,13 +119,13 @@ fn main() -> Result<(), String> {
                 Event::MouseMotion {
                     mousestate, x, y, ..
                 } => {
-                    // println!(
-                    //     "{:?}, {}, {}",
-                    //     mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left),
-                    //     x,
-                    //     y
-                    // );
-                    //todo!("Implement mouse support");
+
+                    mouse_just_polled_state.poll_state(
+                        mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left), 
+                        mousestate.is_mouse_button_pressed(sdl2::mouse::MouseButton::Right),
+                        x as u32,
+                        y as u32
+                    );
                 }
 
                 // TODO: to mitigate the issue of stuttering after holding the key,
@@ -145,6 +151,9 @@ fn main() -> Result<(), String> {
                 _ => {}
             }
         }
+
+        let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
+        dbg!(applied_mouse_state);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
