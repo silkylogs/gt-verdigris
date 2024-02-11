@@ -36,7 +36,7 @@ fn main() -> Result<(), String> {
     };
 
     let mut game_editor = Editor::new();
-    game_editor.add_default_window(game_window_details);
+    //game_editor.add_default_window(game_window_details);
     game_editor.add_window(EditorWindow::new(
         "Window 2".to_owned(),
         Color::YELLOW,
@@ -202,8 +202,8 @@ fn main() -> Result<(), String> {
         }
 
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
-        // game_editor.apply_mouse_input(&applied_mouse_state);
-        dbg!(applied_mouse_state);
+        game_editor.apply_mouse_input(&applied_mouse_state);
+        //dbg!(applied_mouse_state);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();

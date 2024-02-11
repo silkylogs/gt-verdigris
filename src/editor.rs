@@ -1,9 +1,10 @@
-use sdl2::{pixels::Color, rect::Rect};
+use sdl2::{pixels::Color, rect::{Point, Rect}};
 
-use crate::{game::WindowDetails, input::MouseInput};
+use crate::{game::WindowDetails, input::{ButtonStatus, MouseInput}};
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
+#[derive(Debug)]
 pub struct EditorWindow {
     // General settings
     pub upper_left_x: u32,
@@ -80,6 +81,15 @@ impl EditorWindow {
             self.client_area_height,
         ))
     }
+
+    pub fn window_rect(&self) -> Rect {
+        Rect::new(
+            self.upper_left_x as i32, 
+            self.upper_left_y as i32, 
+            self.overall_width, 
+            self.overall_height
+        )
+    }
 }
 
 pub struct Editor {
@@ -111,9 +121,25 @@ impl Editor {
         ));
     }
     
-    // pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
-    //     if mouse_state.rmb {
-    //         if mouse_state.x
-    //     }
-    // }
+    pub fn get_mut_topmost_window_at_coords(&mut self, (x, y): (u32, u32)) -> Option<&mut EditorWindow> {
+        for window in self.window_stack.iter_mut().rev() {
+            let hitbox = window.window_rect();
+            if hitbox.contains_point(Point::new(x as i32, y as i32)) {
+                
+                return Some(window);
+            }
+        }
+        None
+    }
+
+    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
+        let coords = mouse_state.coords();
+        if mouse_state.lmb() == ButtonStatus::HeldDown {
+            //todo!("Find a better name for this");
+            match self.get_mut_topmost_window_at_coords(coords) {
+                Some(window) => println!("Found window \"{}\"", window.title),
+                None => println!("Found nothing"),
+            };
+        }
+    }
 }
