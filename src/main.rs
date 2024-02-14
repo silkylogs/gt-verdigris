@@ -36,7 +36,7 @@ fn main() -> Result<(), String> {
     };
 
     let mut game_editor = Editor::new();
-    //game_editor.add_default_window(game_window_details);
+    game_editor.add_default_window(game_window_details);
     game_editor.add_window(EditorWindow::new(
         "Window 2".to_owned(),
         Color::YELLOW,
@@ -83,7 +83,7 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
-    let font_path = std::path::Path::new("./Arial.ttf");
+    let font_path = std::path::Path::new("./loaded_resources/Arial.ttf");
     let mut font = ttf_context.load_font(font_path, 128)?;
     font.set_style(FontStyle::NORMAL);
     let font = font;
