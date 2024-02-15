@@ -1,5 +1,7 @@
 // TODO: use std::time::Duration to represent time held down
 
+use sdl2::rect::Point;
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ButtonStatus {
     Pressed,
@@ -12,8 +14,7 @@ pub enum ButtonStatus {
 pub struct MouseInput {
     lmb: ButtonStatus,
     rmb: ButtonStatus,
-    x: u32,
-    y: u32,
+    cursor_pos: Point,
 }
 
 impl MouseInput {
@@ -21,8 +22,7 @@ impl MouseInput {
         MouseInput {
             lmb: ButtonStatus::NotPressed,
             rmb: ButtonStatus::NotPressed,
-            x: 0,
-            y: 0,
+            cursor_pos: Point::new(0, 0),
         }
     }
 
@@ -34,8 +34,8 @@ impl MouseInput {
         self.rmb
     }
 
-    pub fn coords(&self) -> (u32, u32) {
-        (self.x, self.y)
+    pub fn coords(&self) -> Point {
+        self.cursor_pos
     }
 
     pub fn poll_buttons(&mut self, lmb_pressed: bool, rmb_pressed: bool) {
@@ -49,9 +49,9 @@ impl MouseInput {
         };
     }
 
-    pub fn poll_motion(&mut self, x: u32, y: u32) {
-        self.x = x;
-        self.y = y;
+    pub fn poll_motion(&mut self, x: i32, y: i32) {
+        self.cursor_pos.x = x;
+        self.cursor_pos.y = y;
     }
 
     // Call this just after polling mouse state
@@ -89,8 +89,7 @@ impl MouseInput {
         MouseInput {
             lmb: match_buttons(prev_state.lmb, just_polled_state.lmb),
             rmb: match_buttons(prev_state.rmb, just_polled_state.rmb),
-            x: just_polled_state.x,
-            y: just_polled_state.y,
+            cursor_pos: just_polled_state.cursor_pos,
         }
     }
 }

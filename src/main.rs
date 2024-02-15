@@ -37,7 +37,7 @@ fn main() -> Result<(), String> {
     };
 
     let mut game_editor = Editor::new();
-    game_editor.add_default_window(game_window_details);
+    game_editor.add_default_window();
     game_editor.add_window(EditorWindow::new(
         "Window 2".to_owned(),
         Color::YELLOW,
@@ -165,8 +165,7 @@ fn main() -> Result<(), String> {
                 }
 
                 Event::MouseMotion { x, y, .. } => {
-                    // Potentially buggy
-                    mouse_just_polled_state.poll_motion(x as u32, y as u32);
+                    mouse_just_polled_state.poll_motion(x, y);
                 }
 
                 // TODO: to mitigate the issue of stuttering after holding the key,
@@ -195,8 +194,8 @@ fn main() -> Result<(), String> {
 
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
         let delta = Point::new(
-            (mouse_just_polled_state.coords().0 as i32 - mouse_prev_state.coords().0 as i32) as i32,
-            (mouse_just_polled_state.coords().1 as i32 - mouse_prev_state.coords().1 as i32) as i32
+            (mouse_just_polled_state.coords().x() as i32 - mouse_prev_state.coords().x()) as i32,
+            (mouse_just_polled_state.coords().y() as i32 - mouse_prev_state.coords().y()) as i32
         );
         game_editor.apply_mouse_input(&applied_mouse_state, delta);
 

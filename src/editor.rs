@@ -1,19 +1,13 @@
 use sdl2::{pixels::Color, rect::{Point, Rect}};
 
-use crate::{game::WindowDetails, input::{ButtonStatus, MouseInput}};
+use crate::input::{ButtonStatus, MouseInput};
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
 #[derive(Debug)]
 pub struct EditorWindow {
     // General settings
-    // TODO: convert to Point
-    // pub upper_left_x: u32,
-    // pub upper_left_y: u32,
-    // pub overall_width: u32,
-    // pub overall_height: u32,
     overall_rect: Rect,
-
     client_area_width: u32,
     client_area_height: u32,
     client_area_padding: u32,
@@ -100,22 +94,21 @@ impl Editor {
         self.window_stack.push(new_window);
     }
 
-    pub fn add_default_window(&mut self, game_window: WindowDetails) {
+    pub fn add_default_window(&mut self) {
         self.add_window(EditorWindow::new(
             "Default Window".to_owned(),
             Color::WHITE,
             Color::BLUE,
-            Rect::new(0, 0, 200, 200),
+            Rect::new(0, 0, 800, 600),
             2,
             Color::GREY,
         ));
     }
     
-    pub fn get_mut_topmost_window_at_coords(&mut self, (x, y): (u32, u32)) -> Option<&mut EditorWindow> {
+    pub fn get_mut_topmost_window_at_coords(&mut self, coords: Point) -> Option<&mut EditorWindow> {
         for window in self.window_stack.iter_mut().rev() {
             let hitbox = window.window_rect();
-            if hitbox.contains_point(Point::new(x as i32, y as i32)) {
-                
+            if hitbox.contains_point(coords) {
                 return Some(window);
             }
         }
