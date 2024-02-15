@@ -112,9 +112,7 @@ fn main() -> Result<(), String> {
                 } => break 'running,
 
                 // Note: the "clicks" field exists, use it if you need it
-                Event::MouseButtonDown {
-                    mouse_btn, ..
-                } => {
+                Event::MouseButtonDown { mouse_btn, .. } => {
                     let temp_state = mouse_just_polled_state;
 
                     let temp_lmb_pressed = match temp_state.lmb() {
@@ -138,9 +136,7 @@ fn main() -> Result<(), String> {
                     }
                 }
 
-                Event::MouseButtonUp {
-                    mouse_btn, ..
-                } => {
+                Event::MouseButtonUp { mouse_btn, .. } => {
                     let temp_state = mouse_just_polled_state;
 
                     let temp_lmb_pressed = match temp_state.lmb() {
@@ -195,7 +191,7 @@ fn main() -> Result<(), String> {
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
         let delta = Point::new(
             mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
-            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y()
+            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
         );
         game_editor.apply_mouse_input(&applied_mouse_state, delta);
 

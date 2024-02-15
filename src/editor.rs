@@ -1,4 +1,7 @@
-use sdl2::{pixels::Color, rect::{Point, Rect}};
+use sdl2::{
+    pixels::Color,
+    rect::{Point, Rect},
+};
 
 use crate::input::{ButtonStatus, MouseInput};
 
@@ -41,7 +44,9 @@ impl EditorWindow {
 
             overall_rect: overall_window_rect,
             client_area_width: overall_window_rect.width() - client_area_padding * 2,
-            client_area_height: overall_window_rect.height() - client_area_padding * 2 - title_bar_height,
+            client_area_height: overall_window_rect.height()
+                - client_area_padding * 2
+                - title_bar_height,
             client_area_padding: client_area_padding,
             bg_col: bg_col,
         }
@@ -59,7 +64,8 @@ impl EditorWindow {
 
     pub fn client_area_rect(&self) -> Result<Rect, String> {
         let upper_x: i32 = self.overall_rect.x() + self.client_area_padding as i32;
-        let upper_y: i32 = self.overall_rect.y() + (self.client_area_padding + self.title_bar_height) as i32;
+        let upper_y: i32 =
+            self.overall_rect.y() + (self.client_area_padding + self.title_bar_height) as i32;
 
         Ok(Rect::new(
             upper_x,
@@ -104,15 +110,11 @@ impl Editor {
             Color::GREY,
         ));
     }
-    
+
     pub fn get_mut_topmost_window_at_coords(&mut self, coords: Point) -> Option<&mut EditorWindow> {
-        for window in self.window_stack.iter_mut().rev() {
-            let hitbox = window.window_rect();
-            if hitbox.contains_point(coords) {
-                return Some(window);
-            }
-        }
-        None
+        self.window_stack
+            .iter_mut()
+            .rfind(|window| window.window_rect().contains_point(coords))
     }
 
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
@@ -123,7 +125,7 @@ impl Editor {
                 Some(window) => {
                     //println!("Found window \"{}\"", window.title)
                     window.move_by(mouse_pos_delta);
-                },
+                }
                 None => println!("Found nothing"),
             };
         }
