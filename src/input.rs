@@ -1,3 +1,5 @@
+// TODO: use std::time::Duration to represent time held down
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ButtonStatus {
     Pressed,

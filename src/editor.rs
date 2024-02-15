@@ -7,6 +7,7 @@ use crate::{game::WindowDetails, input::{ButtonStatus, MouseInput}};
 #[derive(Debug)]
 pub struct EditorWindow {
     // General settings
+    // TODO: convert to Point
     pub upper_left_x: u32,
     pub upper_left_y: u32,
     pub overall_width: u32,
@@ -90,6 +91,11 @@ impl EditorWindow {
             self.overall_height
         )
     }
+
+    pub fn move_by(&mut self, delta: Point) {
+        self.upper_left_x += delta.x() as u32;
+        self.upper_left_y += delta.y() as u32;
+    }
 }
 
 pub struct Editor {
@@ -132,12 +138,15 @@ impl Editor {
         None
     }
 
-    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
+    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
         let coords = mouse_state.coords();
         if mouse_state.lmb() == ButtonStatus::HeldDown {
             //todo!("Find a better name for this");
             match self.get_mut_topmost_window_at_coords(coords) {
-                Some(window) => println!("Found window \"{}\"", window.title),
+                Some(window) => {
+                    //println!("Found window \"{}\"", window.title)
+                    window.move_by(mouse_pos_delta);
+                },
                 None => println!("Found nothing"),
             };
         }

@@ -16,6 +16,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
+use sdl2::rect::Point;
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
 
@@ -202,8 +203,11 @@ fn main() -> Result<(), String> {
         }
 
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
-        game_editor.apply_mouse_input(&applied_mouse_state);
-        //dbg!(applied_mouse_state);
+        let delta = Point::new(
+            (mouse_just_polled_state.coords().0 - mouse_prev_state.coords().0) as i32,
+            (mouse_just_polled_state.coords().1 - mouse_prev_state.coords().1) as i32
+        );
+        game_editor.apply_mouse_input(&applied_mouse_state, delta);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
