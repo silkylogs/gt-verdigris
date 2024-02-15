@@ -16,7 +16,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
-use sdl2::rect::Point;
+use sdl2::rect::{Point, Rect};
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
 
@@ -42,10 +42,7 @@ fn main() -> Result<(), String> {
         "Window 2".to_owned(),
         Color::YELLOW,
         Color::BLUE,
-        100,
-        100,
-        300,
-        200,
+        Rect::new(100, 100, 300, 200),
         2,
         Color::RGB(20, 20, 25),
     ));
@@ -53,10 +50,7 @@ fn main() -> Result<(), String> {
         "Window 3".to_owned(),
         Color::WHITE,
         Color::RGB(77, 30, 35),
-        150,
-        200,
-        300,
-        200,
+        Rect::new(150, 200, 300, 200),
         1,
         Color::YELLOW,
     ));
@@ -64,10 +58,7 @@ fn main() -> Result<(), String> {
         "Window 4".to_owned(),
         Color::GREEN,
         Color::GREY,
-        250,
-        300,
-        300,
-        200,
+        Rect::new(250, 300, 300, 200),
         2,
         Color::RGB(40, 40, 45),
     ));
@@ -204,8 +195,8 @@ fn main() -> Result<(), String> {
 
         let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
         let delta = Point::new(
-            (mouse_just_polled_state.coords().0 - mouse_prev_state.coords().0) as i32,
-            (mouse_just_polled_state.coords().1 - mouse_prev_state.coords().1) as i32
+            (mouse_just_polled_state.coords().0 as i32 - mouse_prev_state.coords().0 as i32) as i32,
+            (mouse_just_polled_state.coords().1 as i32 - mouse_prev_state.coords().1 as i32) as i32
         );
         game_editor.apply_mouse_input(&applied_mouse_state, delta);
 
