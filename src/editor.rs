@@ -3,7 +3,7 @@ use sdl2::{
     rect::{Point, Rect},
 };
 
-use crate::input::{ButtonStatus, MouseInput};
+use crate::input::MouseInput;
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
@@ -119,15 +119,15 @@ impl Editor {
 
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
         let coords = mouse_state.coords();
-        if mouse_state.lmb() == ButtonStatus::HeldDown {
-            //todo!("Find a better name for this");
-            match self.get_mut_topmost_window_at_coords(coords) {
-                Some(window) => {
-                    //println!("Found window \"{}\"", window.title)
-                    window.move_by(mouse_pos_delta);
-                }
-                None => println!("Found nothing"),
-            };
-        }
+        // if mouse_state.lmb() == ButtonStatus::HeldDown {
+        //     //todo!("Find a better name for this");
+        //     match self.get_mut_topmost_window_at_coords(coords) {
+        //         Some(window) => {
+        //             //println!("Found window \"{}\"", window.title)
+        //             window.move_by(mouse_pos_delta);
+        //         }
+        //         None => println!("Found nothing"),
+        //     };
+        // }
     }
 }

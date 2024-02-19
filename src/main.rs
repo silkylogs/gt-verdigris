@@ -11,16 +11,12 @@ mod renderer;
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
 use game::WindowDetails;
-use input::MouseInput;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::ttf::FontStyle;
 use std::time::Duration;
-
-use crate::input::ButtonStatus;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -97,8 +93,7 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let mut mouse_just_polled_state = MouseInput::new_default();
-
+    let mut mouse_just_polled_state = input::MouseInput::new_default();
     'running: loop {
         let mouse_prev_state = mouse_just_polled_state;
 
@@ -111,53 +106,64 @@ fn main() -> Result<(), String> {
                     ..
                 } => break 'running,
 
-                // Note: the "clicks" field exists, use it if you need it
-                Event::MouseButtonDown { mouse_btn, .. } => {
-                    let temp_state = mouse_just_polled_state;
-
-                    let temp_lmb_pressed = match temp_state.lmb() {
-                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
-                        _ => false,
-                    };
-
-                    let temp_rmb_pressed = match temp_state.rmb() {
-                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
-                        _ => false,
-                    };
-
+                Event::MouseButtonDown { mouse_btn, timestamp, .. } => {
+                    let curr_timestamp = Duration::from_millis(timestamp as u64);
                     match mouse_btn {
-                        MouseButton::Left => {
-                            mouse_just_polled_state.poll_buttons(true, temp_rmb_pressed)
+                        sdl2::mouse::MouseButton::Left => {
+                            mouse_just_polled_state = input::MouseInput { 
+                                lmb: true,
+                                lmb_timestamp: curr_timestamp,
+                                rmb: mouse_just_polled_state.rmb,
+                                rmb_timestamp: mouse_just_polled_state.rmb_timestamp,
+                                cursor_pos: mouse_just_polled_state.cursor_pos,
+                            }
                         }
-                        MouseButton::Right => {
-                            mouse_just_polled_state.poll_buttons(temp_lmb_pressed, true)
-                        }
-                        _ => {}
-                    }
+                        sdl2::mouse::MouseButton::Right => {
+                            mouse_just_polled_state = input::MouseInput { 
+                                rmb: true,
+                                rmb_timestamp: curr_timestamp,
+                                lmb: mouse_just_polled_state.lmb,
+                                lmb_timestamp: mouse_just_polled_state.lmb_timestamp,
+                                cursor_pos: mouse_just_polled_state.cursor_pos,
+                            }
+                        },
+                        _ => {},
+                    };
+
+                    println!("MB down: {:?}", input::MouseInput::timestamp_diff(
+                        mouse_just_polled_state,
+                        mouse_prev_state
+                    ));
                 }
 
-                Event::MouseButtonUp { mouse_btn, .. } => {
-                    let temp_state = mouse_just_polled_state;
-
-                    let temp_lmb_pressed = match temp_state.lmb() {
-                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
-                        _ => false,
-                    };
-
-                    let temp_rmb_pressed = match temp_state.rmb() {
-                        ButtonStatus::Pressed | ButtonStatus::HeldDown => true,
-                        _ => false,
-                    };
-
+                Event::MouseButtonUp { mouse_btn, timestamp, .. } => {
+                    let curr_timestamp = Duration::from_millis(timestamp as u64);
                     match mouse_btn {
-                        MouseButton::Left => {
-                            mouse_just_polled_state.poll_buttons(false, temp_rmb_pressed)
+                        sdl2::mouse::MouseButton::Left => {
+                            mouse_just_polled_state = input::MouseInput { 
+                                lmb: false,
+                                lmb_timestamp: curr_timestamp,
+                                rmb: mouse_just_polled_state.rmb,
+                                rmb_timestamp: mouse_just_polled_state.rmb_timestamp,
+                                cursor_pos: mouse_just_polled_state.cursor_pos,
+                            }
                         }
-                        MouseButton::Right => {
-                            mouse_just_polled_state.poll_buttons(temp_lmb_pressed, false)
-                        }
-                        _ => {}
-                    }
+                        sdl2::mouse::MouseButton::Right => {
+                            mouse_just_polled_state = input::MouseInput { 
+                                rmb: false,
+                                rmb_timestamp: curr_timestamp,
+                                lmb: mouse_just_polled_state.lmb,
+                                lmb_timestamp: mouse_just_polled_state.lmb_timestamp,
+                                cursor_pos: mouse_just_polled_state.cursor_pos,
+                            }
+                        },
+                        _ => {},
+                    };
+
+                    println!("MB up: {:?}", input::MouseInput::timestamp_diff(
+                        mouse_just_polled_state,
+                        mouse_prev_state
+                    ));
                 }
 
                 Event::MouseMotion { x, y, .. } => {
@@ -188,12 +194,12 @@ fn main() -> Result<(), String> {
             }
         }
 
-        let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
+        // let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
         let delta = Point::new(
             mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
             mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
         );
-        game_editor.apply_mouse_input(&applied_mouse_state, delta);
+        //game_editor.apply_mouse_input(&applied_mouse_state, delta);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
