@@ -1,4 +1,4 @@
-use sdl2::{controller::Button, rect::Point};
+use sdl2::rect::Point;
 use std::time::{Duration, Instant};
 
 pub enum MouseButton {

@@ -1,9 +1,10 @@
+use std::time::Duration;
+
 use sdl2::{
-    pixels::Color,
-    rect::{Point, Rect},
+    mouse, pixels::Color, rect::{Point, Rect}
 };
 
-use crate::input::MouseInput;
+use crate::input::{self, MouseInput};
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
@@ -119,15 +120,20 @@ impl Editor {
 
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
         let coords = mouse_state.coords();
-        // if mouse_state.lmb() == ButtonStatus::HeldDown {
-        //     //todo!("Find a better name for this");
-        //     match self.get_mut_topmost_window_at_coords(coords) {
-        //         Some(window) => {
-        //             //println!("Found window \"{}\"", window.title)
-        //             window.move_by(mouse_pos_delta);
-        //         }
-        //         None => println!("Found nothing"),
-        //     };
-        // }
+        let hold_down_time_ms = Duration::from_millis(250);
+
+        // Bring the window clicked into focus
+        //self.move_window_at_coords_into_focus(coords);
+
+
+        if mouse_state.lmb {
+            match self.get_mut_topmost_window_at_coords(coords) {
+                Some(window) => {
+                    println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
+                    window.move_by(mouse_pos_delta);
+                },
+                None => {},
+            }
+        }
     }
 }

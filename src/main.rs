@@ -166,9 +166,7 @@ fn main() -> Result<(), String> {
             mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
             mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
         );
-        //game_editor.apply_mouse_input(&applied_mouse_state, delta);
-
-        println!("LMB held down for {:?}", mouse_just_polled_state.time_mouse_button_held(input::MouseButton::Left));
+        game_editor.apply_mouse_input(&mouse_just_polled_state, delta);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
