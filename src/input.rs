@@ -1,5 +1,9 @@
-use sdl2::rect::Point;
-use std::time::Instant;
+use sdl2::{controller::Button, rect::Point};
+use std::time::{Duration, Instant};
+
+pub enum MouseButton {
+    Right, Left,
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct MouseInput {
@@ -28,5 +32,24 @@ impl MouseInput {
     pub fn poll_motion(&mut self, x: i32, y: i32) {
         self.cursor_pos.x = x;
         self.cursor_pos.y = y;
+    }
+
+    pub fn time_mouse_button_held(&self, button: MouseButton) -> Duration {
+        match button {
+            MouseButton::Left => {
+                if self.lmb {
+                    self.lmb_held_down_instant.elapsed()
+                } else {
+                    Duration::from_secs(0)
+                }
+            }, 
+            MouseButton::Right => {
+                if self.rmb {
+                    self.rmb_held_down_instant.elapsed()
+                } else {
+                    Duration::from_secs(0)
+                }
+            }
+        }
     }
 }

@@ -168,14 +168,7 @@ fn main() -> Result<(), String> {
         );
         //game_editor.apply_mouse_input(&applied_mouse_state, delta);
 
-        if mouse_just_polled_state.lmb {
-            let duration = mouse_just_polled_state.lmb_held_down_instant.elapsed();
-            println!("LMB held down for {:?}", duration);
-        }
-        if mouse_just_polled_state.rmb {
-            let duration = mouse_just_polled_state.rmb_held_down_instant.elapsed();
-            println!("RMB held down for {:?}", duration);
-        }
+        println!("LMB held down for {:?}", mouse_just_polled_state.time_mouse_button_held(input::MouseButton::Left));
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
