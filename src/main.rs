@@ -15,7 +15,6 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::timer;
 use sdl2::ttf::FontStyle;
 use std::time::{Duration, Instant};
 
@@ -94,8 +93,6 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let mut lmb_time_held_down = Instant::now();
-
     let mut mouse_just_polled_state = input::MouseInput::new_default();
     'running: loop {
         let mouse_prev_state = mouse_just_polled_state;
@@ -110,33 +107,31 @@ fn main() -> Result<(), String> {
                 } => break 'running,
 
                 Event::MouseButtonDown { mouse_btn, .. } => {
-                    lmb_time_held_down = Instant::now();
-
                     match mouse_btn {
                         sdl2::mouse::MouseButton::Left => {
                             mouse_just_polled_state.lmb = true;
+                            mouse_just_polled_state.lmb_held_down_instant = Instant::now();
                         }
                         sdl2::mouse::MouseButton::Right => {
                             mouse_just_polled_state.rmb = true;
-                        },
-                        _ => {},
+                            mouse_just_polled_state.rmb_held_down_instant = Instant::now();
+                        }
+                        _ => {}
                     };
-
-                    println!("MB down event detected");
                 }
 
                 Event::MouseButtonUp { mouse_btn, .. } => {
                     match mouse_btn {
                         sdl2::mouse::MouseButton::Left => {
                             mouse_just_polled_state.lmb = false;
+                            mouse_just_polled_state.lmb_held_down_instant = Instant::now();
                         }
                         sdl2::mouse::MouseButton::Right => {
                             mouse_just_polled_state.rmb = false;
-                        },
-                        _ => {},
+                            mouse_just_polled_state.rmb_held_down_instant = Instant::now();
+                        }
+                        _ => {}
                     };
-
-                    lmb_time_held_down = Instant::now();
                 }
 
                 Event::MouseMotion { x, y, .. } => {
@@ -167,15 +162,19 @@ fn main() -> Result<(), String> {
             }
         }
 
-        // let applied_mouse_state = MouseInput::update(mouse_prev_state, mouse_just_polled_state);
         let delta = Point::new(
             mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
-            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y()
+            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
         );
         //game_editor.apply_mouse_input(&applied_mouse_state, delta);
 
         if mouse_just_polled_state.lmb {
-            println!("LMB held down for {:?}", lmb_time_held_down.elapsed());
+            let duration = mouse_just_polled_state.lmb_held_down_instant.elapsed();
+            println!("LMB held down for {:?}", duration);
+        }
+        if mouse_just_polled_state.rmb {
+            let duration = mouse_just_polled_state.rmb_held_down_instant.elapsed();
+            println!("RMB held down for {:?}", duration);
         }
 
         renderer.draw_all(&game_state, &font, &game_editor)?;

@@ -1,7 +1,6 @@
-use std::time::Instant;
 use sdl2::rect::Point;
+use std::time::Instant;
 
-// The durations are timestamps
 #[derive(Copy, Clone, Debug)]
 pub struct MouseInput {
     pub lmb: bool,
