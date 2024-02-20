@@ -1,7 +1,9 @@
-use std::time::Duration;
+use std::{mem::swap, time::Duration};
 
 use sdl2::{
-    mouse, pixels::Color, rect::{Point, Rect}
+    mouse,
+    pixels::Color,
+    rect::{Point, Rect},
 };
 
 use crate::input::{self, MouseInput};
@@ -118,22 +120,44 @@ impl Editor {
             .rfind(|window| window.window_rect().contains_point(coords))
     }
 
+    pub fn get_topmost_window_at_coords(&mut self, coords: Point) -> Option<&EditorWindow> {
+        self.window_stack
+            .iter()
+            .rfind(|window| window.window_rect().contains_point(coords))
+    }
+
+    pub fn move_window_at_coords_to_top(&mut self, coords: Point) {
+        let index = self
+            .window_stack
+            .iter_mut()
+            .enumerate()
+            .rfind(|(idx, window)| window.window_rect().contains_point(coords))
+            .map(|(idx, _)| idx);
+        match index {
+            Some(i) => {
+                let top_idx: usize = (self.window_stack.len() - 1).try_into().unwrap();
+                self.window_stack.swap(top_idx, i);
+            }
+            _ => {}
+        }
+        todo!("Instead of swapping, try actually *moving*")
+    }
+
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
         let coords = mouse_state.coords();
-        let hold_down_time_ms = Duration::from_millis(250);
 
         // Bring the window clicked into focus
-        //self.move_window_at_coords_into_focus(coords);
-
+        
 
         if mouse_state.lmb {
-            match self.get_mut_topmost_window_at_coords(coords) {
-                Some(window) => {
-                    println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
-                    window.move_by(mouse_pos_delta);
-                },
-                None => {},
-            }
+            self.move_window_at_coords_to_top(coords);
+            // match self.get_mut_topmost_window_at_coords(coords) {
+            //     Some(window) => {
+            //         println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
+            //         window.move_by(mouse_pos_delta);
+            //     },
+            //     None => {},
+            // }
         }
     }
 }

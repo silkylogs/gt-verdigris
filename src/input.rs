@@ -2,7 +2,8 @@ use sdl2::rect::Point;
 use std::time::{Duration, Instant};
 
 pub enum MouseButton {
-    Right, Left,
+    Right,
+    Left,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -42,7 +43,7 @@ impl MouseInput {
                 } else {
                     Duration::from_secs(0)
                 }
-            }, 
+            }
             MouseButton::Right => {
                 if self.rmb {
                     self.rmb_held_down_instant.elapsed()
