@@ -131,32 +131,31 @@ impl Editor {
             .window_stack
             .iter_mut()
             .enumerate()
-            .rfind(|(idx, window)| window.window_rect().contains_point(coords))
+            .rfind(|(_, window)| window.window_rect().contains_point(coords))
             .map(|(idx, _)| idx);
         match index {
             Some(i) => {
                 self.window_stack[i..].rotate_left(1);
-            }
-            _ => {}
+            },
+            _ => {},
         }
-        //todo!("Instead of swapping, try actually *moving* by `vec[i..].rotate_left(1)`");
     }
 
+    // Note: window moving is slightly broken
+    // if window is dragged too fast, the cursor somehow "slips" off the window hitbox
+    // possible workaround: todo!();
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
         let coords = mouse_state.coords();
 
-        // Bring the window clicked into focus
-        
-
         if mouse_state.lmb {
             self.move_window_at_coords_to_top(coords);
-            // match self.get_mut_topmost_window_at_coords(coords) {
-            //     Some(window) => {
-            //         println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
-            //         window.move_by(mouse_pos_delta);
-            //     },
-            //     None => {},
-            // }
+            match self.get_mut_topmost_window_at_coords(coords) {
+                Some(window) => {
+                    //println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
+                    window.move_by(mouse_pos_delta);
+                },
+                None => {},
+            }
         }
     }
 }
