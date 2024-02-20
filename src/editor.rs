@@ -6,7 +6,7 @@ use sdl2::{
     rect::{Point, Rect},
 };
 
-use crate::input::{self, MouseInput};
+use crate::input::MouseInput;
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
@@ -18,6 +18,7 @@ pub struct EditorWindow {
     client_area_height: u32,
     client_area_padding: u32,
     pub bg_col: Color,
+    pub is_selected: bool,
 
     // Title
     pub title: String,
@@ -52,6 +53,7 @@ impl EditorWindow {
                 - title_bar_height,
             client_area_padding: client_area_padding,
             bg_col: bg_col,
+            is_selected: false,
         }
     }
     //pub fn new_default() -> EditorWindow;
@@ -141,21 +143,62 @@ impl Editor {
         }
     }
 
-    // Note: window moving is slightly broken
-    // if window is dragged too fast, the cursor somehow "slips" off the window hitbox
-    // possible workaround: todo!();
-    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
-        let coords = mouse_state.coords();
+    /*
+    Note: window moving is slightly broken
+    if window is dragged too fast, the cursor somehow "slips" off the window hitbox
+    possible workaround: (thanks anon)
+    ```
+    I meant to say that the specified bounds that you check for in the while loop can be defined
+    as difference between the current mouse position and the center of the window rect;
+    that way during your while loop you can add a check at the end of the iteration that says, 
+    "if the window is (for whatever reason) slipping away from the mouse position, pull it back to the mouse"
+    ```
+    additional high level impl note:
+    ```
+    >check if cursor is in rect
+    >check if win that owns rect is draggable
+    >while mouse1 pressed offset rect.pos by mouse.xy delta * whatever value feels good, as well as
+     checking to make sure the rect stays in specified bounds if there are any
+    >when you leave the while loop final check that we are in a valid position, adjust if needed
 
-        if mouse_state.lmb {
-            self.move_window_at_coords_to_top(coords);
-            match self.get_mut_topmost_window_at_coords(coords) {
-                Some(window) => {
-                    //println!("Found window {}, moving it by {:?}", window.title, mouse_pos_delta);
+    reference to:
+    pub struct EditorWindow {
+        overall_rect: sdl2::Rect,
+    }
+
+    impl EditorWindow {
+        pub fn move_by(&mut self, delta: sdl2::rect::Point) {
+            self.overall_rect.x += delta.x();
+            self.overall_rect.y += delta.y();
+    }}
+
+    fn main() {
+        // Somewhere inside the main loop...
+        // mouse_prev_state is one frame behind mouse_just_polled_state
+        let mouse_pos_delta = sdl2::rect::Point::new(
+            mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
+            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
+        );
+        default_window.move_by(mouse_pos_delta);
+    }
+    ```
+    */
+    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
+        // Note to self: bind the window in some sort of ownership to the mouse if it is chosen
+        match self.get_mut_topmost_window_at_coords(mouse_state.coords()) {
+            Some(window) => {
+                window.is_selected = mouse_state.lmb;
+
+                if window.is_selected {
                     window.move_by(mouse_pos_delta);
-                },
-                None => {},
-            }
+                }
+
+                let has_mouse_slipped = !window.window_rect().contains_point(mouse_state.coords());
+                if has_mouse_slipped {
+                    println!("Mouse slip detected");
+                }
+            },
+            _ => {},
         }
     }
 }
