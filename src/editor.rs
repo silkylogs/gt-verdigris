@@ -140,7 +140,7 @@ impl Editor {
             }
             _ => {}
         }
-        todo!("Instead of swapping, try actually *moving*")
+        todo!("Instead of swapping, try actually *moving* by `vec[i..].rotate_left(1)`");
     }
 
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
