@@ -15,8 +15,9 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
+use sdl2::timer;
 use sdl2::ttf::FontStyle;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -93,7 +94,10 @@ fn main() -> Result<(), String> {
         }
     }
 
+    let mut baseline_time = Instant::now();
+
     let mut mouse_just_polled_state = input::MouseInput::new_default();
+    let mut lmb_duration = Duration::from_secs(0);
     'running: loop {
         let mouse_prev_state = mouse_just_polled_state;
 
@@ -108,6 +112,9 @@ fn main() -> Result<(), String> {
 
                 Event::MouseButtonDown { mouse_btn, timestamp, .. } => {
                     let curr_timestamp = Duration::from_millis(timestamp as u64);
+
+                    baseline_time = Instant::now();
+
                     match mouse_btn {
                         sdl2::mouse::MouseButton::Left => {
                             mouse_just_polled_state = input::MouseInput { 
@@ -130,10 +137,11 @@ fn main() -> Result<(), String> {
                         _ => {},
                     };
 
-                    println!("MB down: {:?}", input::MouseInput::timestamp_diff(
+                    (lmb_duration, _) = input::MouseInput::timestamp_diff(
                         mouse_just_polled_state,
                         mouse_prev_state
-                    ));
+                    );
+                    println!("MB down event detected");
                 }
 
                 Event::MouseButtonUp { mouse_btn, timestamp, .. } => {
@@ -160,10 +168,17 @@ fn main() -> Result<(), String> {
                         _ => {},
                     };
 
-                    println!("MB up: {:?}", input::MouseInput::timestamp_diff(
+                    (lmb_duration, _) = input::MouseInput::timestamp_diff(
                         mouse_just_polled_state,
                         mouse_prev_state
-                    ));
+                    );
+
+                    baseline_time = Instant::now();
+                    // let time_held_down = input::MouseInput::timestamp_diff(
+                    //     mouse_just_polled_state,
+                    //     mouse_prev_state
+                    // );
+                    // println!("Mouse buttons held down for: {:?}", time_held_down);
                 }
 
                 Event::MouseMotion { x, y, .. } => {
@@ -200,6 +215,10 @@ fn main() -> Result<(), String> {
             mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
         );
         //game_editor.apply_mouse_input(&applied_mouse_state, delta);
+
+        if mouse_just_polled_state.lmb {
+            println!("Mouse buttons held down for: {:?}", baseline_time.elapsed());
+        }
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
