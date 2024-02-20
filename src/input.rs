@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::Instant;
 use sdl2::rect::Point;
 
 // The durations are timestamps
@@ -6,19 +6,18 @@ use sdl2::rect::Point;
 pub struct MouseInput {
     pub lmb: bool,
     pub rmb: bool,
-    pub lmb_timestamp: Duration,
-    pub rmb_timestamp: Duration,
+    pub lmb_held_down_instant: Instant,
+    pub rmb_held_down_instant: Instant,
     pub cursor_pos: Point,
 }
 
 impl MouseInput {
     pub fn new_default() -> MouseInput {
-        let zero = std::time::Duration::from_secs(0);
         MouseInput {
             lmb: false,
             rmb: false,
-            lmb_timestamp: zero,
-            rmb_timestamp: zero,
+            lmb_held_down_instant: Instant::now(),
+            rmb_held_down_instant: Instant::now(),
             cursor_pos: Point::new(0, 0),
         }
     }
@@ -31,10 +30,4 @@ impl MouseInput {
         self.cursor_pos.x = x;
         self.cursor_pos.y = y;
     }
-
-    // lmb, rmb
-    pub fn timestamp_diff(curr: MouseInput, prev: MouseInput) -> (Duration, Duration) {(
-        curr.lmb_timestamp - prev.lmb_timestamp,
-        curr.rmb_timestamp - prev.rmb_timestamp
-    )}
 }
