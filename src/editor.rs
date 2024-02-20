@@ -108,7 +108,7 @@ impl Editor {
             "Default Window".to_owned(),
             Color::WHITE,
             Color::BLUE,
-            Rect::new(0, 0, 800, 600),
+            Rect::new(0, 0, 400, 400),
             2,
             Color::GREY,
         ));
@@ -135,12 +135,11 @@ impl Editor {
             .map(|(idx, _)| idx);
         match index {
             Some(i) => {
-                let top_idx: usize = (self.window_stack.len() - 1).try_into().unwrap();
-                self.window_stack.swap(top_idx, i);
+                self.window_stack[i..].rotate_left(1);
             }
             _ => {}
         }
-        todo!("Instead of swapping, try actually *moving* by `vec[i..].rotate_left(1)`");
+        //todo!("Instead of swapping, try actually *moving* by `vec[i..].rotate_left(1)`");
     }
 
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
