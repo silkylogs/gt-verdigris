@@ -1,4 +1,5 @@
-// Note to self: if build fails on mac, try `source ~/.zshenv`
+// Note to people building on a mac:
+// if build fails, try `source ~/.zshenv`
 
 extern crate sdl2;
 
@@ -13,7 +14,6 @@ use editor::{Editor, EditorWindow};
 use game::WindowDetails;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::Point;
 use sdl2::ttf::FontStyle;
 use sdl2::{event::Event, rect::Rect};
 use std::time::{Duration, Instant};

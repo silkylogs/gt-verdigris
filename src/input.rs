@@ -35,6 +35,7 @@ impl MouseInput {
         self.cursor_pos.y = y;
     }
 
+    #[allow(dead_code)]
     pub fn time_mouse_button_held(&self, button: MouseButton) -> Duration {
         match button {
             MouseButton::Left => {
