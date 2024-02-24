@@ -99,9 +99,9 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let mut mouse_just_polled_state = input::MouseInput::new_default();
+    let mut mouse_state_updated = input::MouseInput::new_default();
     'running: loop {
-        let mouse_prev_state = mouse_just_polled_state;
+        let mouse_state_prev = mouse_state_updated;
 
         // Misc event handling
         for event in event_pump.poll_iter() {
@@ -115,12 +115,12 @@ fn main() -> Result<(), String> {
                 Event::MouseButtonDown { mouse_btn, .. } => {
                     match mouse_btn {
                         sdl2::mouse::MouseButton::Left => {
-                            mouse_just_polled_state.lmb = true;
-                            mouse_just_polled_state.lmb_held_down_instant = Instant::now();
+                            mouse_state_updated.lmb = true;
+                            mouse_state_updated.lmb_held_down_instant = Instant::now();
                         }
                         sdl2::mouse::MouseButton::Right => {
-                            mouse_just_polled_state.rmb = true;
-                            mouse_just_polled_state.rmb_held_down_instant = Instant::now();
+                            mouse_state_updated.rmb = true;
+                            mouse_state_updated.rmb_held_down_instant = Instant::now();
                         }
                         _ => {}
                     };
@@ -129,19 +129,19 @@ fn main() -> Result<(), String> {
                 Event::MouseButtonUp { mouse_btn, .. } => {
                     match mouse_btn {
                         sdl2::mouse::MouseButton::Left => {
-                            mouse_just_polled_state.lmb = false;
-                            mouse_just_polled_state.lmb_held_down_instant = Instant::now();
+                            mouse_state_updated.lmb = false;
+                            mouse_state_updated.lmb_held_down_instant = Instant::now();
                         }
                         sdl2::mouse::MouseButton::Right => {
-                            mouse_just_polled_state.rmb = false;
-                            mouse_just_polled_state.rmb_held_down_instant = Instant::now();
+                            mouse_state_updated.rmb = false;
+                            mouse_state_updated.rmb_held_down_instant = Instant::now();
                         }
                         _ => {}
                     };
                 }
 
                 Event::MouseMotion { x, y, .. } => {
-                    mouse_just_polled_state.poll_motion(x, y);
+                    mouse_state_updated.poll_motion(x, y);
                 }
 
                 // TODO: to mitigate the issue of stuttering after holding the key,
@@ -168,34 +168,7 @@ fn main() -> Result<(), String> {
             }
         }
 
-        /* UI handling; TODO: seperate into own file */
-        // Ownership
-        if mouse_just_polled_state.lmb {
-            let window =
-                game_editor.get_mut_topmost_window_at_coords(mouse_just_polled_state.cursor_pos);
-            if window.is_some() {
-                let mut w = window.unwrap();
-
-                //println!("Window selected for ownership: {}", w.title);
-                w.is_selected = true;
-                game_editor.move_window_at_coords_to_top(mouse_just_polled_state.coords());
-            }
-        }
-        if !mouse_just_polled_state.lmb {
-            for window in game_editor.window_stack.iter_mut() {
-                window.is_selected = false;
-            }
-        }
-        // Updating
-        for window in game_editor.window_stack.iter_mut() {
-            if window.is_selected {
-                let offset = mouse_prev_state.cursor_pos - window.get_window_rect().top_left();
-                let applied_pos = mouse_just_polled_state.cursor_pos - offset;
- 
-                
-                window.get_mut_window_rect().reposition(applied_pos);
-            }
-        }
+        game_editor.apply_mouse_input(&mouse_state_updated, &mouse_state_prev);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();

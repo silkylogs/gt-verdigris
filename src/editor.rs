@@ -147,70 +147,33 @@ impl Editor {
         }
     }
 
-    /*
-    Note: window moving is slightly broken
-    if window is dragged too fast, the cursor somehow "slips" off the window hitbox
-    possible workaround: (thanks anon)
-    ```
-    I meant to say that the specified bounds that you check for in the while loop can be defined
-    as difference between the current mouse position and the center of the window rect;
-    that way during your while loop you can add a check at the end of the iteration that says,
-    "if the window is (for whatever reason) slipping away from the mouse position, pull it back to the mouse"
-    ```
-    additional high level impl note:
-    ```
-    >check if cursor is in rect
-    >check if win that owns rect is draggable
-    >while mouse1 pressed offset rect.pos by mouse.xy delta * whatever value feels good, as well as
-     checking to make sure the rect stays in specified bounds if there are any
-    >when you leave the while loop final check that we are in a valid position, adjust if needed
+    pub fn apply_mouse_input(&mut self, mouse_state_updated: &MouseInput, mouse_state_prev: &MouseInput) {
+        // Ownership
+        if mouse_state_updated.lmb {
+            let window =
+                self.get_mut_topmost_window_at_coords(mouse_state_updated.cursor_pos);
+            if window.is_some() {
+                let mut w = window.unwrap();
 
-    reference to:
-    pub struct EditorWindow {
-        overall_rect: sdl2::Rect,
-    }
+                //println!("Window selected for ownership: {}", w.title);
+                w.is_selected = true;
+                self.move_window_at_coords_to_top(mouse_state_updated.coords());
+            }
+        }
+        if !mouse_state_updated.lmb {
+            for window in self.window_stack.iter_mut() {
+                window.is_selected = false;
+            }
+        }
+        // Updating
+        for window in self.window_stack.iter_mut() {
+            if window.is_selected {
+                let offset = mouse_state_prev.cursor_pos - window.get_window_rect().top_left();
+                let applied_pos = mouse_state_updated.cursor_pos - offset;
 
-    impl EditorWindow {
-        pub fn move_by(&mut self, delta: sdl2::rect::Point) {
-            self.overall_rect.x += delta.x();
-            self.overall_rect.y += delta.y();
-    }}
-
-    fn main() {
-        // Somewhere inside the main loop...
-        // mouse_prev_state is one frame behind mouse_just_polled_state
-        let mouse_pos_delta = sdl2::rect::Point::new(
-            mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
-            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
-        );
-        default_window.move_by(mouse_pos_delta);
-    }
-    ```
-    */
-    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
-        // Note to self: bind the window in some sort of ownership to the mouse if it is chosen
-
-        // if mouse_state.lmb {
-        //     match self.get_mut_topmost_window_at_coords(mouse_state.cursor_pos) {
-        //         Some(w) => {
-        //             println!("Captured window title: \"{}\"", w.title);
-        //             let window_pos = w.client_area_rect().unwrap().top_left();
-        //             let offset = window_pos - mouse_state.cursor_pos;
-        //             let repositioned_pos = mouse_state.cursor_pos + offset + Point::new(100, 100);
-        //             w.client_area_rect().unwrap().reposition(repositioned_pos);
-        //         }
-        //         _ => {}
-        //     }
-        // }
-
-        // match self.get_mut_topmost_window_at_coords(mouse_state.coords()) {
-        //     Some(window) => {
-        //         window.is_selected = mouse_state.lmb;
-
-        //         if window.is_selected {
-        //             window.move_by(mouse_pos_delta);
-        //         }
-        //     },
-        //     _ => {},
+                
+                window.get_mut_window_rect().reposition(applied_pos);
+            }
+        }
     }
 }
