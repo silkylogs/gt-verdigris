@@ -81,7 +81,7 @@ impl Renderer {
 
     fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
         for window in &editor.window_stack {
-            let overall_window_rect = window.window_rect();
+            let overall_window_rect = window.get_window_rect();
             self.canvas.set_draw_color(window.bg_col);
             self.canvas.fill_rect(overall_window_rect)?;
 

@@ -80,8 +80,12 @@ impl EditorWindow {
         ))
     }
 
-    pub fn window_rect(&self) -> Rect {
+    pub fn get_window_rect(&self) -> Rect {
         self.overall_rect
+    }
+
+    pub fn get_mut_window_rect(&mut self) -> &mut Rect {
+        &mut self.overall_rect
     }
 
     pub fn move_by(&mut self, delta: Point) {
@@ -119,13 +123,13 @@ impl Editor {
     pub fn get_mut_topmost_window_at_coords(&mut self, coords: Point) -> Option<&mut EditorWindow> {
         self.window_stack
             .iter_mut()
-            .rfind(|window| window.window_rect().contains_point(coords))
+            .rfind(|window| window.get_window_rect().contains_point(coords))
     }
 
     pub fn get_topmost_window_at_coords(&mut self, coords: Point) -> Option<&EditorWindow> {
         self.window_stack
             .iter()
-            .rfind(|window| window.window_rect().contains_point(coords))
+            .rfind(|window| window.get_window_rect().contains_point(coords))
     }
 
     pub fn move_window_at_coords_to_top(&mut self, coords: Point) {
@@ -133,13 +137,13 @@ impl Editor {
             .window_stack
             .iter_mut()
             .enumerate()
-            .rfind(|(_, window)| window.window_rect().contains_point(coords))
+            .rfind(|(_, window)| window.get_window_rect().contains_point(coords))
             .map(|(idx, _)| idx);
         match index {
             Some(i) => {
                 self.window_stack[i..].rotate_left(1);
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 
@@ -150,7 +154,7 @@ impl Editor {
     ```
     I meant to say that the specified bounds that you check for in the while loop can be defined
     as difference between the current mouse position and the center of the window rect;
-    that way during your while loop you can add a check at the end of the iteration that says, 
+    that way during your while loop you can add a check at the end of the iteration that says,
     "if the window is (for whatever reason) slipping away from the mouse position, pull it back to the mouse"
     ```
     additional high level impl note:
@@ -183,22 +187,37 @@ impl Editor {
     }
     ```
     */
-    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput, mouse_pos_delta: Point) {
+    pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
         // Note to self: bind the window in some sort of ownership to the mouse if it is chosen
-        match self.get_mut_topmost_window_at_coords(mouse_state.coords()) {
-            Some(window) => {
-                window.is_selected = mouse_state.lmb;
 
-                if window.is_selected {
-                    window.move_by(mouse_pos_delta);
-                }
+        /*
+        Procedure:
+        if clicked:
+          offset = window.pos - mouse.pos
+          window.pos = mouse.pos + offset
+        */
 
-                let has_mouse_slipped = !window.window_rect().contains_point(mouse_state.coords());
-                if has_mouse_slipped {
-                    println!("Mouse slip detected");
+        if mouse_state.lmb {
+            match self.get_mut_topmost_window_at_coords(mouse_state.cursor_pos) {
+                Some(w) => {
+                    println!("Captured window title: \"{}\"", w.title);
+                    let window_pos = w.client_area_rect().unwrap().top_left();
+                    let offset = window_pos - mouse_state.cursor_pos;
+                    let repositioned_pos = mouse_state.cursor_pos + offset + Point::new(100, 100);
+                    w.client_area_rect().unwrap().reposition(repositioned_pos);
                 }
-            },
-            _ => {},
+                _ => {}
+            }
         }
+
+        // match self.get_mut_topmost_window_at_coords(mouse_state.coords()) {
+        //     Some(window) => {
+        //         window.is_selected = mouse_state.lmb;
+
+        //         if window.is_selected {
+        //             window.move_by(mouse_pos_delta);
+        //         }
+        //     },
+        //     _ => {},
     }
 }

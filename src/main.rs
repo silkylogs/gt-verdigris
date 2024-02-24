@@ -11,10 +11,9 @@ mod renderer;
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
 use game::WindowDetails;
-use sdl2::event::Event;
+use sdl2::{event::Event, rect::Rect};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
 use sdl2::ttf::FontStyle;
 use std::time::{Duration, Instant};
 
@@ -22,7 +21,9 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let game_window_details = WindowDetails::new("Green Top: Verdigris".to_string(), 800, 600);
+    let screen_width = 1024;
+    let screen_height = 800;
+    let game_window_details = WindowDetails::new("Green Top: Verdigris".to_string(), screen_width, screen_height);
     let mut game_state = game::Game {
         window: game_window_details.clone(),
         player: game::Player {
@@ -34,30 +35,30 @@ fn main() -> Result<(), String> {
 
     let mut game_editor = Editor::new();
     game_editor.add_default_window();
-    // game_editor.add_window(EditorWindow::new(
-    //     "Window 2".to_owned(),
-    //     Color::YELLOW,
-    //     Color::BLUE,
-    //     Rect::new(100, 100, 300, 200),
-    //     2,
-    //     Color::RGB(20, 20, 25),
-    // ));
-    // game_editor.add_window(EditorWindow::new(
-    //     "Window 3".to_owned(),
-    //     Color::WHITE,
-    //     Color::RGB(77, 30, 35),
-    //     Rect::new(150, 200, 300, 200),
-    //     1,
-    //     Color::YELLOW,
-    // ));
-    // game_editor.add_window(EditorWindow::new(
-    //     "Window 4".to_owned(),
-    //     Color::GREEN,
-    //     Color::GREY,
-    //     Rect::new(250, 300, 300, 200),
-    //     2,
-    //     Color::RGB(40, 40, 45),
-    // ));
+    game_editor.add_window(EditorWindow::new(
+        "Window 2".to_owned(),
+        Color::YELLOW,
+        Color::BLUE,
+        Rect::new(100, 100, 300, 200),
+        2,
+        Color::RGB(20, 20, 25),
+    ));
+    game_editor.add_window(EditorWindow::new(
+        "Window 3".to_owned(),
+        Color::WHITE,
+        Color::RGB(77, 30, 35),
+        Rect::new(150, 200, 300, 200),
+        1,
+        Color::YELLOW,
+    ));
+    game_editor.add_window(EditorWindow::new(
+        "Window 4".to_owned(),
+        Color::GREEN,
+        Color::GREY,
+        Rect::new(250, 300, 300, 200),
+        2,
+        Color::RGB(40, 40, 45),
+    ));
 
     let window = video_subsystem
         .window(
@@ -162,11 +163,42 @@ fn main() -> Result<(), String> {
             }
         }
 
-        let delta = Point::new(
-            mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
-            mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
-        );
-        game_editor.apply_mouse_input(&mouse_just_polled_state, delta);
+        /* UI handling; TODO: seperate into own file */
+        // Ownership
+        if mouse_just_polled_state.lmb {
+            let window =
+                game_editor.get_mut_topmost_window_at_coords(mouse_just_polled_state.cursor_pos);
+            if window.is_some() {
+                let mut w = window.unwrap();
+
+                //println!("Window selected for ownership: {}", w.title);
+                w.is_selected = true;
+            }
+        }
+        if !mouse_just_polled_state.lmb {
+            for window in game_editor.window_stack.iter_mut() {
+                window.is_selected = false;
+            }
+        }
+        // Updating
+        for window in game_editor.window_stack.iter_mut() {
+            if window.is_selected {
+                let offset = mouse_just_polled_state.cursor_pos - window.get_window_rect().top_left();
+                let applied_pos = mouse_just_polled_state.cursor_pos + offset / 2;
+
+                //println!("Previous window rect: {:?}", window.get_window_rect());
+                window
+                    .get_mut_window_rect()
+                    .reposition(applied_pos);
+                //println!("Repositioned window rect: {:?}", window.get_window_rect());
+            }
+        }
+
+        // let delta = Point::new(
+        //     mouse_just_polled_state.coords().x() - mouse_prev_state.coords().x(),
+        //     mouse_just_polled_state.coords().y() - mouse_prev_state.coords().y(),
+        // );
+        // game_editor.apply_mouse_input(&mouse_just_polled_state);
 
         renderer.draw_all(&game_state, &font, &game_editor)?;
         renderer.present();
