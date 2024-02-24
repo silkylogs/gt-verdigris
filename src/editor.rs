@@ -190,25 +190,18 @@ impl Editor {
     pub fn apply_mouse_input(&mut self, mouse_state: &MouseInput) {
         // Note to self: bind the window in some sort of ownership to the mouse if it is chosen
 
-        /*
-        Procedure:
-        if clicked:
-          offset = window.pos - mouse.pos
-          window.pos = mouse.pos + offset
-        */
-
-        if mouse_state.lmb {
-            match self.get_mut_topmost_window_at_coords(mouse_state.cursor_pos) {
-                Some(w) => {
-                    println!("Captured window title: \"{}\"", w.title);
-                    let window_pos = w.client_area_rect().unwrap().top_left();
-                    let offset = window_pos - mouse_state.cursor_pos;
-                    let repositioned_pos = mouse_state.cursor_pos + offset + Point::new(100, 100);
-                    w.client_area_rect().unwrap().reposition(repositioned_pos);
-                }
-                _ => {}
-            }
-        }
+        // if mouse_state.lmb {
+        //     match self.get_mut_topmost_window_at_coords(mouse_state.cursor_pos) {
+        //         Some(w) => {
+        //             println!("Captured window title: \"{}\"", w.title);
+        //             let window_pos = w.client_area_rect().unwrap().top_left();
+        //             let offset = window_pos - mouse_state.cursor_pos;
+        //             let repositioned_pos = mouse_state.cursor_pos + offset + Point::new(100, 100);
+        //             w.client_area_rect().unwrap().reposition(repositioned_pos);
+        //         }
+        //         _ => {}
+        //     }
+        // }
 
         // match self.get_mut_topmost_window_at_coords(mouse_state.coords()) {
         //     Some(window) => {
