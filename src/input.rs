@@ -1,6 +1,7 @@
 use sdl2::rect::Point;
 use std::time::{Duration, Instant};
 
+#[allow(dead_code)]
 pub enum MouseButton {
     Right,
     Left,

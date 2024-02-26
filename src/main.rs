@@ -44,23 +44,23 @@ fn main() -> Result<(), String> {
         "Window 2".to_owned(),
         Color::YELLOW,
         Color::BLUE,
-        Rect::new(100, 100, 300, 200),
+        Rect::new(100, 100, 400, 300),
         2,
         Color::RGB(20, 20, 25),
     ));
     game_editor.add_window(EditorWindow::new(
         "Window 3".to_owned(),
-        Color::WHITE,
-        Color::RGB(77, 30, 35),
-        Rect::new(150, 200, 300, 200),
-        1,
+        Color::BLACK,
         Color::YELLOW,
+        Rect::new(150, 200, 400, 300),
+        1,
+        Color::RGB(40, 30, 35),
     ));
     game_editor.add_window(EditorWindow::new(
         "Window 4".to_owned(),
         Color::GREEN,
         Color::GREY,
-        Rect::new(250, 300, 300, 200),
+        Rect::new(250, 300, 400, 300),
         2,
         Color::RGB(40, 40, 45),
     ));
@@ -103,14 +103,9 @@ fn main() -> Result<(), String> {
     'running: loop {
         let mouse_state_prev = mouse_state_updated;
 
-        // Misc event handling
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
+                Event::Quit { .. } => break 'running,
 
                 Event::MouseButtonDown { mouse_btn, .. } => {
                     match mouse_btn {
@@ -163,7 +158,11 @@ fn main() -> Result<(), String> {
                     if keycode == Keycode::W {
                         game_state.player.pos_y -= 10.0
                     };
+                    if keycode == Keycode::Q {
+                        break 'running;
+                    }
                 }
+
                 _ => {}
             }
         }

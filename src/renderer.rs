@@ -5,6 +5,7 @@ use crate::sdl2::rect::Point;
 use crate::sdl2::render::WindowCanvas;
 use crate::sdl2::video::Window;
 use sdl2::rect::Rect;
+use sdl2::render::TextureQuery;
 use sdl2::ttf::Font;
 
 macro_rules! rect(
@@ -18,17 +19,20 @@ pub struct Renderer {
 }
 
 impl Renderer {
+    #[allow(dead_code)]
     pub fn new(window: Window) -> Result<Renderer, String> {
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
         Ok(Renderer { canvas: canvas })
     }
 
+    #[allow(dead_code)]
     fn draw_background(&mut self, color: Color) -> Result<(), String> {
         self.canvas.set_draw_color(color);
         self.canvas.clear();
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn draw_player(&mut self, player: &Player) -> Result<(), String> {
         let sprite = player.sprite.clone();
         let w = sprite.width();
@@ -49,7 +53,8 @@ impl Renderer {
         Ok(())
     }
 
-    fn draw_text(
+    #[allow(dead_code)]
+    fn draw_text_stretched(
         &mut self,
         text: &str,
         color: Color,
@@ -67,19 +72,58 @@ impl Renderer {
             .create_texture_from_surface(&surface)
             .map_err(|e| e.to_string())?;
 
-        /*
-        // Note: these are the quantities available for transforming text
-        let window_dimensions = self.canvas.window().size();
-        let TextureQuery { width, height, .. } = texture.query();
-        let padding = 64;
-        */
+        self.canvas.copy(&texture, None, Some(target_rect))?;
+
+        Ok(())
+    }
+
+    // Draws text within bounds, without stretching
+    #[allow(dead_code)]
+    fn draw_text(
+        &mut self,
+        text: &str,
+        color: Color,
+        font: &Font,
+        bounds: Rect,
+    ) -> Result<(), String> {
+        let texture_creator = self.canvas.texture_creator();
+
+        let surface = font
+            .render(text)
+            .blended(color)
+            .map_err(|e| e.to_string())?;
+
+        let texture = texture_creator
+            .create_texture_from_surface(&surface)
+            .map_err(|e| e.to_string())?;
+
+
+        let tex_width: u32;
+        let tex_height: u32;
+        {
+            let TextureQuery { width, height, .. } = texture.query();
+            tex_height = height;
+            tex_width = width;
+        }
+
+        let ratio: f32 = (bounds.width() as f32 / tex_width as f32)
+            .min(bounds.height() as f32 / tex_height as f32);
+        let target_rect = Rect::new(
+            bounds.x(),
+            bounds.y(),
+            (tex_width as f32 * ratio) as u32,
+            (tex_height as f32 * ratio) as u32,
+        );
 
         self.canvas.copy(&texture, None, Some(target_rect))?;
 
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
+        let draw_debug = false;
+
         for window in &editor.window_stack {
             let overall_window_rect = window.get_window_rect();
             self.canvas.set_draw_color(window.bg_col);
@@ -96,14 +140,16 @@ impl Renderer {
             );
             self.draw_text(&window.title, window.title_col, font, title_rect)?;
 
-            // Buggy!
             let client_rect = window.client_area_rect().unwrap();
-            self.canvas.set_draw_color(Color::MAGENTA); // test
+            if draw_debug {
+                self.canvas.set_draw_color(Color::MAGENTA);
+            }
             self.canvas.draw_rect(client_rect)?;
         }
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn draw_all(
         &mut self,
         game_context: &Game,
@@ -116,6 +162,7 @@ impl Renderer {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn present(&mut self) {
         self.canvas.present();
     }

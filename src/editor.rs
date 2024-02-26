@@ -29,27 +29,27 @@ impl EditorWindow {
     pub fn new(
         title: String,
         title_col: Color,
-        title_bar_col: Color,
+        title_bar_color: Color,
 
         overall_window_rect: Rect,
         client_area_padding: u32,
-        bg_col: Color,
+        background_col: Color,
     ) -> EditorWindow {
-        let title_bar_height = 20;
+        let applied_title_bar_height = 20;
         EditorWindow {
             title: title,
             title_col: title_col,
-            title_bar_col: title_bar_col,
+            title_bar_col: title_bar_color,
             title_bar_width: overall_window_rect.width(),
-            title_bar_height: title_bar_height,
+            title_bar_height: applied_title_bar_height,
 
             overall_rect: overall_window_rect,
             client_area_width: overall_window_rect.width() - client_area_padding * 2,
             client_area_height: overall_window_rect.height()
                 - client_area_padding * 2
-                - title_bar_height,
+                - applied_title_bar_height,
             client_area_padding: client_area_padding,
-            bg_col: bg_col,
+            bg_col: background_col,
             is_selected: false,
         }
     }
