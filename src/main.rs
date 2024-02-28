@@ -39,31 +39,7 @@ fn main() -> Result<(), String> {
     };
 
     let mut game_editor = Editor::new();
-    game_editor.add_default_window();
-    game_editor.add_window(EditorWindow::new(
-        "Window 2".to_owned(),
-        Color::YELLOW,
-        Color::BLUE,
-        Rect::new(100, 100, 400, 300),
-        2,
-        Color::RGB(20, 20, 25),
-    ));
-    game_editor.add_window(EditorWindow::new(
-        "Window 3".to_owned(),
-        Color::BLACK,
-        Color::YELLOW,
-        Rect::new(150, 200, 400, 300),
-        1,
-        Color::RGB(40, 30, 35),
-    ));
-    game_editor.add_window(EditorWindow::new(
-        "Window 4".to_owned(),
-        Color::GREEN,
-        Color::GREY,
-        Rect::new(250, 300, 400, 300),
-        2,
-        Color::RGB(40, 40, 45),
-    ));
+    game_editor.add_default_window_with_colorscheme(editor::ColorScheme::Yellow);
 
     let window = video_subsystem
         .window(

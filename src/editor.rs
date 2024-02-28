@@ -107,8 +107,14 @@ impl EditorWindow {
     }
 }
 
+#[allow(dead_code)]
 pub struct Editor {
     pub window_stack: Vec<EditorWindow>,
+}
+
+#[allow(dead_code)]
+pub enum ColorScheme {
+    Default, Yellow,
 }
 
 impl Editor {
@@ -125,14 +131,30 @@ impl Editor {
     }
 
     #[allow(dead_code)]
-    pub fn add_default_window(&mut self) {
+    pub fn add_default_window_with_colorscheme(&mut self, scheme: ColorScheme) {
+        let title_color: Color;
+        let title_bar_color: Color;
+        let background_color: Color;
+        match scheme {
+        ColorScheme::Yellow => {
+                title_color = Color::BLACK;
+                title_bar_color = Color::YELLOW;
+                background_color = Color::RGB(40, 30, 35);
+            }
+            ColorScheme::Default | _ => {
+                title_color = Color::YELLOW;
+                title_bar_color = Color::BLUE;
+                background_color = Color::RGB(20, 20, 25);
+            },
+        }
+
         self.add_window(EditorWindow::new(
             "Default Window".to_owned(),
-            Color::WHITE,
-            Color::BLUE,
+            title_color,
+            title_bar_color,
             Rect::new(0, 0, 400, 400),
             2,
-            Color::GREY,
+            background_color,
         ));
     }
 
