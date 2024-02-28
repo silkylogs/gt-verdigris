@@ -97,7 +97,6 @@ impl Renderer {
             .create_texture_from_surface(&surface)
             .map_err(|e| e.to_string())?;
 
-
         let tex_width: u32;
         let tex_height: u32;
         {

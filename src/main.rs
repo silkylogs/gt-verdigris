@@ -38,8 +38,13 @@ fn main() -> Result<(), String> {
         },
     };
 
+    // Mock the sprite editor in source, for now
     let mut game_editor = Editor::new();
     game_editor.add_default_window_with_colorscheme(editor::ColorScheme::Yellow);
+    let main_window = game_editor.window_stack.get_mut(0).unwrap();
+    main_window.resize(600, 600);
+    main_window.apply_dimensions_from_overall_rect();
+    main_window.set_draggable(false);
 
     let window = video_subsystem
         .window(
@@ -62,18 +67,17 @@ fn main() -> Result<(), String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     // Draw the test sprite
-    let width = game_state.player.sprite.width();
-    let height = game_state.player.sprite.width();
-    for y in 0..height {
-        for x in 0..width {
-            let r: u8 = ((x as f32 / width as f32) * 256.0) as u8;
-            let g: u8 = ((y as f32 / height as f32) * 256.0) as u8;
-            let b: u8 = 50;
-            let color = Color::RGB(r, g, b);
-
-            game_state.player.sprite.draw(x, y, color);
-        }
-    }
+    // let width = game_state.player.sprite.width();
+    // let height = game_state.player.sprite.width();
+    // for y in 0..height {
+    //     for x in 0..width {
+    //         let r: u8 = ((x as f32 / width as f32) * 256.0) as u8;
+    //         let g: u8 = ((y as f32 / height as f32) * 256.0) as u8;
+    //         let b: u8 = 50;
+    //         let color = Color::RGB(r, g, b);
+    //         game_state.player.sprite.draw(x, y, color);
+    //     }
+    // }
 
     let mut mouse_state_updated = input::MouseInput::new_default();
     'running: loop {
@@ -136,6 +140,13 @@ fn main() -> Result<(), String> {
                     };
                     if keycode == Keycode::Q {
                         break 'running;
+                    }
+                    if keycode == Keycode::E {
+                        let message = "I shall now blame the borrow checker ".to_owned()
+                            + &"for not making draggability work "
+                            + &"without investing in any further effort into refactoring my code";
+                        todo!("{}", message);
+                        //main_window.set_draggable(!main_window.is_draggable());
                     }
                 }
 

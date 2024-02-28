@@ -16,6 +16,7 @@ pub struct EditorWindow {
     client_area_padding: u32,
     pub bg_col: Color,
     pub is_selected: bool,
+    pub is_draggable: bool,
 
     // Title
     pub title: String,
@@ -26,31 +27,49 @@ pub struct EditorWindow {
 }
 
 impl EditorWindow {
+    fn calculate_client_area_width(width: u32, client_area_padding: u32) -> u32 {
+        width - client_area_padding * 2
+    }
+
+    fn calculate_client_area_height(
+        height: u32,
+        client_area_padding: u32,
+        title_bar_height: u32,
+    ) -> u32 {
+        height - client_area_padding * 2 - title_bar_height
+    }
+
     pub fn new(
         title: String,
         title_col: Color,
         title_bar_color: Color,
+        title_bar_height: u32,
 
         overall_window_rect: Rect,
         client_area_padding: u32,
         background_col: Color,
     ) -> EditorWindow {
-        let applied_title_bar_height = 20;
         EditorWindow {
             title: title,
             title_col: title_col,
             title_bar_col: title_bar_color,
             title_bar_width: overall_window_rect.width(),
-            title_bar_height: applied_title_bar_height,
+            title_bar_height: title_bar_height,
 
             overall_rect: overall_window_rect,
-            client_area_width: overall_window_rect.width() - client_area_padding * 2,
-            client_area_height: overall_window_rect.height()
-                - client_area_padding * 2
-                - applied_title_bar_height,
+            client_area_width: EditorWindow::calculate_client_area_width(
+                overall_window_rect.width(),
+                client_area_padding,
+            ),
+            client_area_height: EditorWindow::calculate_client_area_height(
+                overall_window_rect.height(),
+                client_area_padding,
+                title_bar_height,
+            ),
             client_area_padding: client_area_padding,
             bg_col: background_col,
             is_selected: false,
+            is_draggable: true,
         }
     }
 
@@ -60,10 +79,32 @@ impl EditorWindow {
             "title".to_owned(),
             Color::WHITE,
             Color::GRAY,
+            20,
             Rect::new(0, 0, 20, 20),
             0,
             Color::BLACK,
         )
+    }
+
+    pub fn set_draggable(&mut self, state: bool) {
+        self.is_draggable = state;
+    }
+
+    pub fn is_draggable(&self) -> bool {
+        self.is_draggable
+    }
+
+    pub fn apply_dimensions_from_overall_rect(&mut self) {
+        self.client_area_width = EditorWindow::calculate_client_area_width(
+            self.overall_rect.width(),
+            self.client_area_padding,
+        );
+        self.client_area_height = EditorWindow::calculate_client_area_height(
+            self.overall_rect.height(),
+            self.client_area_padding,
+            self.title_bar_height,
+        );
+        self.title_bar_width = self.overall_rect.width();
     }
 
     #[allow(dead_code)]
@@ -105,6 +146,11 @@ impl EditorWindow {
         self.overall_rect.x += delta.x();
         self.overall_rect.y += delta.y();
     }
+
+    #[allow(dead_code)]
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.overall_rect.resize(width, height);
+    }
 }
 
 #[allow(dead_code)]
@@ -114,7 +160,8 @@ pub struct Editor {
 
 #[allow(dead_code)]
 pub enum ColorScheme {
-    Default, Yellow,
+    Default,
+    Yellow,
 }
 
 impl Editor {
@@ -136,7 +183,7 @@ impl Editor {
         let title_bar_color: Color;
         let background_color: Color;
         match scheme {
-        ColorScheme::Yellow => {
+            ColorScheme::Yellow => {
                 title_color = Color::BLACK;
                 title_bar_color = Color::YELLOW;
                 background_color = Color::RGB(40, 30, 35);
@@ -145,13 +192,14 @@ impl Editor {
                 title_color = Color::YELLOW;
                 title_bar_color = Color::BLUE;
                 background_color = Color::RGB(20, 20, 25);
-            },
+            }
         }
 
         self.add_window(EditorWindow::new(
             "Default Window".to_owned(),
             title_color,
             title_bar_color,
+            20,
             Rect::new(0, 0, 400, 400),
             2,
             background_color,
@@ -207,8 +255,10 @@ impl Editor {
             let window = self.get_mut_topmost_window_at_coords(mouse_state_updated.cursor_pos);
             if window.is_some() {
                 let mut w = window.unwrap();
-                w.is_selected = true;
-                self.move_window_at_coords_to_top(mouse_state_updated.coords());
+                if w.is_draggable() {
+                    w.is_selected = true;
+                    self.move_window_at_coords_to_top(mouse_state_updated.coords());
+                }
             }
         }
         if !mouse_state_updated.lmb {
