@@ -39,10 +39,6 @@ impl EditorWindow {
         height - client_area_padding * 2 - title_bar_height
     }
 
-    pub fn toggle_draggable(&mut self) {
-        self.is_draggable = !self.is_draggable;
-    }
-
     pub fn new(
         title: String,
         title_col: Color,
@@ -96,6 +92,10 @@ impl EditorWindow {
 
     pub fn is_draggable(&self) -> bool {
         self.is_draggable
+    }
+
+    pub fn toggle_draggable(&mut self) {
+        self.is_draggable = !self.is_draggable;
     }
 
     pub fn apply_dimensions_from_overall_rect(&mut self) {

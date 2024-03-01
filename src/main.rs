@@ -38,20 +38,6 @@ fn main() -> Result<(), String> {
         },
     };
 
-    // Mock the controls menu in source, for now
-    let mut game_editor = Editor::new();
-    let mut controls_window = EditorWindow::new(
-        "Controls".to_owned(),
-        Color::BLACK,
-        Color::YELLOW,
-        30,
-        Rect::new(0, 0, screen_width, screen_height),
-        5,
-        Color::BLACK,
-    );
-    controls_window.set_draggable(false);
-    game_editor.add_window(controls_window);
-
     let window = video_subsystem
         .window(
             &game_state.window.title,
@@ -69,8 +55,22 @@ fn main() -> Result<(), String> {
     font.set_style(FontStyle::NORMAL);
     let font = font;
 
-    let mut renderer = renderer::Renderer::new(window)?;
+    let mut game_renderer = renderer::Renderer::new(window)?;
     let mut event_pump = sdl_context.event_pump()?;
+
+    let mut game_editor = Editor::new();
+    // Mock the controls menu in source, for now
+    let mut controls_window = EditorWindow::new(
+        "Controls".to_owned(),
+        Color::BLACK,
+        Color::YELLOW,
+        30,
+        Rect::new(0, 0, screen_width, screen_height),
+        5,
+        Color::BLACK,
+    );
+    controls_window.set_draggable(false);
+    game_editor.add_window(controls_window);
 
     // Draw the test sprite
     // let width = game_state.player.sprite.width();
@@ -161,9 +161,14 @@ fn main() -> Result<(), String> {
         }
 
         game_editor.apply_mouse_input(&mouse_state_updated, &mouse_state_prev);
-
-        renderer.draw_all(&game_state, &font, &game_editor)?;
-        renderer.present();
+        game_renderer.draw_all(&game_state, &font, &game_editor)?;
+        game_renderer.draw_text( // mock
+            "Control window",
+            Color::WHITE,
+            &font,
+            Rect::new(100, 100, 400, 100),
+        )?;
+        game_renderer.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
 

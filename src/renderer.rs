@@ -79,7 +79,7 @@ impl Renderer {
 
     // Draws text within bounds, without stretching
     #[allow(dead_code)]
-    fn draw_text(
+    pub fn draw_text(
         &mut self,
         text: &str,
         color: Color,
