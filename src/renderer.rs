@@ -14,6 +14,18 @@ macro_rules! rect(
     )
 );
 
+/*
+ Todo: Experiment with RenderData
+ This is a way to have libraries which depend on this library have a way of filling out
+ data compatible with this crate, and sending it back to said crate for processing
+ Also what on earth is a lifetime
+*/
+pub enum RenderData<'a> {
+    Rect(&'a sdl2::rect::Rect),
+    FilledRect(&'a sdl2::rect::Rect),
+    Text(&'a String, &'a sdl2::ttf::Font<'a, 'a>)
+}
+
 pub struct Renderer {
     canvas: WindowCanvas,
 }
