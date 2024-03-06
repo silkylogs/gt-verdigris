@@ -3,7 +3,7 @@ use sdl2::{
     rect::{Point, Rect},
 };
 
-use crate::input::MouseInput;
+use crate::{input::MouseInput, renderer::RenderData};
 
 // As of now, this struct is hardwired to have a fixed window layout
 // Ideally, it should contain an enum which could be one of many layouts
@@ -192,6 +192,7 @@ impl Editor {
                 title_bar_color = Color::YELLOW;
                 background_color = Color::RGB(40, 30, 35);
             }
+            #[allow(unreachable_patterns)]
             ColorScheme::Default | _ => {
                 title_color = Color::YELLOW;
                 title_bar_color = Color::BLUE;
@@ -279,5 +280,40 @@ impl Editor {
                 window.get_mut_window_rect().reposition(applied_pos);
             }
         }
+    }
+
+    pub fn draw_editor_windows<'a, 'b, 'c>(
+        &mut self,
+        font: &'a sdl2::ttf::Font<'b, 'c>,
+        render_queue: &mut Vec<RenderData<'a, 'b, 'c>>,
+    ) -> Result<(), String> {
+        for window in &self.window_stack {
+            render_queue.push(RenderData::FilledRect(
+                window.get_window_rect(),
+                window.bg_col,
+            ));
+            render_queue.push(RenderData::FilledRect(
+                window.title_bar_rect(),
+                window.title_bar_col,
+            ));
+
+            let title_bar_rect = window.title_bar_rect();
+            let title_rect = sdl2::rect::Rect::new(
+                title_bar_rect.x,
+                title_bar_rect.y,
+                (title_bar_rect.w / 2) as u32,
+                (title_bar_rect.h) as u32,
+            );
+            render_queue.push(RenderData::Text(
+                title_rect,
+                window.title.clone(),
+                window.title_col,
+                &font,
+            ));
+
+            let client_rect = window.client_area_rect().unwrap();
+            render_queue.push(RenderData::Rect(client_rect, window.title_bar_col));
+        }
+        Ok(())
     }
 }

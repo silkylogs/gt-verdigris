@@ -52,7 +52,7 @@ fn main() -> Result<(), String> {
 
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
     let font_path = std::path::Path::new("./loaded_resources/Arial.ttf");
-    let mut   font = ttf_context.load_font(font_path, 128)?;
+    let mut font = ttf_context.load_font(font_path, 128)?;
     font.set_style(FontStyle::NORMAL);
     let font = font;
 
@@ -164,50 +164,21 @@ fn main() -> Result<(), String> {
         }
 
         game_editor.apply_mouse_input(&mouse_state_updated, &mouse_state_prev);
-        // game_renderer.draw_all(&game_state, &font, &game_editor)?;
-        // game_renderer.draw_text( // mock
-        //     "Control window",
-        //     Color::WHITE,
-        //     &font,
-        //     Rect::new(100, 100, 400, 100),
-        // )?;
-
-        // -------------------------
-            //fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
-            // let draw_debug = false;
-
-            for window in &game_editor.window_stack {
-                let overall_window_rect = window.get_window_rect();
-                // game_renderer.canvas.set_draw_color(window.bg_col);
-                // game_renderer.canvas.fill_rect(overall_window_rect)?;
-                render_queue.push(RenderData::FilledRect(overall_window_rect, window.bg_col));
-
-                let title_bar_rect = window.title_bar_rect();
-                render_queue.push(RenderData::FilledRect(title_bar_rect, window.title_bar_col));
-                // game_renderer.canvas.set_draw_color(window.title_bar_col);
-                // game_renderer.canvas.fill_rect(title_bar_rect)?;
-
-                let title_rect = Rect::new(
-                    title_bar_rect.x as i32,
-                    title_bar_rect.y as i32,
-                    (title_bar_rect.w / 2) as u32,
-                    (title_bar_rect.h) as u32,
-                );
-                render_queue.push(RenderData::Text(title_rect, window.title.clone(), window.title_col, &font));
-                // game_renderer.draw_text(&window.title, window.title_col, font, title_rect)?;
-
-                let client_rect = window.client_area_rect().unwrap();
-                render_queue.push(RenderData::Rect(client_rect, window.title_bar_col));
-                // if draw_debug {
-                //     game_renderer.canvas.set_draw_color(Color::MAGENTA);
-                // }
-                // game_renderer.canvas.draw_rect(client_rect)?;
-            }
-        // -----------------------
+        game_editor.draw_editor_windows(&font, &mut render_queue)?;
+        render_queue.push(RenderData::Text(
+            Rect::new(100, 100, 400, 400),
+            "Control_window".to_owned(),
+            Color::WHITE,
+            &font,
+        ));
 
         let cloned_render_queue = render_queue.clone();
         game_renderer.draw_all(cloned_render_queue)?;
         game_renderer.present();
+        render_queue.clear();
+
+        game_renderer.canvas.set_draw_color(Color::BLACK);
+        game_renderer.canvas.clear();
 
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }

@@ -1,15 +1,11 @@
-use std::marker::PhantomData;
-
-use crate::editor::Editor;
-use crate::game::*;
 use crate::sdl2::pixels::Color;
-use crate::sdl2::rect::Point;
 use crate::sdl2::render::WindowCanvas;
 use crate::sdl2::video::Window;
 use sdl2::rect::Rect;
 use sdl2::render::TextureQuery;
 use sdl2::ttf::Font;
 
+#[macro_export]
 macro_rules! rect(
     ($x:expr, $y:expr, $w:expr, $h:expr) => (
         Rect::new($x as i32, $y as i32, $w as u32, $h as u32)
@@ -26,12 +22,11 @@ macro_rules! rect(
 pub enum RenderData<'a, 'b, 'c> {
     Rect(sdl2::rect::Rect, Color),
     FilledRect(sdl2::rect::Rect, Color),
-    Text(sdl2::rect::Rect, String, Color, &'a sdl2::ttf::Font<'b, 'c>)
+    Text(sdl2::rect::Rect, String, Color, &'a sdl2::ttf::Font<'b, 'c>),
 }
 
 pub struct Renderer {
     pub canvas: WindowCanvas,
-    // render_queue: Vec<RenderData<'a>>,
 }
 
 impl Renderer {
@@ -45,7 +40,9 @@ impl Renderer {
         match drawable {
             RenderData::Rect(r, col) => self.draw_rect(r, col),
             RenderData::FilledRect(r, col) => self.draw_filled_rect(r, col),
-            RenderData::Text(rect, string, color, font) => self.draw_text(rect.clone(), string.clone(), color.clone(), font.clone()),
+            RenderData::Text(rect, title, color, font) => {
+                self.draw_text(rect.clone(), title, color.clone(), font.clone())
+            }
         }
     }
 
@@ -64,7 +61,7 @@ impl Renderer {
     fn draw_text(
         &mut self,
         bounds: Rect,
-        text: String,
+        text: &str,
         color: Color,
         font: &Font,
     ) -> Result<(), String> {
@@ -100,7 +97,6 @@ impl Renderer {
 
         Ok(())
     }
-
 
     // #[allow(dead_code)]
     // fn draw_background(&mut self, color: Color) -> Result<(), String> {
@@ -154,8 +150,6 @@ impl Renderer {
     //     Ok(())
     // }
 
-    
-
     // #[allow(dead_code)]
     // fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
     //     let draw_debug = false;
@@ -200,7 +194,7 @@ impl Renderer {
 
     pub fn draw_all(&mut self, render_queue: Vec<RenderData>) -> Result<(), String> {
         for drawable in render_queue.into_iter() {
-            self.draw(&drawable);
+            self.draw(&drawable)?;
         }
 
         Ok(())
