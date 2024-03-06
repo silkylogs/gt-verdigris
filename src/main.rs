@@ -12,6 +12,7 @@ mod renderer;
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
 use game::WindowDetails;
+use renderer::RenderData;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::ttf::FontStyle;
@@ -84,6 +85,8 @@ fn main() -> Result<(), String> {
     //         game_state.player.sprite.draw(x, y, color);
     //     }
     // }
+
+    let mut render_queue: Vec<RenderData<'_>> = Vec::new();
 
     let mut mouse_state_updated = input::MouseInput::new_default();
     'running: loop {
@@ -161,13 +164,16 @@ fn main() -> Result<(), String> {
         }
 
         game_editor.apply_mouse_input(&mouse_state_updated, &mouse_state_prev);
-        game_renderer.draw_all(&game_state, &font, &game_editor)?;
-        game_renderer.draw_text( // mock
-            "Control window",
-            Color::WHITE,
-            &font,
-            Rect::new(100, 100, 400, 100),
-        )?;
+        // game_renderer.draw_all(&game_state, &font, &game_editor)?;
+        // game_renderer.draw_text( // mock
+        //     "Control window",
+        //     Color::WHITE,
+        //     &font,
+        //     Rect::new(100, 100, 400, 100),
+        // )?;
+        todo!("Find a way to implement a render queue");
+        let cloned_render_queue = render_queue.clone_from_slice(&render_queue[..]);
+        game_renderer.draw_all(render_queue)?;
         game_renderer.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
