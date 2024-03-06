@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::editor::Editor;
 use crate::game::*;
 use crate::sdl2::pixels::Color;
@@ -20,14 +22,15 @@ macro_rules! rect(
  data compatible with this crate, and sending it back to said crate for processing
  Also what on earth is a lifetime
 */
-pub enum RenderData<'a> {
-    Rect(&'a sdl2::rect::Rect),
-    FilledRect(&'a sdl2::rect::Rect),
-    //Text(&'a String, &'a sdl2::ttf::Font<'a, 'a>)
+#[derive(Clone)]
+pub enum RenderData<'a, 'b, 'c> {
+    Rect(sdl2::rect::Rect, Color),
+    FilledRect(sdl2::rect::Rect, Color),
+    Text(sdl2::rect::Rect, String, Color, &'a sdl2::ttf::Font<'b, 'c>)
 }
 
 pub struct Renderer {
-    canvas: WindowCanvas,
+    pub canvas: WindowCanvas,
     // render_queue: Vec<RenderData<'a>>,
 }
 
@@ -40,18 +43,64 @@ impl Renderer {
 
     fn draw(&mut self, drawable: &RenderData) -> Result<(), String> {
         match drawable {
-            RenderData::Rect(r) => self.draw_rect(r),
-            RenderData::FilledRect(r) => self.draw_filled_rect(r),
+            RenderData::Rect(r, col) => self.draw_rect(r, col),
+            RenderData::FilledRect(r, col) => self.draw_filled_rect(r, col),
+            RenderData::Text(rect, string, color, font) => self.draw_text(rect.clone(), string.clone(), color.clone(), font.clone()),
         }
     }
 
-    fn draw_rect(&mut self, rect: &Rect) -> Result<(), String>{
+    fn draw_rect(&mut self, rect: &Rect, color: &Color) -> Result<(), String> {
+        self.canvas.set_draw_color(color.clone());
         self.canvas.draw_rect(rect.clone())
     }
 
-    fn draw_filled_rect(&mut self, rect: &Rect) -> Result<(), String> {
+    fn draw_filled_rect(&mut self, rect: &Rect, color: &Color) -> Result<(), String> {
+        self.canvas.set_draw_color(color.clone());
         self.canvas.fill_rect(rect.clone())
     }
+
+    // Draws text within bounds, without stretching
+    #[allow(dead_code)]
+    fn draw_text(
+        &mut self,
+        bounds: Rect,
+        text: String,
+        color: Color,
+        font: &Font,
+    ) -> Result<(), String> {
+        let texture_creator = self.canvas.texture_creator();
+
+        let surface = font
+            .render(&text)
+            .blended(color)
+            .map_err(|e| e.to_string())?;
+
+        let texture = texture_creator
+            .create_texture_from_surface(&surface)
+            .map_err(|e| e.to_string())?;
+
+        let tex_width: u32;
+        let tex_height: u32;
+        {
+            let TextureQuery { width, height, .. } = texture.query();
+            tex_height = height;
+            tex_width = width;
+        }
+
+        let ratio: f32 = (bounds.width() as f32 / tex_width as f32)
+            .min(bounds.height() as f32 / tex_height as f32);
+        let target_rect = Rect::new(
+            bounds.x(),
+            bounds.y(),
+            (tex_width as f32 * ratio) as u32,
+            (tex_height as f32 * ratio) as u32,
+        );
+
+        self.canvas.copy(&texture, None, Some(target_rect))?;
+
+        Ok(())
+    }
+
 
     // #[allow(dead_code)]
     // fn draw_background(&mut self, color: Color) -> Result<(), String> {
@@ -105,47 +154,7 @@ impl Renderer {
     //     Ok(())
     // }
 
-    // // Draws text within bounds, without stretching
-    // #[allow(dead_code)]
-    // pub fn draw_text(
-    //     &mut self,
-    //     text: &str,
-    //     color: Color,
-    //     font: &Font,
-    //     bounds: Rect,
-    // ) -> Result<(), String> {
-    //     let texture_creator = self.canvas.texture_creator();
-
-    //     let surface = font
-    //         .render(text)
-    //         .blended(color)
-    //         .map_err(|e| e.to_string())?;
-
-    //     let texture = texture_creator
-    //         .create_texture_from_surface(&surface)
-    //         .map_err(|e| e.to_string())?;
-
-    //     let tex_width: u32;
-    //     let tex_height: u32;
-    //     {
-    //         let TextureQuery { width, height, .. } = texture.query();
-    //         tex_height = height;
-    //         tex_width = width;
-    //     }
-
-    //     let ratio: f32 = (bounds.width() as f32 / tex_width as f32)
-    //         .min(bounds.height() as f32 / tex_height as f32);
-    //     let target_rect = Rect::new(
-    //         bounds.x(),
-    //         bounds.y(),
-    //         (tex_width as f32 * ratio) as u32,
-    //         (tex_height as f32 * ratio) as u32,
-    //     );
-
-    //     self.canvas.copy(&texture, None, Some(target_rect))?;
-
-    //     Ok(())
-    // }
+    
 
     // #[allow(dead_code)]
     // fn draw_editor_windows(&mut self, editor: &Editor, font: &Font) -> Result<(), String> {
@@ -189,7 +198,7 @@ impl Renderer {
     //     Ok(())
     // }
 
-    pub fn draw_all(&mut self, render_queue: Vec<RenderData<'_>>) -> Result<(), String> {
+    pub fn draw_all(&mut self, render_queue: Vec<RenderData>) -> Result<(), String> {
         for drawable in render_queue.into_iter() {
             self.draw(&drawable);
         }
