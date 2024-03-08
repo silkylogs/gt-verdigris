@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2...3.20)
+cmake_minimum_required(VERSION 3.20)
 project(
 	green_top_verdigris
 	VERSION 1.0
@@ -6,4 +6,13 @@ project(
 )
 
 add_executable(game_executable src/main.cpp)
+target_compile_options(game_executable PRIVATE
+     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+	-Wall -Werror -Wextra -g3 -Wconversion -Wdouble-promotion
+	-Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
+	-fsanitize=undefined -fsanitize-trap>
+     $<$<CXX_COMPILER_ID:MSVC>:
+	/WX /W4 /Zi /RTCsu>
+)
+target_compile_features(game_executable PUBLIC cxx_std_23)
 target_link_libraries(game_executable)
