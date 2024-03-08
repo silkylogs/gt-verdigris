@@ -5,6 +5,11 @@ project(
 	LANGUAGES CXX
 )
 
+add_library(forth_lib STATIC src/forth/forth.hpp src/forth/forth.cpp)
+target_include_directories(forth_lib PUBLIC src/forth)
+target_compile_features(forth_lib PUBLIC cxx_std_20)
+set_target_properties(forth_lib PROPERTIES LINKER_LANGUAGE CXX)
+
 add_executable(game_executable src/main.cpp)
 target_compile_options(game_executable PRIVATE
      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
@@ -12,7 +17,7 @@ target_compile_options(game_executable PRIVATE
 	-Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
 	-fsanitize=undefined -fsanitize-trap>
      $<$<CXX_COMPILER_ID:MSVC>:
-	/WX /W4 /Zi /RTCsu>
+	/WX /W4 /Zi /RTCsu /Zc:__cplusplus>
 )
-target_compile_features(game_executable PUBLIC cxx_std_23)
-target_link_libraries(game_executable)
+target_compile_features(game_executable PUBLIC cxx_std_20)
+target_link_libraries(game_executable PUBLIC forth_lib)

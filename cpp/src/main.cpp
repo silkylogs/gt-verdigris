@@ -1,7 +1,8 @@
 #include <cstdio>
+#include "forth/forth.hpp"
 
 int main() {
-	auto x { 5 };
-	std::printf("Hello, world! %d\n", x);
+	std::printf("Hello from main()!\n");
+	forth::hello();
 	return 0;
 }
