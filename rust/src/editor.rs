@@ -50,11 +50,11 @@ impl EditorWindow {
         background_col: Color,
     ) -> EditorWindow {
         EditorWindow {
-            title: title,
-            title_col: title_col,
+            title,
+            title_col,
             title_bar_col: title_bar_color,
             title_bar_width: overall_window_rect.width(),
-            title_bar_height: title_bar_height,
+            title_bar_height,
 
             overall_rect: overall_window_rect,
             client_area_width: EditorWindow::calculate_client_area_width(
@@ -66,7 +66,7 @@ impl EditorWindow {
                 client_area_padding,
                 title_bar_height,
             ),
-            client_area_padding: client_area_padding,
+            client_area_padding,
             bg_col: background_col,
             is_selected: false,
             is_draggable: true,

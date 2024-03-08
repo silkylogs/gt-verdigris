@@ -98,12 +98,12 @@ impl Renderer {
         Ok(())
     }
 
-    // #[allow(dead_code)]
-    // fn draw_background(&mut self, color: Color) -> Result<(), String> {
-    //     self.canvas.set_draw_color(color);
-    //     self.canvas.clear();
-    //     Ok(())
-    // }
+    #[allow(dead_code)]
+    pub fn clear_background(&mut self, color: Color) -> Result<(), String> {
+        self.canvas.set_draw_color(color);
+        self.canvas.clear();
+        Ok(())
+    }
 
     // #[allow(dead_code)]
     // fn draw_player(&mut self, player: &Player) -> Result<(), String> {

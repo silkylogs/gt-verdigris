@@ -60,6 +60,7 @@ fn main() -> Result<(), String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut game_editor = Editor::new();
+    
     // Mock the controls menu in source, for now
     let mut controls_window = EditorWindow::new(
         "Controls".to_owned(),
@@ -135,18 +136,18 @@ fn main() -> Result<(), String> {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    if keycode == Keycode::D {
-                        game_state.player.pos_x += 10.0
-                    };
-                    if keycode == Keycode::A {
-                        game_state.player.pos_x -= 10.0
-                    };
-                    if keycode == Keycode::S {
-                        game_state.player.pos_y += 10.0
-                    };
-                    if keycode == Keycode::W {
-                        game_state.player.pos_y -= 10.0
-                    };
+                    // if keycode == Keycode::D {
+                    //     game_state.player.pos_x += 10.0
+                    // };
+                    // if keycode == Keycode::A {
+                    //     game_state.player.pos_x -= 10.0
+                    // };
+                    // if keycode == Keycode::S {
+                    //     game_state.player.pos_y += 10.0
+                    // };
+                    // if keycode == Keycode::W {
+                    //     game_state.player.pos_y -= 10.0
+                    // };
                     if keycode == Keycode::Q {
                         break 'running;
                     }
@@ -177,8 +178,7 @@ fn main() -> Result<(), String> {
         game_renderer.present();
         render_queue.clear();
 
-        game_renderer.canvas.set_draw_color(Color::BLACK);
-        game_renderer.canvas.clear();
+        game_renderer.clear_background(Color::BLACK)?;
 
         std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 30));
     }
