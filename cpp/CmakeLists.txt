@@ -5,10 +5,10 @@ project(
 	LANGUAGES CXX
 )
 
-add_library(forth_lib STATIC src/forth/forth.hpp src/forth/forth.cpp)
-target_include_directories(forth_lib PUBLIC src/forth)
-target_compile_features(forth_lib PUBLIC cxx_std_20)
-set_target_properties(forth_lib PROPERTIES LINKER_LANGUAGE CXX)
+add_library(virtual_machine STATIC src/virtual_machine/virtual_machine.hpp src/virtual_machine/virtual_machine.cpp)
+target_include_directories(virtual_machine PUBLIC src/virtual_machine)
+target_compile_features(virtual_machine PUBLIC cxx_std_20)
+set_target_properties(virtual_machine PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(game_executable src/main.cpp)
 target_compile_options(game_executable PRIVATE
@@ -20,4 +20,4 @@ target_compile_options(game_executable PRIVATE
 	/WX /W4 /Zi /RTCsu /Zc:__cplusplus>
 )
 target_compile_features(game_executable PUBLIC cxx_std_20)
-target_link_libraries(game_executable PUBLIC forth_lib)
+target_link_libraries(game_executable PUBLIC virtual_machine)

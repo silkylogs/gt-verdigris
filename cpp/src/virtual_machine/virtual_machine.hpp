@@ -6,9 +6,11 @@
 #include <cstdint>
 #include <string_view>
 
-namespace forth {
-	template <typename Word_T>
-	struct Context {
+namespace virtual_machine {
+	using Word_T = int;
+	using Success_T = bool;
+	
+	struct VM {
 		static constexpr auto memory_size { static_cast<Word_T>(0x10) };
 		std::array<Word_T, memory_size> memory {};
 		Word_T memory_stack_ptr { 0 };
@@ -19,8 +21,8 @@ namespace forth {
 			}
 		}
 
-		bool push(Word_T what) {
-			if (Context::memory_size <= this->memory_stack_ptr)
+		Success_T push(Word_T what) {
+			if (VM::memory_size <= this->memory_stack_ptr)
 				return false;
 
 			this->memory[this->memory_stack_ptr] = what;
@@ -28,12 +30,13 @@ namespace forth {
 			return true;
 		}
 
-		bool pop() {
+		Success_T pop() {
 			if (this->memory_stack_ptr >= 0) {
 				this->memory_stack_ptr--;
 				return true;
 			}
 			return false;
 		}
+		
 	};
 }

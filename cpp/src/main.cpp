@@ -1,11 +1,12 @@
 #include <cstdio>
 #include <string>
 #include <string_view>
+#include <format>
 
-#include "forth/forth.hpp"
+#include "virtual_machine/virtual_machine.hpp"
 
 int main() {
-	forth::Context<int32_t> ctx {};
+	virtual_machine::VM ctx {};
 	ctx.print();
 	std::cout << std::endl;
 
@@ -13,5 +14,8 @@ int main() {
 		ctx.push(i);
 
 	ctx.print();
+
+	virtual_machine::Success_T thing { true };
+	std::cout << std::format("{}\n", thing);
 	return 0;
 }
