@@ -7,15 +7,12 @@
 
 int main() {
 	virtual_machine::VM ctx {};
-	ctx.print();
-	std::cout << std::endl;
+	std::cout << ctx.mem_hexdump() << std::endl;
 
-	for (int i = 0; i < ctx.memory_size; ++i)
+	for (uint8_t i { 0 }; ctx.last_operation_succeeded; ++i)
 		ctx.push(i);
 
-	ctx.print();
+	std::cout << ctx.mem_hexdump() << std::endl;
 
-	virtual_machine::Success_T thing { true };
-	std::cout << std::format("{}\n", thing);
 	return 0;
 }
