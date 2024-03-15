@@ -22,27 +22,52 @@ namespace virtual_machine {
 	};
 
 	struct Word_T {
-		static constexpr size_t data_size { 32 };
+		static constexpr size_t size_bits { 32 };
 		uint32_t data_container;
 
-		std::string as_hex() {
+		std::string to_string_hex_prefixed() {
 			return std::format("{:#04X}", this->data_container);
 		}
 	};
 
 	struct Byte_Selector_T {
-		static constexpr size_t data_size { 5 };
+		static constexpr size_t size_bits { 5 };
 		uint8_t data_container;
 
-		// TODO: find a way to make std::format print user defined types
-		std::string as_hex() {
-			return std::format("xxx{:#05B}", this->data_container);
+		std::string
+		to_string_bin_fitted_noprefix(size_t fitment_characters_least = 8, char padding_char = 'x') {
+			size_t padding = 0;
+			if (fitment_characters_least > size_bits) {
+				padding = fitment_characters_least - size_bits;
+			}
+			std::cout << "padding = " << padding << "\n";
+
+			std::string acc { "" };
+			for (auto i { 0 }; i < padding; ++i) {
+				acc.push_back(padding_char);
+			}
+			for (uint8_t i { this->size_bits }; i != 0; --i) {
+				auto x {
+					static_cast<uint8_t>((this->data_container >> (i - 1)) & 1)
+				};
+				char bit { '0' + x };
+				acc.push_back(bit);
+			}
+			return acc;
 		}
 	};
 
 	struct Pointer_T {
 		Word_T word_selector;
 		Byte_Selector_T byte_selector;
+		
+		std::string to_string() {
+			std::string acc { "" };
+			acc.append(word_selector.to_string_hex_prefixed());
+			acc.append(":");
+			acc.append(byte_selector.to_string_bin_fitted_noprefix());
+			return acc;
+		}
 	};
 
 	struct Memory_T {
@@ -54,7 +79,7 @@ namespace virtual_machine {
 		}
 
 		constexpr size_t size_bytes() { 
-			return this->data[0].data_size * this->data.size();
+			return this->data[0].size_bits * this->data.size();
 		}
 	};
 	
@@ -67,8 +92,6 @@ namespace virtual_machine {
 		std::string mem_hexdump_as_bytes() {
 			constexpr size_t col_width_bytes { 8 };
 			std::string acc { "Byte dump:\n" };
-			Byte_Selector_T test { 69 };
-			acc.append(std::format("{}\n", test.as_hex()));
 
 			// Print the offsets
 			acc.append("OFF: ");
@@ -85,6 +108,7 @@ namespace virtual_machine {
 				sizeof(this->memory.data[0]) * this->memory.data.size()
 			};
 			for (auto i {0}; i < byte_arr_size; ++i) {
+				// TODO: print addrs instead of an index
 				auto newline_condition { (i % col_width_bytes) == 0 };
 				if (newline_condition) {
 					auto address { std::format("{:#04x} ", i) };
