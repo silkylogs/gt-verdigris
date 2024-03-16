@@ -83,37 +83,6 @@ namespace virtual_machine {
 		uint8_t memory_stack_ptr { 0 };
 		bool last_operation_succeeded { true };
 		
-
-		/*
-		std::string mem_hexdump_as_bytes() {
-			constexpr size_t col_width_bytes { 8 };
-			std::string acc { "Byte dump:\n" };
-
-			// Print the offsets
-			acc.append("OFF: ");
-			for (auto i { 0 }; i < col_width_bytes; ++i) {
-				auto appendee = std::format("{:>4d} ", i);
-				acc.append(appendee);
-			}
-
-			// Print the data
-			auto byte_arr_size {
-				this->memory.memory_size_bytes
-			};
-			for (auto i {0}; i < byte_arr_size; ++i) {
-				// TODO: print actual addrs instead of an index
-				auto newline_condition { (i % col_width_bytes) == 0 };
-				if (newline_condition) {
-					auto address { std::format("{:#04x} ", i) };
-					acc.append("\n");
-					acc.append(address);
-				}
-				acc.append(std::format("{:#04X} ", this->memory.data.as_bytes[i]));
-			}
-
-			return acc;
-		}
-		*/
 		std::string hexdump_bytes() {
 			std::string acc {};
 			Pointer_T ptr {};
