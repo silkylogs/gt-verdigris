@@ -76,19 +76,30 @@ namespace virtual_machine {
 
 			return byte1;
 		}
+
+		// TODO: do bit level writes
+		bool write_ptr(uint8_t ptr, uint8_t value) {
+			if (ptr >= Memory_T::len_bytes) return false;
+			this->data[ptr] = value;
+			return true;
+		}
 	};
 	
 	struct VM {
 		Memory_T memory { 0 };
-		uint8_t memory_stack_ptr { 0 };
 		bool last_operation_succeeded { true };
+
+		static constexpr uint8_t stack_ptr_start { 0 };
+		static constexpr uint8_t stack_ptr_end { 5 };
+		uint8_t stack_ptr { 0 };
 		
 		std::string hexdump_bytes() {
+			constexpr size_t col_width { 16 };
+
 			std::string acc {};
 			Pointer_T ptr {};
 			auto &byte { ptr.byte_selector };
 			auto count { this->memory.len_bytes };
-			constexpr size_t col_width { 8 };
 
 			while (count != 0) {
 				auto newline_condition { (count % col_width) == 0 };
@@ -96,33 +107,37 @@ namespace virtual_machine {
 					acc.append("\n");
 					acc.append(std::format("{}", ptr.to_string()));
 				}
-				acc.append(std::format("{:02X} ", this->memory.deref_ptr(ptr)));
+				acc.append(std::format(" {:02X}", this->memory.deref_ptr(ptr)));
 				byte++; count--;
 			}
 
 			return acc;
 		}
 
-		// void push(Word_T what) {
-		// 	if (this->memory.data.memory_size <= this->memory_stack_ptr){
-		// 		this->last_operation_succeeded = false;
-		// 		return;
-		// 	}
+		std::string dump_machine_status() {
+			return std::string { "TODO\n" };
+		}
 
-		// 	this->memory[this->memory_stack_ptr] = what;
-		// 	this->memory_stack_ptr++;
-		// 	this->last_operation_succeeded = true;
-		// }
+		void push(uint8_t value) {
+			if (this->stack_ptr >= this->stack_ptr_end){
+				this->last_operation_succeeded = false;
+				return;
+			}
 
-		// void pop() {
-		// 	if (this->memory_stack_ptr >= 0) {
-		// 		this->memory_stack_ptr--;
-		// 		this->last_operation_succeeded = true;
-		// 		return;
-		// 	}
-		// 	this->last_operation_succeeded = false;
-		// 	return;
-		// }
+			//this->memory[this->stack_ptr] = value;
+			this->memory.write_ptr(this->stack_ptr, value);
+			this->stack_ptr++;
+			this->last_operation_succeeded = true;
+		}
+
+		void pop() {
+			if (this->stack_ptr > stack_ptr_start) {
+				this->stack_ptr--;
+				this->last_operation_succeeded = true;
+				return;
+			}
+			this->last_operation_succeeded = false;
+		}
 		
 	};
 }
