@@ -119,12 +119,16 @@ namespace virtual_machine {
 			Pointer_T ptr {};
 			auto &byte { ptr.byte_selector };
 			auto count { this->memory.len_bytes };
+			constexpr size_t col_width { 8 };
 
-			std::cout << "Hello, world\n";
 			while (count != 0) {
-				acc.append(std::format("{} {}\n", ptr.to_string(), this->memory.deref_ptr(ptr)));
-				byte++;
-				count--;
+				auto newline_condition { (count % col_width) == 0 };
+				if (newline_condition) {
+					acc.append("\n");
+					acc.append(std::format("{}", ptr.to_string()));
+				}
+				acc.append(std::format("{:02X} ", this->memory.deref_ptr(ptr)));
+				byte++; count--;
 			}
 
 			return acc;
