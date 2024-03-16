@@ -7,9 +7,8 @@
 
 int main() {
 	virtual_machine::VM ctx { };
-	// for (uint16_t i { 0 }; i < 0xffff; ++i)
-	// 	ctx.push(i);
-	std::cout << ctx.mem_hexdump_as_bytes() << std::endl;
+	
+	std::cout << ctx.hexdump_bytes() << "\n";
 
 	return 0;
 }
