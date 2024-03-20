@@ -89,9 +89,12 @@ namespace virtual_machine {
 		Memory_T memory { 0 };
 		bool last_operation_succeeded { true };
 
+		uint8_t segment_ptrs[4];
+
 		static constexpr uint8_t stack_ptr_start { 0 };
 		static constexpr uint8_t stack_ptr_end { 5 };
 		uint8_t stack_ptr { 0 };
+
 		
 		std::string hexdump_bytes() {
 			constexpr size_t col_width { 16 };
@@ -114,8 +117,25 @@ namespace virtual_machine {
 			return acc;
 		}
 
+		uint8_t stack_used() {
+			return this->stack_ptr - this->stack_ptr_start;
+		}
+
+		uint8_t stack_size() {
+			return this->stack_ptr_end - this->stack_ptr_start;
+		}
+
 		std::string dump_machine_status() {
-			return std::string { "TODO\n" };
+			std::string acc {};
+			acc.append(std::format(
+				"Stack usage: {}/{}; {}%\n",
+				this->stack_used(), this->stack_size(),
+				(static_cast<int32_t>(this->stack_used()) * 100) / this->stack_size()));
+			acc.append(
+				std::format("Last operation successful? {}\n", this->last_operation_succeeded)
+			);
+			acc.append(std::format("Memory dump: {}", this->hexdump_bytes()));
+			return acc;
 		}
 
 		void push(uint8_t value) {
