@@ -6,21 +6,38 @@ import "core:strings"
 import "core:fmt"
 import "core:time"
 
-Vector2i32 :: struct { x: i32, y: i32, }
 OsWindow :: struct { w: i32, h: i32, title: string, }
 
-TestCircle :: struct { rad: i32, pos: Vector2i32, }
+Player :: struct {
+	rad: i32,
+
+	pos: linalg.Vector2f32,
+	vel: linalg.Vector2f32,
+	grav: linalg.Vector2f32,
+
+	vel_mult: f32,
+	grounded: bool,
+}
+
+// Note: directions correspond to natural directions, not buffer position
+//       (i.e. +ve y = up, not down)
+player_new :: proc() -> Player {
+	player: Player
+
+	player.rad = 10
+	player.pos = linalg.Vector2f32 { 200, 200 }
+	player.vel = linalg.Vector2f32 { 0, 0 }
+	player.grav.y = -1.5
+
+	player.grounded = false
+	player.vel_mult = 0.0001
+
+	return player
+}
 
 GameState :: struct {
 	window: OsWindow,
-
-	tcircle: TestCircle,
-	vel: Vector2i32,
-	vert_accel: i32,
-	k_jmp_accel: i32,
-	k_grav_accel: i32,
-	grounded: bool,
-
+	player: Player,
 	last_frame_time: time.Duration,
 }
 
@@ -29,13 +46,7 @@ init_game :: proc(state: ^GameState) {
 	state.window.h = 450
 	state.window.title = "Test"
 
-	state.tcircle.rad = 10
-	state.tcircle.pos = Vector2i32 { 200, 200 }
-	state.vel = Vector2i32 { 0, 0 }
-	state.vert_accel = 0
-	state.k_jmp_accel = 5
-	state.k_grav_accel = 1
-	state.grounded = false
+	state.player = player_new()
 
 	state.last_frame_time = 69 * time.Microsecond
 }
@@ -49,50 +60,59 @@ update_game :: proc(state: ^GameState) {
 	key_w := rl.IsKeyDown(rl.KeyboardKey.W)
 	key_s := rl.IsKeyDown(rl.KeyboardKey.S)
 
+	// -- Update player ----
+	player := &state.player
+
 	// Game action mappings
 	jmp_button_pressed := rl.IsKeyPressed(rl.KeyboardKey.W)
 	go_right := key_d
 	go_left := key_a
 
 	if go_right {
-		state.vel.x = 2
+		player.vel.x = 2
 	} else if go_left {
-		state.vel.x = -2
+		player.vel.x = -2
 	} else {
-		state.vel.x = 0
+		player.vel.x = 0
 	}
 
 	if jmp_button_pressed {
 		fmt.println("Jump button pressed")
-		state.vert_accel = state.k_jmp_accel
-		state.grounded = false
+		INIT_JMP_VEL :: f32(2)
+
+		player.grounded = false
+		player.vel.y = INIT_JMP_VEL
 	}
+
+	// Apply gravity
+	if !player.grounded {
+		player.vel.y += player.grav.y
+	} else {
+	}
+
+	VEL_MAX :: f32(10)
+	player.vel.x = clamp(player.vel.x, -VEL_MAX, VEL_MAX)
+	player.vel.y = -clamp(player.vel.y, -VEL_MAX, VEL_MAX)
 
 	// Apply velocity
-	state.tcircle.pos.x += state.vel.x
-
-	// And gravity
-	if !state.grounded {
-		state.vert_accel -= state.k_grav_accel
-		state.vel.y -= state.vert_accel
-		state.tcircle.pos.y += state.vel.y
-	} else {
-		//fmt.println("Grounded")
-	}
+	dt := f32(time.duration_nanoseconds(state.last_frame_time))
+	player.pos.x += player.vel.x * player.vel_mult * dt
+	player.pos.y += player.vel.y * player.vel_mult * dt
 
 	// Temp collisions
-	h_cutoff := state.window.h
-	if state.tcircle.pos.y >= h_cutoff {
-		state.grounded = true
-		state.vert_accel = 0
+	h_cutoff := f32(state.window.h * 2 / 3)
+	if player.pos.y >= h_cutoff {
+		player.grounded = true
 
 		// resolve clipping
-		state.tcircle.pos.y = h_cutoff
+		player.pos.y = h_cutoff
 	}
+
+	// -- Update player ----
 
 	time_since := time.since(time_now)
 	state.last_frame_time = time_since
-	fmt.println("Frame time: ", state.last_frame_time)
+	//fmt.println("Frame time: ", state.last_frame_time)
 }
 
 draw_game :: proc(state: ^GameState) {
@@ -101,7 +121,9 @@ draw_game :: proc(state: ^GameState) {
 
 	rl.ClearBackground(rl.RAYWHITE)
 	
-	rl.DrawCircle(state.tcircle.pos.x, state.tcircle.pos.y, f32(state.tcircle.rad), rl.DARKBLUE);
+	rl.DrawCircle(
+		i32(state.player.pos.x), i32(state.player.pos.y),
+		f32(state.player.rad), rl.DARKBLUE);
 }
 
 main :: proc() {
