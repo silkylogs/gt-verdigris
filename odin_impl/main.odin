@@ -16,6 +16,7 @@ Player :: struct {
 	grav: linalg.Vector2f32,
 
 	vel_mult: f32,
+	jmp_vel: f32,
 	grounded: bool,
 }
 
@@ -24,13 +25,14 @@ Player :: struct {
 player_new :: proc() -> Player {
 	player: Player
 
-	player.rad = 10
-	player.pos = linalg.Vector2f32 { 200, 200 }
+	player.rad = 5
+	player.pos = linalg.Vector2f32 { 400, 0 }
 	player.vel = linalg.Vector2f32 { 0, 0 }
 	player.grav.y = -1.5
 
 	player.grounded = false
-	player.vel_mult = 0.0001
+	player.jmp_vel = 40
+	player.vel_mult = 1
 
 	return player
 }
@@ -78,10 +80,8 @@ update_game :: proc(state: ^GameState) {
 
 	if jmp_button_pressed {
 		fmt.println("Jump button pressed")
-		INIT_JMP_VEL :: f32(2)
-
 		player.grounded = false
-		player.vel.y = INIT_JMP_VEL
+		player.vel.y = player.jmp_vel
 	}
 
 	// Apply gravity
@@ -92,12 +92,11 @@ update_game :: proc(state: ^GameState) {
 
 	VEL_MAX :: f32(10)
 	player.vel.x = clamp(player.vel.x, -VEL_MAX, VEL_MAX)
-	player.vel.y = -clamp(player.vel.y, -VEL_MAX, VEL_MAX)
+	player.vel.y = clamp(player.vel.y, -VEL_MAX, VEL_MAX)
 
 	// Apply velocity
-	dt := f32(time.duration_nanoseconds(state.last_frame_time))
-	player.pos.x += player.vel.x * player.vel_mult * dt
-	player.pos.y += player.vel.y * player.vel_mult * dt
+	player.pos.x += player.vel.x
+	player.pos.y += -1 * player.vel.y
 
 	// Temp collisions
 	h_cutoff := f32(state.window.h * 2 / 3)
