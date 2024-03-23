@@ -78,5 +78,3 @@ player_update :: proc (player: ^Player, inp: PlayerControls) {
 		player.pos.y = h_cutoff
 	}
 }
-
-// -- 2d platformer ------------
