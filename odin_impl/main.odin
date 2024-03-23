@@ -8,6 +8,8 @@ import "core:time"
 
 OsWindow :: struct { w: i32, h: i32, title: string, }
 
+// -- 2d platformer ------------
+
 Player :: struct {
 	rad: i32,
 
@@ -37,48 +39,24 @@ player_new :: proc() -> Player {
 	return player
 }
 
-GameState :: struct {
-	window: OsWindow,
-	player: Player,
-	last_frame_time: time.Duration,
+// The actions that the player can do with the character
+PlayerControls :: struct {
+	go_right: bool,
+	go_left: bool,
+	jmp_button_pressed: bool,	
 }
 
-init_game :: proc(state: ^GameState) {
-	state.window.w = 800
-	state.window.h = 450
-	state.window.title = "Test"
-
-	state.player = player_new()
-
-	state.last_frame_time = 69 * time.Microsecond
-}
-
-update_game :: proc(state: ^GameState) {
-	time_now := time.now()
-
-	// Game input collection
-	key_d := rl.IsKeyDown(rl.KeyboardKey.D)
-	key_a := rl.IsKeyDown(rl.KeyboardKey.A)
-	key_w := rl.IsKeyDown(rl.KeyboardKey.W)
-	key_s := rl.IsKeyDown(rl.KeyboardKey.S)
-
-	// -- Update player ----
-	player := &state.player
-
-	// Game action mappings
-	jmp_button_pressed := rl.IsKeyPressed(rl.KeyboardKey.W)
-	go_right := key_d
-	go_left := key_a
-
-	if go_right {
-		player.vel.x = 2
-	} else if go_left {
-		player.vel.x = -2
+player_update :: proc (player: ^Player, inp: PlayerControls) {
+	H_SPEED :: f32(2)
+	if inp.go_right {
+		player.vel.x = H_SPEED
+	} else if inp.go_left {
+		player.vel.x = -H_SPEED
 	} else {
 		player.vel.x = 0
 	}
 
-	if jmp_button_pressed {
+	if inp.jmp_button_pressed {
 		fmt.println("Jump button pressed")
 		player.grounded = false
 		player.vel.y = player.jmp_vel
@@ -99,13 +77,53 @@ update_game :: proc(state: ^GameState) {
 	player.pos.y += -1 * player.vel.y
 
 	// Temp collisions
-	h_cutoff := f32(state.window.h * 2 / 3)
+	h_cutoff := f32(180)
 	if player.pos.y >= h_cutoff {
 		player.grounded = true
 
 		// resolve clipping
 		player.pos.y = h_cutoff
 	}
+}
+
+// -- 2d platformer ------------
+
+
+GameState :: struct {
+	window: OsWindow,
+	player: Player,
+	last_frame_time: time.Duration,
+}
+
+init_game :: proc(state: ^GameState) {
+	state.window.w = 800
+	state.window.h = 450
+	state.window.title = "Test"
+
+	state.player = player_new()
+
+	state.last_frame_time = 69 * time.Microsecond
+}
+
+update_game :: proc(state: ^GameState) {
+	time_now := time.now()
+
+	key_d := rl.IsKeyDown(rl.KeyboardKey.D)
+	key_a := rl.IsKeyDown(rl.KeyboardKey.A)
+	key_w := rl.IsKeyDown(rl.KeyboardKey.W)
+	key_s := rl.IsKeyDown(rl.KeyboardKey.S)
+
+	// -- Update player ----
+	ref_player := &state.player
+
+	// Game action mappings
+	player_controls := PlayerControls {
+		jmp_button_pressed = rl.IsKeyPressed(rl.KeyboardKey.W),
+		go_right = key_d,
+		go_left = key_a,
+	}
+
+	player_update(ref_player, player_controls)
 
 	// -- Update player ----
 
