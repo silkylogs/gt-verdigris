@@ -5,13 +5,12 @@ import "core:math/linalg"
 import "core:strings"
 import "core:fmt"
 import "core:time"
-import p2d "platformer_2d"
 
 OsWindow :: struct { w: i32, h: i32, title: string, }
 
 GameState :: struct {
 	window: OsWindow,
-	player: p2d.Player,
+	player: Player,
 	last_frame_time: time.Duration,
 }
 
@@ -20,7 +19,7 @@ init_game :: proc(state: ^GameState) {
 	state.window.h = 450
 	state.window.title = "Test"
 
-	state.player = p2d.player_new()
+	state.player = player_new()
 
 	state.last_frame_time = 69 * time.Microsecond
 }
@@ -37,13 +36,13 @@ update_game :: proc(state: ^GameState) {
 	ref_player := &state.player
 
 	// Game action mappings
-	player_controls := p2d.PlayerControls {
+	player_controls := PlayerControls {
 		jmp_button_pressed = rl.IsKeyPressed(rl.KeyboardKey.W),
 		go_right = key_d,
 		go_left = key_a,
 	}
 
-	p2d.player_update(ref_player, player_controls)
+	player_update(ref_player, player_controls)
 
 	// -- Update player ----
 

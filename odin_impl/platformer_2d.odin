@@ -1,4 +1,4 @@
-package platformer_2d
+package main
 
 import "core:math/linalg"
 import "core:fmt"
