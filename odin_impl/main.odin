@@ -44,6 +44,22 @@ draw_game :: proc(state: ^GameState) {
 	defer rl.EndDrawing()
 
 	rl.ClearBackground(rl.RAYWHITE)
+
+	// draw floor
+	floor_y := i32(400)
+	rect_color := rl.Color { u8(floor_y%0xff), 0, 0, 0xff }
+	rl.DrawRectangle(0, floor_y, 1000, 1000, rect_color)
+
+	// And test jump reticles
+	increment := i32(50)
+	floor_y += increment
+	for floor_y > 0 {
+		rect_color.r = u8(floor_y%0xff)
+		rect_color.g = u8(floor_y%0xff / 2)
+		rect_color.b = u8(floor_y%0xff / 4)
+		rl.DrawRectangle(0, floor_y, 1000, 1, rect_color)
+		floor_y -= increment
+	}
 	
 	rl.DrawCircle(
 		i32(state.player.pos.x), i32(state.player.pos.y),

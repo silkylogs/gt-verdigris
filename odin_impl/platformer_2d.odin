@@ -56,9 +56,14 @@ player_update :: proc (player: ^Player, inp: PlayerControls) {
 	if inp.jmp_button_pressed {
 		fmt.println("Jump button pressed")
 		JUMP_HEIGHT :: f32(100)
+		TIME_TO_APEX :: f32(3)
+
+		player.grav.y = 
+			(2 * JUMP_HEIGHT) / (TIME_TO_APEX * TIME_TO_APEX)
 		applied_jmp_vel := math.sqrt(
-			math.abs(2 * player.grav.y * JUMP_HEIGHT)
+			2 * math.abs(player.grav.y) * JUMP_HEIGHT
 		)
+		player.grav.y = -math.abs(player.grav.y)
 
 		player.grounded = false
 		player.vel.y = applied_jmp_vel
@@ -78,7 +83,7 @@ player_update :: proc (player: ^Player, inp: PlayerControls) {
 	player.pos.y += -1 * player.vel.y
 
 	// Temp collisions
-	h_cutoff := f32(180)
+	h_cutoff := f32(400)
 	if player.pos.y >= h_cutoff {
 		player.grounded = true
 
