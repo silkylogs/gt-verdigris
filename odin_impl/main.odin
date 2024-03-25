@@ -25,30 +25,18 @@ init_game :: proc(state: ^GameState) {
 }
 
 update_game :: proc(state: ^GameState) {
-	time_now := time.now()
-
 	key_d := rl.IsKeyDown(rl.KeyboardKey.D)
 	key_a := rl.IsKeyDown(rl.KeyboardKey.A)
 	key_w := rl.IsKeyDown(rl.KeyboardKey.W)
 	key_s := rl.IsKeyDown(rl.KeyboardKey.S)
 
-	// -- Update player ----
-	ref_player := &state.player
-
-	// Game action mappings
 	player_controls := PlayerControls {
 		jmp_button_pressed = rl.IsKeyPressed(rl.KeyboardKey.W),
 		go_right = key_d,
 		go_left = key_a,
 	}
 
-	player_update(ref_player, player_controls)
-
-	// -- Update player ----
-
-	time_since := time.since(time_now)
-	state.last_frame_time = time_since
-	//fmt.println("Frame time: ", state.last_frame_time)
+	player_update(&state.player, player_controls)
 }
 
 draw_game :: proc(state: ^GameState) {
@@ -76,8 +64,14 @@ main :: proc() {
 	rl.SetTargetFPS(60)
 
 	for !rl.WindowShouldClose() {
+		time_now := time.now()
+
 		update_game(&game_state)
 		draw_game(&game_state)
+
+		time_since := time.since(time_now)
+		game_state.last_frame_time = time_since
+		fmt.println("Frame time: ", game_state.last_frame_time)
 	}
 }
 
