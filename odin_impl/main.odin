@@ -16,7 +16,7 @@ GameState :: struct {
 
 init_game :: proc(state: ^GameState) {
 	state.window.w = 800
-	state.window.h = 450
+	state.window.h = 600
 	state.window.title = "Test"
 
 	state.player = player_new()
@@ -36,7 +36,8 @@ update_game :: proc(state: ^GameState) {
 		go_left = key_a,
 	}
 
-	player_update(&state.player, player_controls)
+	dt_ns := time.duration_nanoseconds(state.last_frame_time)
+	player_update(&state.player, player_controls, dt_ns)
 }
 
 draw_game :: proc(state: ^GameState) {
@@ -77,7 +78,8 @@ main :: proc() {
 	)
 	defer rl.CloseWindow()
 
-	rl.SetTargetFPS(60)
+	//rl.SetTargetFPS(120)
+	rl.SetTargetFPS(24)
 
 	for !rl.WindowShouldClose() {
 		time_now := time.now()
@@ -87,7 +89,7 @@ main :: proc() {
 
 		time_since := time.since(time_now)
 		game_state.last_frame_time = time_since
-		fmt.println("Frame time: ", game_state.last_frame_time)
+		//fmt.println("Frame time: ", game_state.last_frame_time)
 	}
 }
 
