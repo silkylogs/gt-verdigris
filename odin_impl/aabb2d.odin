@@ -18,11 +18,16 @@ height :: proc(hitbox: AABB2D) -> f32 {
 	return math.abs(hitbox.height)
 }
 
-AABB2D_render_info :: proc(hitbox: AABB2D) -> (x: i32, y: i32, w: i32, h: i32)
+AABB2D_render_info :: proc(hitbox: AABB2D) ->
+(x: i32, y: i32, w: i32, h: i32)
 {
 	x = i32(hitbox.top_left.x)
 	y = i32(hitbox.top_left.y)
 	w = i32(width(hitbox))
 	h = i32(height(hitbox))
 	return
+}
+
+AABB2D_update(arr: []AABB2D) {
+	// todo
 }
