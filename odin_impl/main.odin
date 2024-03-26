@@ -53,7 +53,7 @@ draw_game :: proc(state: ^GameState) {
 
 	// And test jump reticles
 	increment := i32(50)
-	floor_y += increment
+	floor_y -= increment
 	for floor_y > 0 {
 		rect_color.r = u8(floor_y%0xff)
 		rect_color.g = u8(floor_y%0xff / 2)
@@ -62,9 +62,8 @@ draw_game :: proc(state: ^GameState) {
 		floor_y -= increment
 	}
 	
-	rl.DrawCircle(
-		i32(state.player.pos.x), i32(state.player.pos.y),
-		f32(state.player.rad), rl.DARKBLUE);
+	x, y, w, h := AABB2D_render_info(state.player.hitbox)
+	rl.DrawRectangle(x, y, w, h, rl.DARKBLUE)
 }
 
 main :: proc() {

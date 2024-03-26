@@ -18,14 +18,14 @@ Player :: struct {
 
 	init_jmp_vel: f32,
 
-	rad: i32,
+	hitbox: AABB2D
 }
 
 // Note: directions correspond to natural directions, not buffer position
 //       (i.e. +ve y = up, not down)
 player_new :: proc() -> Player {
 	time_to_apex_scaling_factor_seconds :: f32(1e+2)
-	time_to_apex_secs :: 1 * time_to_apex_scaling_factor_seconds
+	time_to_apex_secs :: 0.32 * time_to_apex_scaling_factor_seconds
 
 	// TODO: move to player struct
 	applied_jump_height_px := f32(100)
@@ -34,7 +34,7 @@ player_new :: proc() -> Player {
 	applied_init_jmp_vel := math.sqrt(2 * applied_grav_y * applied_jump_height_px)
 
 	return Player {
-		pos = linalg.Vector2f32 { 400, 100 },
+		pos = linalg.Vector2f32 { 000, 000 },
 		vel = linalg.Vector2f32 { 0, 0 },
 		grounded = false,
 
@@ -45,7 +45,7 @@ player_new :: proc() -> Player {
 
 		init_jmp_vel = applied_init_jmp_vel,
 
-		rad = 5,
+		hitbox = AABB2D { linalg.Vector2f32{ 0, 0 }, 20, 35 }
 	}
 }
 
@@ -77,6 +77,7 @@ player_update :: proc (player: ^Player, inp: PlayerControls, dt_ns: i64) {
 	if !player.grounded {
 		player.vel.y -= player.grav_y * vel_scale_factor * dt
 	} else {
+		//fmt.println(player.pos)
 	}
 
 
@@ -99,4 +100,8 @@ player_update :: proc (player: ^Player, inp: PlayerControls, dt_ns: i64) {
 		// resolve clipping
 		player.pos.y = h_cutoff
 	}
+
+	// Update hitbox
+	player.hitbox.top_left.x = player.pos.x - player.hitbox.width / 2
+	player.hitbox.top_left.y = player.pos.y - player.hitbox.height
 }
