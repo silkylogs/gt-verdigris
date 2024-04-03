@@ -1,4 +1,4 @@
-package platformer_2d_f32
+package platformer_2d
 
 import "core:math"
 import "core:math/linalg"
