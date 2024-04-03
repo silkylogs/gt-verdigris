@@ -11,7 +11,7 @@ OsWindow :: struct { w: i32, h: i32, title: string, }
 
 GameState :: struct {
 	window: OsWindow,
-	player: p2d.Player,
+	player: p2d.Playerf32,
 	last_frame_time: time.Duration,
 }
 

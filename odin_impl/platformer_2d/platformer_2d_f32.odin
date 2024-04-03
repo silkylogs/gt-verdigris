@@ -4,7 +4,7 @@ import "core:math"
 import "core:math/linalg"
 import "core:fmt"
 
-Player :: struct {
+Playerf32 :: struct {
 	// Variables
 	pos: linalg.Vector2f32,
 	vel: linalg.Vector2f32,
@@ -23,7 +23,7 @@ Player :: struct {
 
 // Note: directions correspond to natural directions, not buffer position
 //       (i.e. +ve y = up, not down)
-player_new :: proc() -> Player {
+player_new :: proc() -> Playerf32 {
 	time_to_apex_scaling_factor_seconds :: f32(1e+2)
 	time_to_apex_secs :: 0.32 * time_to_apex_scaling_factor_seconds
 
@@ -33,7 +33,7 @@ player_new :: proc() -> Player {
 		(2 * applied_jump_height_px) / (time_to_apex_secs * time_to_apex_secs)
 	applied_init_jmp_vel := math.sqrt(2 * applied_grav_y * applied_jump_height_px)
 
-	return Player {
+	return Playerf32 {
 		pos = linalg.Vector2f32 { 000, 000 },
 		vel = linalg.Vector2f32 { 0, 0 },
 		grounded = false,
@@ -56,7 +56,7 @@ PlayerControls :: struct {
 	jmp_button_pressed: bool,
 }
 
-player_update :: proc (player: ^Player, inp: PlayerControls, dt_ns: i64) {
+player_update :: proc (player: ^Playerf32, inp: PlayerControls, dt_ns: i64) {
 	if inp.go_right {
 		player.vel.x = player.x_speed
 	} else if inp.go_left {
