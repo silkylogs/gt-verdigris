@@ -11,7 +11,8 @@ OsWindow :: struct { w: i32, h: i32, title: string, }
 
 GameState :: struct {
 	window: OsWindow,
-	player: p2d.Playerf32,
+	//player: p2d.Playerf32,
+	player: p2d.Playeri32,
 	last_frame_time: time.Duration,
 }
 
@@ -20,7 +21,8 @@ init_game :: proc(state: ^GameState) {
 	state.window.h = 600
 	state.window.title = "Test"
 
-	state.player = p2d.player_new()
+	//state.player = p2d.player_new()
+	state.player = p2d.player_i32_new()
 
 	state.last_frame_time = 69 * time.Microsecond
 }
@@ -38,7 +40,8 @@ update_game :: proc(state: ^GameState) {
 	}
 
 	dt_ns := time.duration_nanoseconds(state.last_frame_time)
-	p2d.player_update(&state.player, player_controls, dt_ns)
+	//p2d.player_update(&state.player, player_controls, dt_ns)
+	p2d.player_i32_update(&state.player, player_controls, dt_ns)
 }
 
 draw_game :: proc(state: ^GameState) {
@@ -63,8 +66,16 @@ draw_game :: proc(state: ^GameState) {
 		floor_y -= increment
 	}
 	
-	x, y, w, h := p2d.AABB2D_render_info(state.player.hitbox)
-	rl.DrawRectangle(x, y, w, h, rl.DARKBLUE)
+	//x, y, w, h := p2d.AABB2D_render_info(state.player.hitbox)
+	//rl.DrawRectangle(x, y, w, h, rl.DARKBLUE)
+	rl.DrawRectangle(
+		state.player.hitbox.top_left_x,
+		state.player.hitbox.top_left_y,
+		state.player.hitbox.w,
+		state.player.hitbox.h,
+		rl.DARKGREEN
+	)
+	fmt.println(state.player.hitbox.top_left_x, state.player.hitbox.top_left_y)
 }
 
 main :: proc() {
@@ -92,6 +103,3 @@ main :: proc() {
 		//fmt.println("Frame time: ", game_state.last_frame_time)
 	}
 }
-
-
-
