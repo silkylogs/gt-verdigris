@@ -1,6 +1,7 @@
 package main
 
 import rl "vendor:raylib"
+import p2d "platformer_2d"
 import "core:math/linalg"
 import "core:strings"
 import "core:fmt"
@@ -10,7 +11,7 @@ OsWindow :: struct { w: i32, h: i32, title: string, }
 
 GameState :: struct {
 	window: OsWindow,
-	player: Player,
+	player: p2d.Player,
 	last_frame_time: time.Duration,
 }
 
@@ -19,7 +20,7 @@ init_game :: proc(state: ^GameState) {
 	state.window.h = 600
 	state.window.title = "Test"
 
-	state.player = player_new()
+	state.player = p2d.player_new()
 
 	state.last_frame_time = 69 * time.Microsecond
 }
@@ -30,14 +31,14 @@ update_game :: proc(state: ^GameState) {
 	key_w := rl.IsKeyDown(rl.KeyboardKey.W)
 	key_s := rl.IsKeyDown(rl.KeyboardKey.S)
 
-	player_controls := PlayerControls {
+	player_controls := p2d.PlayerControls {
 		jmp_button_pressed = rl.IsKeyPressed(rl.KeyboardKey.W),
 		go_right = key_d,
 		go_left = key_a,
 	}
 
 	dt_ns := time.duration_nanoseconds(state.last_frame_time)
-	player_update(&state.player, player_controls, dt_ns)
+	p2d.player_update(&state.player, player_controls, dt_ns)
 }
 
 draw_game :: proc(state: ^GameState) {
@@ -62,7 +63,7 @@ draw_game :: proc(state: ^GameState) {
 		floor_y -= increment
 	}
 	
-	x, y, w, h := AABB2D_render_info(state.player.hitbox)
+	x, y, w, h := p2d.AABB2D_render_info(state.player.hitbox)
 	rl.DrawRectangle(x, y, w, h, rl.DARKBLUE)
 }
 

@@ -1,4 +1,4 @@
-package main
+package platformer_2d_f32
 
 import "core:math/linalg"
 import "core:math"
@@ -28,6 +28,6 @@ AABB2D_render_info :: proc(hitbox: AABB2D) ->
 	return
 }
 
-AABB2D_update(arr: []AABB2D) {
+AABB2D_update :: proc(arr: []AABB2D) {
 	// todo
 }
