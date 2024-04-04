@@ -2,16 +2,17 @@ package main
 
 import rl "vendor:raylib"
 import p2d "platformer_2d"
+import fp "fixed_point"
 import "core:math/linalg"
 import "core:strings"
 import "core:fmt"
 import "core:time"
+import "core:os"
 
 OsWindow :: struct { w: i32, h: i32, title: string, }
 
 GameState :: struct {
 	window: OsWindow,
-	//player: p2d.Playerf32,
 	player: p2d.Player_int,
 	last_frame_time: time.Duration,
 }
@@ -21,7 +22,6 @@ init_game :: proc(state: ^GameState) {
 	state.window.h = 600
 	state.window.title = "Test"
 
-	//state.player = p2d.player_new()
 	state.player = p2d.player_int_new()
 
 	state.last_frame_time = 69 * time.Microsecond
@@ -40,7 +40,6 @@ update_game :: proc(state: ^GameState) {
 	}
 
 	dt_ns := time.duration_nanoseconds(state.last_frame_time)
-	//p2d.player_update(&state.player, player_controls, dt_ns)
 	p2d.player_int_update(&state.player, player_controls, dt_ns)
 }
 
@@ -65,9 +64,7 @@ draw_game :: proc(state: ^GameState) {
 		rl.DrawRectangle(0, floor_y, 1000, 1, rect_color)
 		floor_y -= increment
 	}
-	
-	//x, y, w, h := p2d.AABB2D_render_info(state.player.hitbox)
-	//rl.DrawRectangle(x, y, w, h, rl.DARKBLUE)
+
 	rl.DrawRectangle(
 		i32(state.player.hitbox.top_left_x),
 		i32(state.player.hitbox.top_left_y),
@@ -79,6 +76,10 @@ draw_game :: proc(state: ^GameState) {
 }
 
 main :: proc() {
+	fp_ok, reason := fp.fp64_run_tests()
+	fmt.println(reason)
+	if !fp_ok { os.exit(1) }
+
 	game_state: GameState
 	init_game(&game_state)
 

@@ -1,3 +1,5 @@
+// Use this as a reference
+
 package platformer_2d
 
 import "core:math"

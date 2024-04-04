@@ -3,8 +3,6 @@ package platformer_2d
 import "core:math"
 import "core:fmt"
 
-IDIV :: 100
-
 HitGrid_int :: struct {
 	top_left_x: int, top_left_y: int,
 	w: int, h: int,
