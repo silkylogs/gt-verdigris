@@ -3,60 +3,60 @@ package platformer_2d
 import "core:math"
 import "core:fmt"
 
-IMPLICIT_DIVIDEND :: i32(100)
+IDIV :: 100
 
-HitGrid_i32 :: struct {
-	top_left_x: i32, top_left_y: i32,
-	w: i32, h: i32,
+HitGrid_int :: struct {
+	top_left_x: int, top_left_y: int,
+	w: int, h: int,
 	solids: []bool,
 }
 
-HitGrid_i32_new :: proc(x: i32, y: i32, w: i32, h: i32) -> HitGrid_i32 {
+HitGrid_int_new :: proc(x: int, y: int, w: int, h: int) -> HitGrid_int {
 	size := w * h
 	backing_buffer := make([]bool, size)
-	return HitGrid_i32 {
+	return HitGrid_int {
 		top_left_x = x, top_left_y = y,
 		w = w, h = h,
 		solids = backing_buffer
 	}
 }
 
-Playeri32 :: struct {
+Player_int :: struct {
 	// Variables
-	pos_x: i32, pos_y: i32,
-	vel_x: i32, vel_y: i32,
+	pos_x: int, pos_y: int,
+	vel_x: int, vel_y: int,
 	grounded: bool,
 
 	// Soft constants
-	grav_y: i32,
-	vel_max: i32,
-	speed_x: i32,
+	grav_y: int,
+	vel_max: int,
+	speed_x: int,
 
-	init_jmp_vel_y: i32,
+	init_jmp_vel_y: int,
 
-	hitbox: HitGrid_i32,
+	hitbox: HitGrid_int,
 }
 
-player_i32_new :: proc() -> Playeri32 {
-	applied_pos_x: i32 = 0
-	applied_pos_y: i32 = 0
-	applied_speed_x: i32 = 2
-	applied_vel_max: i32 = 10
+player_int_new :: proc() -> Player_int {
+	applied_pos_x: int = 10
+	applied_pos_y: int = 50
+	applied_speed_x: int = 2
+	applied_vel_max: int = 10
 
 	time_to_apex_scaling_factor_seconds :: f32(1e+2)
-	time_to_apex_secs :: i32(0.32 * time_to_apex_scaling_factor_seconds)
-	applied_jump_height_px: i32 = 100
-	applied_grav_y :=
-		(2 * applied_jump_height_px) / (time_to_apex_secs * time_to_apex_secs)
+	time_to_apex_secs :: int(0.32 * time_to_apex_scaling_factor_seconds)
+	applied_jump_height_px: int = 100
+	applied_grav_y: int = 1
+		//(2 * applied_jump_height_px) / (time_to_apex_secs * time_to_apex_secs)
 	applied_init_jmp_vel_y_f32: f32 = math.sqrt(2.0 * f32(applied_grav_y) * f32(applied_jump_height_px))
-	applied_init_jmp_vel_y: i32 = i32(applied_init_jmp_vel_y_f32)
+	applied_init_jmp_vel_y: int = int(applied_init_jmp_vel_y_f32)
 
-	applied_hitbox_w: i32 = 20
-	applied_hitbox_h: i32 = 35
-	applied_hitbox_x: i32 = applied_pos_x - (applied_hitbox_w / 2)
-	applied_hitbox_y: i32 = applied_pos_y - (applied_hitbox_h)
+	applied_hitbox_w: int = 20
+	applied_hitbox_h: int = 35
+	applied_hitbox_x: int = applied_pos_x - (applied_hitbox_w / 2)
+	applied_hitbox_y: int = applied_pos_y - (applied_hitbox_h)
 
-	return Playeri32 {
+	return Player_int {
 		pos_x = applied_pos_x, pos_y = applied_pos_y,
 		vel_x = 0, vel_y = 0,
 		grounded = false,
@@ -67,13 +67,13 @@ player_i32_new :: proc() -> Playeri32 {
 
 		init_jmp_vel_y = applied_init_jmp_vel_y,
 
-		hitbox = HitGrid_i32_new(
+		hitbox = HitGrid_int_new(
 			applied_hitbox_x, applied_hitbox_y,
 			applied_hitbox_w, applied_hitbox_h),
 	}
 }
 
-player_i32_update :: proc (player: ^Playeri32, inp: PlayerControls, dt_ns: i64) {
+player_int_update :: proc (player: ^Player_int, inp: PlayerControls, dt_ns: i64) {
 	if inp.go_right {
 		player.vel_x = player.speed_x
 	} else if inp.go_left {
@@ -88,29 +88,24 @@ player_i32_update :: proc (player: ^Playeri32, inp: PlayerControls, dt_ns: i64) 
 		player.grounded = false
 	}
 
-	dt := f32(dt_ns)
-	vel_scale_factor := f32(1e-7)
-
 	if !player.grounded {
-		player.vel_y -= i32(f32(player.grav_y) * vel_scale_factor * dt)
+		player.vel_y -= player.grav_y
 	} else {
 		//fmt.println(player.pos)
 	}
 
-
-	// Damping
-	//player.vel.x = player.vel.x / (1 + player.damp * dt)
-	//player.vel.y = player.vel.y / (1 + player.damp * dt)
-
 	player.vel_x = clamp(player.vel_x, -player.vel_max, player.vel_max)
 	player.vel_y = clamp(player.vel_y, -player.vel_max, player.vel_max)
 
-	player.pos_x += i32(f32(player.vel_x) * vel_scale_factor * dt * +1)
-	player.pos_y += i32(f32(player.vel_y) * vel_scale_factor * dt * -1)
+	applied_vel_x := (player.vel_x * +1)
+	applied_vel_y := (player.vel_y * -1)
+
+	player.pos_x += applied_vel_x
+	player.pos_y += applied_vel_y
 
 	// Handle collisions
 	// TODO: offload collision logic to AABB system
-	h_cutoff: i32 = 400
+	h_cutoff: int = 400
 	if player.pos_y >= h_cutoff {
 		player.grounded = true
 		player.pos_y = h_cutoff // resolve clipping
