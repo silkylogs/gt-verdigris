@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:math"
 import "core:runtime"
 
+@(private)
 test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -12,6 +13,7 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_from_int :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -34,6 +36,7 @@ test_fp64_from_int :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_from_f64 :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -56,6 +59,7 @@ test_fp64_from_f64 :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_from_f32 :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -78,6 +82,7 @@ test_fp64_from_f32 :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_add :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -102,6 +107,7 @@ test_fp64_add :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_sub :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -116,7 +122,7 @@ test_fp64_sub :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	if res != expected {
 		ok = false
 		cmt = fmt.aprint(
-			"sub: precision not met:",
+			"precision not met:",
 			res, "!=", expected
 		)
 		return
@@ -127,6 +133,7 @@ test_fp64_sub :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_mul :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -139,9 +146,10 @@ test_fp64_mul :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	if res != expected {
 		ok = false
 		cmt = fmt.aprint(
-			"mul: precision not met:",
+			"precision not met:",
 			res, "!=", expected
 		)
+		return
 	}
 
 	ok = true
@@ -149,6 +157,7 @@ test_fp64_mul :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	return
 }
 
+@(private)
 test_fp64_div :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
@@ -161,7 +170,7 @@ test_fp64_div :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	if res != expected {
 		ok = false
 		cmt = fmt.aprint(
-			"div: precision not met:",
+			"precision not met:",
 			res, "!=", expected
 		)
 	}
