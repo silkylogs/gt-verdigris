@@ -1,7 +1,5 @@
 package fixed_point
 
-import "core:fmt"
-import "core:math"
 
 // -- Context --------------------------------------------
 
@@ -19,152 +17,6 @@ make_context_from_idiv :: proc(implicit_dividend: int) -> fp64_context {
 
 // -- Context --------------------------------------------
 
-// This also serves as the usage example
-fp64_run_tests :: proc() -> (bool, string) {
-	MessageType :: enum { ERROR, SUCCESS, MESSAGE }
-	msg :: proc(type: MessageType, message: string) -> string {
-		return fmt.aprintf("fp64: %v: %v", type, message)
-	}
-
-	using MessageType
-
-	test_from_int :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(1000)
-		num_42 := fp64_from_int(42, ctx)
-
-		underlying := fp64_underlying(num_42)
-		expected := 42000
-		if underlying != expected {
-			return false, msg(ERROR, fmt.aprint(
-				"from_int: underlying does not match expected:",
-				underlying, "!=", expected
-			))
-		}
-		return true, msg(SUCCESS, "from_int")
-	}
-
-	test_from_f64 :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(1_000_000_000_000_000)
-		pi64 := fp64_from_f64(math.PI, ctx)
-
-		underlying := fp64_underlying(pi64)
-		expected := 3141592653589793
-		if underlying != expected {
-			return false, msg(ERROR, fmt.aprint(
-				"from_f64: underlying does not match expected:",
-				underlying, "!=", expected
-			))
-		}
-		return true, msg(SUCCESS, "from_f64")
-	}
-
-	test_from_f32 :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(10_000_000)
-		pi32 := fp64_from_f32(f32(math.PI), ctx)
-
-		underlying := fp64_underlying(pi32)
-		expected := 31415928
-		if underlying != expected {
-			return false, msg(ERROR, fmt.aprint(
-				"from_f32: underlying does not match expected:",
-				underlying, "!=", expected
-			))
-		}
-		return true, msg(SUCCESS, "from_f32")
-	}
-
-	test_add :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(100)
-
-		one_third := fp64_from_f32(1.0 / 3.0, ctx)
-		two_third := fp64_add(one_third, one_third)
-		nearly_one := fp64_add(one_third, two_third)
-		expected_val := fp64(99)
-
-		if nearly_one != expected_val {
-			return false, msg(ERROR, fmt.aprint("add: precision not met.", nearly_one, "!=", expected_val))
-		}
-
-		return true, msg(SUCCESS, "add")
-	}
-
-	test_sub :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(1000)
-
-		// TODO: fp64_from_string(string, ctx)
-		a := fp64(3419)
-		b := fp64(0419)
-		res := fp64_sub(a, b)
-		expected := fp64_from_int(3, ctx)
-
-		if res != expected {
-			return false, msg(ERROR, fmt.aprint("sub: precision not met:", res, "!=", expected))
-		}
-
-		return true, msg(SUCCESS, "sub")
-	}
-
-	test_mul :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(100)
-		a := fp64(25)
-		b := fp64_from_int(2, ctx)
-		res := fp64_mul(a, b, ctx)
-		expected := fp64(50)
-
-		if res != expected {
-			return false, msg(ERROR, fmt.aprint("mul: precision not met:", res, "!=", expected))
-		}
-
-		return true, msg(SUCCESS, "mul")
-	}
-
-	test_div :: proc() -> (bool, string) {
-		ctx := make_context_from_idiv(100)
-		a := fp64(123)
-		b := fp64(625)
-		res := fp64_div(a, b, ctx)
-		expected := fp64(19)
-
-		if res != expected {
-			return false, msg(ERROR, fmt.aprint("div: precision not met:", res, "!=", expected))
-		}
-
-		return true, msg(SUCCESS, "div")
-	}
-
-	ok: bool
-	status: string
-
-	ok, status = test_from_int()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_from_f64()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_from_f32()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_add()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_sub()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_mul()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	ok, status = test_div()
-	fmt.println(status)
-	if !ok { return false, msg(ERROR, "One test failed") }
-
-	return true, msg(MessageType.MESSAGE, "All tests succeeded")
-}
 
 // -- From types --------------------------------------------
 
@@ -186,6 +38,42 @@ fp64_from_f64 :: proc(x: f64, ctx: fp64_context) -> fp64 {
 fp64_from_f32 :: proc(x: f32, ctx: fp64_context) -> fp64 {
 	as_whole := x * f32(ctx.scaling_factor)
 	return fp64(as_whole)
+}
+
+/*
+Assumes input is a valid literal
+- Allowed chars: 0 through 9, period, underscore
+- No spaces inbetween, trailing or preceeding
+The context is then used to trim to accuracy, if needed
+*/
+// Note: fp64_determine_context_from_string() could be a function that sets the accuracy for you
+fp64_from_string :: proc(x: string, ctx: fp64_context) -> fp64 {
+	num_length, decimal_point_idx: int
+	decimal_point_set := false
+
+	// Get initial info
+	for cp, idx in x {
+		switch cp {
+		case '0'..='9', '_': /* continue */
+		case '.':
+			if decimal_point_set { return fp64(0) }
+			decimal_point_set = true
+			decimal_point_idx = idx
+		case:
+			num_length = idx
+			break
+		}
+	}
+
+	//todo
+	is_whole_number := !decimal_point_set
+	if is_whole_number {
+
+	}
+	whole_num_start_idx := 0
+	//whole_num_end_idx
+
+	return fp64(0) // temporariliy shut the compiler up
 }
 
 // -- From types --------------------------------------------
