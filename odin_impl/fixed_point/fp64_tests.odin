@@ -8,8 +8,67 @@ import "core:runtime"
 test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
-	ok = false
-	cmt = "Unimplemented"
+	ctx := make_context_from_idiv(1_000)
+	num1 := fp64_from_string("123.456", ctx)
+	expected := fp64(123456)
+	if num1 != expected {
+		ok = false
+		cmt = fmt.aprint(
+			"Base case failure. underlying != expected.",
+			num1, "!=", expected
+		)
+		return
+	}
+
+	num2 := fp64_from_string(".456", ctx)
+	expected = fp64(456)
+	if num2 != expected {
+		ok = false
+		cmt = fmt.aprint(
+			"Fraction only failure. underlying != expected.",
+			num2, "!=", expected
+		)
+		return
+	}
+
+	num3 := fp64_from_string("123", ctx)
+	expected = fp64(123000)
+	if num3 != expected {
+		ok = false
+		cmt = fmt.aprint(
+			"Whole number only case failure.",
+			"underlying != expected.",
+			num3, "!=", expected
+		)
+		return
+	}
+
+	num4 := fp64_from_string("123.4", ctx)
+	expected = fp64(123400)
+	if num4 != expected {
+		ok = false
+		cmt = fmt.aprint(
+			"Fractional shift left failure.",
+			"underlying != expected.",
+			num4, "!=", expected
+		)
+		return
+	}
+
+	num5 := fp64_from_string("123.4567890", ctx)
+	expected = fp64(123456)
+	if num5 != expected {
+		ok = false
+		cmt = fmt.aprint(
+			"Fractional shift right failure.",
+			"underlying != expected.",
+			num5, "!=", expected
+		)
+		return
+	}
+
+	ok = true
+	cmt = ""
 	return
 }
 

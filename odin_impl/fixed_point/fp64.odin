@@ -1,5 +1,9 @@
 package fixed_point
 
+import "core:fmt"
+import "core:math"
+
+fp64 :: distinct int
 
 // -- Context --------------------------------------------
 
@@ -15,16 +19,20 @@ make_context_from_idiv :: proc(implicit_dividend: int) -> fp64_context {
 	return fp64_context { scaling_factor = implicit_dividend }
 }
 
-// -- Context --------------------------------------------
+// -- Context -----------------------------------------------
 
-
-// -- From types --------------------------------------------
-
-fp64 :: distinct int
+// -- Utility -----------------------------------------------
 
 fp64_underlying :: proc(x: fp64) -> int {
 	return int(x)
 }
+
+fp64_whole :: proc(x: fp64, ctx: fp64_context) -> int { return 0 } // TODO
+fp64_frac :: proc(x: fp64, ctx: fp64_context) -> int { return 0 } // TODO
+
+// -- Utility -----------------------------------------------
+
+// -- From types --------------------------------------------
 
 fp64_from_int :: proc(x: int, ctx: fp64_context) -> fp64 {
 	return fp64(x * ctx.scaling_factor)
@@ -38,6 +46,40 @@ fp64_from_f64 :: proc(x: f64, ctx: fp64_context) -> fp64 {
 fp64_from_f32 :: proc(x: f32, ctx: fp64_context) -> fp64 {
 	as_whole := x * f32(ctx.scaling_factor)
 	return fp64(as_whole)
+}
+
+@(private)
+fp64_parse_whole_num :: proc(num: string) -> int {
+	multiple := 1
+	acc := 0
+
+	for idx := len(num) - 1; idx >= 0; idx -= 1 {
+		digit := num[idx] - '0'
+		acc += multiple * int(digit)
+		multiple *= 10
+	}
+
+	return acc
+}
+
+@(private)
+powi :: proc(x, power: int) -> int {
+	if power == 0 { return 1 }
+	x := x
+	for p := 0; p < power; p += 1 {
+		x *= x
+	}
+	return x
+}
+
+@(private)
+log10i :: proc(x: int) -> int {
+	return int(math.log10_f64(f64(x)))
+}
+
+@(private)
+absi :: proc(x: int) -> int {
+	return x & 0x7FFF_FFFF_FFFF_FFFF
 }
 
 /*
@@ -65,15 +107,58 @@ fp64_from_string :: proc(x: string, ctx: fp64_context) -> fp64 {
 		}
 	}
 
-	//todo
-	is_whole_number := !decimal_point_set
-	if is_whole_number {
+	if !decimal_point_set { decimal_point_idx = len(x) }
+	whole_num_as_str := x[0 : decimal_point_idx]
+	whole_num_as_int := fp64_parse_whole_num(whole_num_as_str)
+	fixed_point_whole_component := fp64(whole_num_as_int * ctx.scaling_factor)
 
+	frac_as_str: string
+	if decimal_point_set {
+		frac_as_str = x[decimal_point_idx+1 : len(x)]
+	} else {
+		frac_as_str = ""
 	}
-	whole_num_start_idx := 0
-	//whole_num_end_idx
+	fmt.println("frac as str", frac_as_str)
 
-	return fp64(0) // temporariliy shut the compiler up
+	frac_as_int := fp64_parse_whole_num(frac_as_str)
+	fmt.println("frac as int", frac_as_int)
+
+	required_digit_cnt := log10i(ctx.scaling_factor) + 1
+	fmt.println("required digit count", required_digit_cnt)
+	
+	frac_digit_cnt := int(log10i(frac_as_int) + 1)
+	fmt.println("frac digit count", frac_digit_cnt)
+
+	digit_cnt_diff := required_digit_cnt - frac_digit_cnt
+	fmt.println("digit count diff", digit_cnt_diff)
+
+	Base10_Shift :: enum { NONE, LEFT, RIGHT }
+	shift: Base10_Shift
+	switch {
+	case digit_cnt_diff >= 0: shift = Base10_Shift.LEFT
+	case digit_cnt_diff < 0: shift = Base10_Shift.RIGHT
+	case: shift = Base10_Shift.NONE
+	}
+	fmt.println("shift status", shift)
+
+	multiple_of_ten := powi(10, absi(digit_cnt_diff))
+	fmt.println("multiple of ten", multiple_of_ten)
+
+	fixed_point_frac_component: fp64
+	switch shift {
+	case .LEFT:
+		fixed_point_frac_component = fp64(frac_as_int * multiple_of_ten)
+	case .RIGHT:
+		fixed_point_frac_component = fp64(frac_as_int / multiple_of_ten)
+	case .NONE:
+		fixed_point_frac_component = fp64(frac_as_int)
+	}
+	fmt.println("fixed point frac component", fixed_point_frac_component)
+
+	result := fixed_point_whole_component + fixed_point_frac_component
+	fmt.println("result", result)
+
+	return result
 }
 
 // -- From types --------------------------------------------
