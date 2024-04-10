@@ -74,6 +74,7 @@ powi :: proc(x, power: int) -> int {
 
 @(private)
 log10i :: proc(x: int) -> int {
+	// repeatedly divide by 10 until zero
 	return int(math.log10_f64(f64(x)))
 }
 
@@ -89,7 +90,7 @@ Assumes input is a valid literal
 The context is then used to trim to accuracy, if needed
 */
 // Note: fp64_determine_context_from_string() could be a function that sets the accuracy for you
-fp64_from_string :: proc(x: string, ctx: fp64_context) -> fp64 {
+fp64_from_string_proto1 :: proc(x: string, ctx: fp64_context) -> fp64 {
 	num_length, decimal_point_idx: int
 	decimal_point_set := false
 
@@ -112,6 +113,7 @@ fp64_from_string :: proc(x: string, ctx: fp64_context) -> fp64 {
 	whole_num_as_int := fp64_parse_whole_num(whole_num_as_str)
 	fixed_point_whole_component := fp64(whole_num_as_int * ctx.scaling_factor)
 
+	// TODO: dont bother parsing fractions if need not be
 	frac_as_str: string
 	if decimal_point_set {
 		frac_as_str = x[decimal_point_idx+1 : len(x)]
@@ -159,6 +161,137 @@ fp64_from_string :: proc(x: string, ctx: fp64_context) -> fp64 {
 	fmt.println("result", result)
 
 	return result
+}
+
+@(private)
+fp64_parse_frac :: proc(frac_int: int, ctx: fp64_context) -> fp64 {
+	required_digit_cnt := log10i(ctx.scaling_factor) + 1
+	fmt.println("required_digit_cnt", required_digit_cnt)
+	
+	frac_digit_cnt := int(log10i(frac_int) + 1)
+	fmt.println("frac_digit_cnt", frac_digit_cnt)
+
+	digit_cnt_diff := required_digit_cnt - frac_digit_cnt
+	fmt.println("digit_cnt_diff", digit_cnt_diff)
+
+	Base10_Shift :: enum { NONE, LEFT, RIGHT }
+	shift: Base10_Shift
+	switch {
+	case digit_cnt_diff >= 0: shift = Base10_Shift.LEFT
+	case digit_cnt_diff < 0: shift = Base10_Shift.RIGHT
+	case: shift = Base10_Shift.NONE
+	}
+	fmt.println("shift", shift)
+
+	multiple_of_ten := powi(10, absi(digit_cnt_diff))
+	fmt.println("multiple_of_ten", multiple_of_ten)
+
+	frac_fp: fp64
+	switch shift {
+	case .LEFT:
+		frac_fp = fp64(frac_int * multiple_of_ten)
+	case .RIGHT:
+		frac_fp = fp64(frac_int / multiple_of_ten)
+	case .NONE:
+		frac_fp = fp64(frac_int)
+	}
+	fmt.println("frac_fp", frac_fp)
+
+	return frac_fp
+}
+
+fp64_from_string :: proc(
+	x: string, ctx: fp64_context
+) -> (fp64, bool) {
+	NumberKind :: enum {
+		ERROR, WHOLE_ONLY, FRAC_ONLY, MIXED
+	}
+	kind := NumberKind.ERROR
+
+	period_cnt, period_idx, num_start_idx, num_end_idx: int
+	digit_encountered, for_loop_executed: bool
+	for cp, idx in x {
+		switch cp {
+		case '0'..='9':
+			if !digit_encountered { num_start_idx = idx }
+			digit_encountered = true
+		case '_': /* continue */
+		case '.':
+			period_cnt += 1
+			period_idx = idx
+		case:
+			num_end_idx = idx - 1
+			break
+		}
+	}
+	for_loop_executed = true
+
+	if !digit_encountered || period_cnt > 1 || !for_loop_executed {
+		kind = NumberKind.ERROR
+	}
+	if kind == NumberKind.ERROR {
+		return fp64(0), false
+	}
+
+	if period_cnt == 0 {
+		kind = NumberKind.WHOLE_ONLY
+	} else if num_start_idx == period_idx {
+		kind = NumberKind.FRAC_ONLY
+	} else {
+		kind = NumberKind.MIXED
+	}
+	switch kind {
+	case .WHOLE_ONLY:
+		whole_str := x[num_start_idx : period_idx]
+		fmt.println("whole_str", whole_str)
+
+		whole_int := fp64_parse_whole_num(whole_str)
+		fmt.println("whole_int", whole_int)
+
+		whole_fp := fp64(whole_int * ctx.scaling_factor)
+		fmt.println("whole_fp", whole_fp)
+
+		return whole_fp, true
+	case .FRAC_ONLY:
+		frac_str := x[period_idx + 1 : num_end_idx + 1]
+		fmt.println("frac_str", frac_str)
+
+		frac_int := fp64_parse_whole_num(frac_str)
+		fmt.println("frac_int", frac_int)
+
+		frac_fp := fp64_parse_frac(frac_int, ctx)
+		fmt.println("frac_fp", frac_fp)
+
+		return frac_fp, true
+	case .MIXED:
+		whole_str := x[num_start_idx : period_idx]
+		fmt.println("whole_str", whole_str)
+
+		whole_int := fp64_parse_whole_num(whole_str)
+		fmt.println("whole_int", whole_int)
+
+		whole_fp := fp64(whole_int * ctx.scaling_factor)
+		fmt.println("whole_fp", whole_fp)
+
+		frac_str := x[period_idx + 1 : num_end_idx + 1]
+		fmt.println("frac_str", frac_str)
+
+		frac_int := fp64_parse_whole_num(frac_str)
+		fmt.println("frac_int", frac_int)
+
+		frac_fp := fp64_parse_frac(frac_int, ctx)
+		fmt.println("frac_fp", frac_fp)
+
+		result := whole_fp + frac_fp
+		fmt.println("result", result)
+
+		return result, true
+	case .ERROR: // "Cant happen" case
+		return fp64(0), false
+	}
+
+	// "Cosmic radiation hit my chip" case
+	return fp64(0), false
 }
 
 // -- From types --------------------------------------------
