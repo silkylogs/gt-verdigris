@@ -8,8 +8,11 @@ import "core:runtime"
 test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
-	ctx := make_context_from_idiv(1_000)
-	num, val_ok := fp64_from_string("123.456", ctx)
+	ctx: fp64_context
+	num: fp64
+	val_ok: bool
+
+	val_ok, num, ctx = fp64_from_string("123.456")
 	if !val_ok {
 		ok = false
 		cmt = fmt.aprint(
@@ -28,6 +31,7 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		return
 	}
 
+	/*
 	num, val_ok = fp64_from_string(".456", ctx)
 	if !val_ok {
 		ok = false
@@ -109,6 +113,10 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 
 	ok = true
 	cmt = ""
+	*/
+
+	ok = false
+	cmt = "Unimplemented"
 	return
 }
 

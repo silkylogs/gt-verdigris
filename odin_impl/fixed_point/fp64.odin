@@ -200,7 +200,7 @@ fp64_parse_frac :: proc(frac_int: int, ctx: fp64_context) -> fp64 {
 	return frac_fp
 }
 
-fp64_from_string :: proc(
+fp64_from_string_proto2 :: proc(
 	x: string, ctx: fp64_context
 ) -> (fp64, bool) {
 	NumberKind :: enum {
