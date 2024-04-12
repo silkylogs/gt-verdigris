@@ -55,7 +55,7 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	if ctx != expected_ctx {
 		ok = false
 		cmt = fmt.aprint(
-			"Base case failure. context != expected.",
+			"Fraction only failure. context != expected.",
 			ctx, "!=", expected_ctx
 		)
 		return
@@ -70,13 +70,22 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		return
 	}
 
-	/*
+	
 	val_ok, num, ctx = fp64_from_string("123")
 	if !val_ok {
 		ok = false
 		cmt = fmt.aprint(
 			"Whole number only case failure.",
 			"Valid input registered as false",
+		)
+		return
+	}
+	expected_ctx = make_context_from_idiv(1)
+	if ctx != expected_ctx {
+		ok = false
+		cmt = fmt.aprint(
+			"Whole number only failure. context != expected.",
+			ctx, "!=", expected_ctx
 		)
 		return
 	}
@@ -91,6 +100,7 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		return
 	}
 
+	/*
 	num, val_ok = fp64_from_string("123.4", ctx)
 	if !val_ok {
 		ok = false

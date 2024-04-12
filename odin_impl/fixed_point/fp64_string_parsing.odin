@@ -1,5 +1,7 @@
 package fixed_point
 
+import "core:fmt"
+
 fp64_from_string :: proc(x: string) -> (bool, fp64, fp64_context) {
 	acc_b10_ok, acc_b10 := extract_b10_acc(x)
 	whole_ok, whole := extract_whole(x)
@@ -74,6 +76,8 @@ extract_frac_str :: proc(x: string) -> (bool, string) {
 	{
 		return false, ""
 	}
+
+	if period_cnt == 0 { return true, "" }
 
 	result := x[frac_start_idx: frac_end_idx]
 	return true, result
