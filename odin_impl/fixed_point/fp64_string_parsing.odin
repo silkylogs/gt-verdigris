@@ -23,7 +23,7 @@ extract_b10_acc :: proc(x: string) -> (bool, int) {
 		return false, 0
 	}
 
-	digit_cnt_ok, digit_cnt := count_digits_in_str(x)
+	digit_cnt_ok, digit_cnt := count_digits_in_str(frac_str)
 	if !digit_cnt_ok {
 		return false, 0
 	}
@@ -32,8 +32,17 @@ extract_b10_acc :: proc(x: string) -> (bool, int) {
 	.1 = 1/10 = 10
 	.01 = 1/100 = 100 and so on
 	*/
-	acc := 10 * digit_cnt
+	acc := pow10i(digit_cnt)
 	return true, acc
+}
+
+// 10 to the power x
+pow10i :: proc(x: int) -> int {
+	acc := 1
+	for p := 0; p < x; p += 1 {
+		acc *= 10
+	}
+	return acc
 }
 
 /*
@@ -120,7 +129,7 @@ extract_whole_str :: proc(x: string) -> (bool, string) {
 }
 
 ctx_from_acc :: proc(acc_b10: int) -> (bool, fp64_context) {
-	ctx := make_context_from_idiv(10 * acc_b10)
+	ctx := make_context_from_idiv(acc_b10)
 	return true, ctx
 }
 

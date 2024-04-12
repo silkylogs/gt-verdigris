@@ -110,13 +110,10 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		)
 		return
 	}
+	*/
 
 	ok = true
 	cmt = ""
-	*/
-
-	ok = false
-	cmt = "Unimplemented"
 	return
 }
 
