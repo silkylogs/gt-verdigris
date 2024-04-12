@@ -8,8 +8,10 @@ import "core:runtime"
 test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 	proc_name = #procedure
 
-	ctx: fp64_context
 	num: fp64
+	expected_fp64: fp64
+	ctx: fp64_context
+	expected_ctx: fp64_context
 	val_ok: bool
 
 	val_ok, num, ctx = fp64_from_string("123.456")
@@ -21,18 +23,26 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		)
 		return
 	}
-	expected := fp64(123456)
-	if num != expected {
+	expected_ctx = make_context_from_idiv(1000)
+	if ctx != expected_ctx {
+		ok = false
+		cmt = fmt.aprint(
+			"Base case failure. context != expected.",
+			ctx, "!=", expected_ctx
+		)
+		return
+	}
+	expected_fp64 = fp64(123456)
+	if num != expected_fp64 {
 		ok = false
 		cmt = fmt.aprint(
 			"Base case failure. underlying != expected.",
-			num, "!=", expected
+			num, "!=", expected_fp64
 		)
 		return
 	}
 
-	/*
-	num, val_ok = fp64_from_string(".456", ctx)
+	val_ok, num, ctx = fp64_from_string(".456")
 	if !val_ok {
 		ok = false
 		cmt = fmt.aprint(
@@ -41,17 +51,27 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		)
 		return
 	}
-	expected = fp64(456)
-	if num != expected {
+	expected_ctx = make_context_from_idiv(1000)
+	if ctx != expected_ctx {
+		ok = false
+		cmt = fmt.aprint(
+			"Base case failure. context != expected.",
+			ctx, "!=", expected_ctx
+		)
+		return
+	}
+	expected_fp64 = fp64(456)
+	if num != expected_fp64 {
 		ok = false
 		cmt = fmt.aprint(
 			"Fraction only failure. underlying != expected.",
-			num, "!=", expected
+			num, "!=", expected_fp64
 		)
 		return
 	}
 
-	num, val_ok = fp64_from_string("123", ctx)
+	/*
+	val_ok, num, ctx = fp64_from_string("123")
 	if !val_ok {
 		ok = false
 		cmt = fmt.aprint(
@@ -60,13 +80,13 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		)
 		return
 	}
-	expected = fp64(123000)
-	if num != expected {
+	expected_fp64 = fp64(123)
+	if num != expected_fp64 {
 		ok = false
 		cmt = fmt.aprint(
 			"Whole number only failure.",
-			"underlying != expected.",
-			num, "!=", expected
+			"underlying != expected_fp64.",
+			num, "!=", expected_fp64
 		)
 		return
 	}
