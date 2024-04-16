@@ -67,7 +67,8 @@ player_int_new :: proc() -> Player_int {
 
 		hitbox = HitGrid_int_new(
 			applied_hitbox_x, applied_hitbox_y,
-			applied_hitbox_w, applied_hitbox_h),
+			applied_hitbox_w, applied_hitbox_h
+		),
 	}
 }
 
@@ -113,3 +114,4 @@ player_int_update :: proc (player: ^Player_int, inp: PlayerControls, dt_ns: i64)
 	player.hitbox.top_left_x = player.pos_x - player.hitbox.w / 2
 	player.hitbox.top_left_y = player.pos_y - player.hitbox.h
 }
+

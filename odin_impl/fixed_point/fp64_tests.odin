@@ -70,7 +70,6 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		return
 	}
 
-	
 	val_ok, num, ctx = fp64_from_string("123")
 	if !val_ok {
 		ok = false
@@ -100,47 +99,34 @@ test_fp64_from_string :: proc() -> (ok: bool, cmt: string, proc_name: string) {
 		return
 	}
 
-	/*
-	num, val_ok = fp64_from_string("123.4", ctx)
+	val_ok, num, ctx = fp64_from_string("___.___")
 	if !val_ok {
 		ok = false
 		cmt = fmt.aprint(
-			"Fractional shl failure.",
+			"Underscore only failure.",
 			"Valid input registered as false",
 		)
 		return
 	}
-	expected = fp64(123400)
-	if num != expected {
+	expected_ctx = make_context_from_idiv(1)
+	if ctx != expected_ctx {
 		ok = false
 		cmt = fmt.aprint(
-			"Fractional shift left failure.",
-			"underlying != expected.",
-			num, "!=", expected
+			"Underscore only failure. context != expected.",
+			ctx, "!=", expected_ctx
 		)
 		return
 	}
-
-	num, val_ok = fp64_from_string("123.4567890", ctx)
-	if !val_ok {
+	expected_fp64 = fp64(0)
+	if num != expected_fp64 {
 		ok = false
 		cmt = fmt.aprint(
-			"Fractional shr failure.",
-			"Valid input registered as false",
+			"Underscore only failure.",
+			"underlying != expected_fp64.",
+			num, "!=", expected_fp64
 		)
 		return
 	}
-	expected = fp64(123456)
-	if num != expected {
-		ok = false
-		cmt = fmt.aprint(
-			"Fractional shift right failure.",
-			"underlying != expected.",
-			num, "!=", expected
-		)
-		return
-	}
-	*/
 
 	ok = true
 	cmt = ""
