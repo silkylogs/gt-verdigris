@@ -20,3 +20,40 @@ The possible combinations of instructions with the following criteria is shown b
 3. FF xR __ __ cc cc cc cc | 1 register operation plus 32 bit constant
 4. FF Fx __ __             | 0 register operation
 4. FF Fx __ __ cc cc cc cc | 0 register operation plus 32 bit constant
+
+The full list of instructions:
+1. addr D A B
+Full name: add register 
+Encoding: 1D AB __ __
+Description: Adds the contents of registers A and B, then stores the result in register D
+             (D = A + B).
+             Sets overflow or underflow flags if their respective event occurs.
+
+2. subr D A B
+Full name: subtract register 
+Encoding: 2D AB __ __
+Description: Subtracts the contents of registers B from A, then stores the result in register D.
+             (D = A - B)
+             Sets overflow or underflow flags if their respective event occurs.
+
+3. umulr A B C
+Full name: unsigned multiply register
+Encoding: 3A BC __ __
+Description: Unsigned multiples the contents of 32 bit registers A with B,
+             storing the 64 bit result in the conjoined register B:C. (B:C = A * B)
+
+4. smulr A B C
+Full name: signed multiply register
+Encoding: 4A BC __ __
+Description: Signed multiplies the contents of 32 bit registers A with B,
+             Storing the 64 bit result in the conjoined register B:C (B:C = A * B)
+             TODO: depending on whether signed multiplication actually overflows or underflows,
+                   set their respective flags here
+
+5. ufixmulr D A B
+Full name: unsigned fixed point multiply register
+Encoding: 5D AB __ __
+Description: Unsigned multiplies the contents of the 32 bit registers A and B, interpreted as a 
+             fixed point number (16.16), adjusting the accuracy to fit within said
+             format and storing the result to register D. (D = A * B)
+             May overflow, in which case the relevant flag is set when it occurs.
