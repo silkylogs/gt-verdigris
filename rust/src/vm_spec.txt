@@ -1,11 +1,14 @@
 This is the specification for the virtual machine of gt-verdigris.
 Codenamed "glass", it is a little endian machine with a word size of 32 bits.
-Great care has been taken to ensure that all instructions of this version of the ISA fits within 16
-bits, while still retaining the potential for backwards compatible extension.
+More than average care has been taken to ensure that all instructions of this
+version of the ISA fits within 16 bits, while still retaining the potential for
+backwards compatible extension.
 
-The instruction set
-----------------------------------------------------------------------------------------------------
-The possible combinations of instructions with the following criteria is shown below:
+//============================================================================\\
+|| The instruction set                                                        ||
+\\============================================================================//
+The possible combinations of instructions ("instruction pages") with the
+following criteria are shown below:
 - Bytes padded to 32 bits
 - Bytes displayed in little endian order
 - Numbered in order of evaluation
@@ -21,39 +24,124 @@ The possible combinations of instructions with the following criteria is shown b
 4. FF Fx __ __             | 0 register operation
 4. FF Fx __ __ cc cc cc cc | 0 register operation plus 32 bit constant
 
-The full list of instructions:
-1. addr D A B
-Full name: add register 
-Encoding: 1D AB __ __
-Description: Adds the contents of registers A and B, then stores the result in register D
-             (D = A + B).
-             Sets overflow or underflow flags if their respective event occurs.
++------------------------------------------------------------------------------+
+| The full list of instructions, grouped according to instruction pages:       |
++------------------------------------------------------------------------------+
+3 Register operations:
+-----------------------
+1. addr X Y Z
+Full name: add register
+Encoding: 1X YZ __ __
+Description: Adds the contents of registers Y and Z, then stores the result in
+             register X (X = Y + Z).
+             Sets overflow or underflow flags.
 
-2. subr D A B
-Full name: subtract register 
+2. subr X Y Z
+Full name: subtract register
 Encoding: 2D AB __ __
-Description: Subtracts the contents of registers B from A, then stores the result in register D.
-             (D = A - B)
-             Sets overflow or underflow flags if their respective event occurs.
+Description: Subtracts the contents of registers Z from Y, then stores the
+             result in register X. (X = Y - Z)
+             Sets overflow or underflow flags.
 
-3. umulr A B C
+3. umulr X Y Z
 Full name: unsigned multiply register
-Encoding: 3A BC __ __
-Description: Unsigned multiples the contents of 32 bit registers A with B,
-             storing the 64 bit result in the conjoined register B:C. (B:C = A * B)
+Encoding: 3X YZ __ __
+Description: Unsigned multiplies the contents of 32 bit registers X with Y,
+             storing the 64 bit result in the conjoined register Y:Z.
+             (Y:Z = X * Y)
 
-4. smulr A B C
+4. smulr X Y Z
 Full name: signed multiply register
-Encoding: 4A BC __ __
-Description: Signed multiplies the contents of 32 bit registers A with B,
-             Storing the 64 bit result in the conjoined register B:C (B:C = A * B)
-             TODO: depending on whether signed multiplication actually overflows or underflows,
-                   set their respective flags here
+Encoding: 4X YZ __ __
+Description: Signed multiplies the contents of 32 bit registers X with Y,
+             Storing the 64 bit result in the conjoined register Y:Z
+             (Y:Z = X * Y)
+             Sets overflow and underflow flags. (TODO: validate this)
 
-5. ufixmulr D A B
+5. udivr X Y Z
+Full name: unsigned divide register
+Encoding: 5X YZ __ __
+Description: Unsigned divides the contents of the registers Y with Z,
+             storing the result in the register Z. (X = Y / Z)
+             In case Y is zero, Z is set to the maximum unsigned 32 bit integer
+             to approximate the value of infinity.
+             The divide-by-zero flag is set.
+
+6. sdivr X Y Z
+Full name: signed divide register
+Encoding: 6X YZ __ __
+Description: Signed divides the contents of the registers Y with Z,
+             storing the result in the register X. (X = Y / Z)
+             In case Z is zero, X is set to the maximum or minimum signed 32 bit
+             integer depending on whether Y was positive or negative,
+             respectively, to approximate, albeit crudely, the value of
+             infinity.
+             The divide-by-zero flag is set.
+
+7. ufixmulr X Y Z
 Full name: unsigned fixed point multiply register
-Encoding: 5D AB __ __
-Description: Unsigned multiplies the contents of the 32 bit registers A and B, interpreted as a 
-             fixed point number (16.16), adjusting the accuracy to fit within said
-             format and storing the result to register D. (D = A * B)
-             May overflow, in which case the relevant flag is set when it occurs.
+Encoding: 7X YZ __ __
+Description: Unsigned multiplies the contents of the 32 bit registers Y and Z,
+             interpreted as a fixed point number (16.16), adjusting the
+             resulting number to fit within said format and storing the result
+             to register X. (X = Y * Z)
+             Sets the overflow flag.
+
+8. sfixmulr X Y Z
+Full name: signed fixed poiont multiply register
+Encoding: 8X YZ __ __
+Description: Signed multiplies the contents of the 32 bit registers Y and Z,
+             interpreted as a fixed point number (16.16), adjusting the
+             resulting number to fit within said format and storing the result
+             in register X (X = Y * Z)
+             May overflow or underflow, in which case relevant flags are set.
+
+9. ufixdivr X Y Z
+Full name: unsigned fixed point divide register
+Encoding: 9X YZ __ __
+Description: Unsigned divides the contents of the 32 bit registers Y and X,
+             interpreted as a fixed point number (16.16), adjusting the
+             resulting number to fit within said format and storing the result
+             to register X. (X = Y / Z)
+             In case Z is zero, X is set to the maximum signed 32 bit integer
+             to approximate, albeit crudely, the value of infinity.
+             Sets the divide-by-zero flag.
+
+10. sfixdivr X Y Z
+Full name: signed fixed point divide register
+Encoding: AX YZ __ __
+Description: Signed divides the contents of the 32 bit registers Y and Z,
+             interpreted as a fixed point number (16.16), adjusting the
+             resulting number to fit within said format and storing the result
+             to register X. (X = Y / Z)
+             In case Z is zero, X is set to the maximum or minimum signed 32 bit
+             integer depending on whether Y was positive or negative,
+             respectively, to approximate, albeit crudely, the value of
+             infinity.
+             Sets the divide-by-zero flag.
+
+11. cfixsqrtr X Y Z
+Full name: complex fixed point square root register
+Encoding: BX YZ __ __
+Description: Computes the square root of the contents of the register X,
+             interpreted as a signed fixed point number (16.16).
+             The real and imaginary components of the result are stored in
+             registers Y and Z respectively.
+
+12. reserved_instruction X Y Z
+Full name: reserved instruction
+Encoding: CX YZ __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
+
+13. reserved_instruction X Y Z
+Full name: reserved instruction
+Encoding: DX YZ __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
+
+14. reserved_instruction X Y Z
+Full name: reserved instruction
+Encoding: EX YZ __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
