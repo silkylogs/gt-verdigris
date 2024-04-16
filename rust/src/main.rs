@@ -8,6 +8,7 @@ mod editor;
 mod game;
 mod input;
 mod renderer;
+mod virtual_machine;
 
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
@@ -60,7 +61,7 @@ fn main() -> Result<(), String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut game_editor = Editor::new();
-    
+
     // Mock the controls menu in source, for now
     let mut controls_window = EditorWindow::new(
         "Controls".to_owned(),

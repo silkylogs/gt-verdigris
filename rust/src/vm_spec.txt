@@ -1,0 +1,22 @@
+This is the specification for the virtual machine of gt-verdigris.
+Codenamed "glass", it is a little endian machine with a word size of 32 bits.
+Great care has been taken to ensure that all instructions of this version of the ISA fits within 16
+bits, while still retaining the potential for backwards compatible extension.
+
+The instruction set
+----------------------------------------------------------------------------------------------------
+The possible combinations of instructions with the following criteria is shown below:
+- Bytes padded to 32 bits
+- Bytes displayed in little endian order
+- Numbered in order of evaluation
+- Key:
+  - x: any hexadecimal literal between 1 to E inclusive
+  - R: the register label, between 0 to F inclusive
+  - F: the hexadecimal literal F
+  - c: a constant hexadecimal number between 0 to F inclusive
+1. xR RR __ __             | 
+2. Fx RR __ __             |
+3. FF xR __ __             |
+3. FF xR __ __ cc cc cc cc |
+4. FF Fx __ __             |
+4. FF Fx __ __ cc cc cc cc |
