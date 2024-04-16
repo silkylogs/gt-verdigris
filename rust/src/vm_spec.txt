@@ -145,3 +145,66 @@ Full name: reserved instruction
 Encoding: EX YZ __ __
 Description: This bit combination is currently reserved. Trying to execute
              it will result in the reserved-instruction flag being set.
+
+2 Register operations:
+-----------------------
+1. writer X Y
+Full name: write register to pointer
+Encoding: F1 XY __ __
+Description: Writes the contents of X to the memory address pointed to by Y.
+             There are no alignment restrictions of Y, but it is considered to
+             be good practice to keep the alignment to the word size.
+
+2. readr X Y
+Full name: read register from pointer
+Encoding: F2 XY __ __
+Description: Reads the contents of X from the memory address pointed to by Y.
+             There are no alignment restrictions of Y, but it is considered to
+             be good practice to keep the alignment to the word size.
+
+3. movr X Y
+4. cmpr X Y
+5. lshlr X Y
+6. lshrr X Y
+7. ashlr X Y
+8. ashrr X Y
+9. rolr X Y
+10. rorr X Y
+11. andr X Y
+12. orr X Y
+13. notr X Y
+14. xorr X Y
+
+1 Register operations:
+-----------------------
+1. read X const
+2. write X const
+3. mov X const
+4. gotor X
+5. callr X
+6. cmp X const
+7. lshl X const
+8. lshr X const
+9. ashl X const
+10. ashr X const
+11. rol X const
+12. ror X const
+13. and X const
+14. or X const
+
+0 Register operations:
+-----------------------
+1. nop
+2. ret
+3. goto const
+4. jmp const
+5. jge const
+6. jg const
+7. jle const
+8. jl const
+9. call const
+10. callge const
+11. callg const
+12. callle const
+13. calll const
+14. reserved_instruction
