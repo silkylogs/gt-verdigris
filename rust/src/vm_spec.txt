@@ -14,9 +14,9 @@ The possible combinations of instructions with the following criteria is shown b
   - R: the register label, between 0 to F inclusive
   - F: the hexadecimal literal F
   - c: a constant hexadecimal number between 0 to F inclusive
-1. xR RR __ __             | 
-2. Fx RR __ __             |
-3. FF xR __ __             |
-3. FF xR __ __ cc cc cc cc |
-4. FF Fx __ __             |
-4. FF Fx __ __ cc cc cc cc |
+1. xR RR __ __             | 3 register operation
+2. Fx RR __ __             | 2 register operation
+3. FF xR __ __             | 1 register operation
+3. FF xR __ __ cc cc cc cc | 1 register operation plus 32 bit constant
+4. FF Fx __ __             | 0 register operation
+4. FF Fx __ __ cc cc cc cc | 0 register operation plus 32 bit constant
