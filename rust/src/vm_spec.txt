@@ -168,59 +168,80 @@ Encoding: F3 XY __ __
 Description: Copies register contents from Y to X. (X = Y)
 
 4. cmpr X Y
-Full name: Compare registers
+Full name: compare registers
 Encoding F4 XY __ __
-Description: Unsigned subtracts the contents of registers Y from X, then sets the following flags: lt, l, gt, g, e
+Description: Unsigned subtracts the contents of registers Y from X, then sets
+             the following flags: lt, l, gt, g, e
 
-5. lshlr X Y
-Full name:
-Encoding:
-Description:
+5. lshiftr X Y
+Full name: logical shift register
+Encoding: F5 XY __ __
+Description: Logically shifts the contents of register X.
+             The magnitude of the shift is determined by the magnitude of the
+             value of register Y.
+             The direction is determined by the sign of the value of register Y,
+             which is interpreted as a twos complement binary number. A positive
+             value indicates a left shift, else a right shift.
 
-6. lshrr X Y
-Full name:
-Encoding:
-Description:
+6. ashiftr X Y
+Full name: arithmetic shift register
+Encoding: F6 XY __ __
+Description: Signed multiplies the contents of register X by 2 to the power Y.
+             The magnitude of the shift is determined by the magnitude of the
+             value of register Y.
+             The direction is determined by the sign of the value of register Y,
+             which is interpreted as a twos complement binary number. A positive
+             value indicates a left shift, else a right shift.
 
-7. ashlr X Y
-Full name:
-Encoding:
-Description:
+7. rollr X Y
+Full name: roll register
+Encoding: F7 XY __ __
+Description: Rolls the contents of register X by the amount represented by the
+             contents of register Y, interpreted as a twos complement signed
+             integer. A positive value of Y rolls left, and a negative rolls
+             right.
 
-8. ashrr X Y
-Full name:
-Encoding:
-Description:
+8. andr X Y
+Full name: binary and register
+Encoding: F8 XY __ __
+Description: Computes the binary AND operation of the contents of registers
+             X and Y, then stores the result to register X.
 
-9. rolr X Y
-Full name:
-Encoding:
-Description:
+9. orr X Y
+Full name: binary or register
+Encoding: F9 XY __ __
+Description: Computes the binary OR operation of the contents of registers
+             X and Y, then stores the result to register X.
 
-10. rorr X Y
-Full name:
-Encoding:
-Description:
+10. xorr X Y
+Full name: binary xor register
+Encoding: FA XY __ __
+Description: Computes the binary XOR operation of the contents of registers
+             X and Y, then stores the result to register X.
 
-11. andr X Y
-Full name:
-Encoding:
-Description:
+11. reserved_instruction X Y
+Full name: reserved instruction
+Encoding: FB XY __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
 
-12. orr X Y
-Full name:
-Encoding:
-Description:
+12. reserved_instruction X Y
+Full name: reserved instruction
+Encoding: FC XY __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
 
-13. notr X Y
-Full name:
-Encoding:
-Description:
+13. reserved_instruction X Y
+Full name: reserved instruction
+Encoding: FD XY __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
 
-14. xorr X Y
-Full name:
-Encoding:
-Description:
+14. reserved_instruction X Y
+Full name: reserved instruction
+Encoding: FE XY __ __
+Description: This bit combination is currently reserved. Trying to execute
+             it will result in the reserved-instruction flag being set.
 
 
 1 Register operations:
@@ -275,12 +296,7 @@ Full name:
 Encoding:
 Description:
 
-11. rol X const
-Full name:
-Encoding:
-Description:
-
-12. ror X const
+11. roll X const
 Full name:
 Encoding:
 Description:
@@ -291,6 +307,11 @@ Encoding:
 Description:
 
 14. or X const
+Full name:
+Encoding:
+Description:
+
+14. not X
 Full name:
 Encoding:
 Description:
