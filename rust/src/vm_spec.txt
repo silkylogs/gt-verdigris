@@ -247,26 +247,21 @@ Description: This bit combination is currently reserved. Trying to execute
 1 Register operations:
 -----------------------
 1. read X const
-Full name:
-Encoding:
-Description:
+Full name: read constant to register
+Encoding: FF 1X __ __
+Description: Copies the 32 bit constant to the register X.
 
 2. write X const
-Full name:
-Encoding:
-Description:
+Full name: write register to constant pointer
+Encoding: FF 2X __ __
+Description: Writes the contents of the register X to the address provided in the constant.
 
 3. mov X const
-Full name:
-Encoding:
-Description:
+Full name: Move constant to register
+Encoding: FF 3X __ __
+Description: Copies the constant provided in the instruction to the register X.
 
-4. gotor X
-Full name:
-Encoding:
-Description:
-
-5. callr X
+4. callr X
 Full name:
 Encoding:
 Description:
@@ -387,4 +382,4 @@ Description:
 14. callle const
 Full name:
 Encoding:
-Description:
+Description
