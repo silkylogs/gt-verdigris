@@ -163,48 +163,207 @@ Description: Reads the contents of X from the memory address pointed to by Y.
              be good practice to keep the alignment to the word size.
 
 3. movr X Y
+Full name: move register to register
+Encoding: F3 XY __ __
+Description: Copies register contents from Y to X. (X = Y)
+
 4. cmpr X Y
+Full name: Compare registers
+Encoding F4 XY __ __
+Description: Unsigned subtracts the contents of registers Y from X, then sets the following flags: lt, l, gt, g, e
+
 5. lshlr X Y
+Full name:
+Encoding:
+Description:
+
 6. lshrr X Y
+Full name:
+Encoding:
+Description:
+
 7. ashlr X Y
+Full name:
+Encoding:
+Description:
+
 8. ashrr X Y
+Full name:
+Encoding:
+Description:
+
 9. rolr X Y
+Full name:
+Encoding:
+Description:
+
 10. rorr X Y
+Full name:
+Encoding:
+Description:
+
 11. andr X Y
+Full name:
+Encoding:
+Description:
+
 12. orr X Y
+Full name:
+Encoding:
+Description:
+
 13. notr X Y
+Full name:
+Encoding:
+Description:
+
 14. xorr X Y
+Full name:
+Encoding:
+Description:
+
 
 1 Register operations:
 -----------------------
 1. read X const
+Full name:
+Encoding:
+Description:
+
 2. write X const
+Full name:
+Encoding:
+Description:
+
 3. mov X const
+Full name:
+Encoding:
+Description:
+
 4. gotor X
+Full name:
+Encoding:
+Description:
+
 5. callr X
+Full name:
+Encoding:
+Description:
+
 6. cmp X const
+Full name:
+Encoding:
+Description:
+
 7. lshl X const
+Full name:
+Encoding:
+Description:
+
 8. lshr X const
+Full name:
+Encoding:
+Description:
+
 9. ashl X const
+Full name:
+Encoding:
+Description:
+
 10. ashr X const
+Full name:
+Encoding:
+Description:
+
 11. rol X const
+Full name:
+Encoding:
+Description:
+
 12. ror X const
+Full name:
+Encoding:
+Description:
+
 13. and X const
+Full name:
+Encoding:
+Description:
+
 14. or X const
+Full name:
+Encoding:
+Description:
+
 
 0 Register operations:
 -----------------------
 1. nop
+Full name:
+Encoding:
+Description:
+
 2. ret
+Full name:
+Encoding:
+Description:
+
 3. goto const
+Full name:
+Encoding:
+Description:
+
 4. jmp const
-5. jge const
-6. jg const
-7. jle const
-8. jl const
-9. call const
-10. callge const
-11. callg const
-12. callle const
-13. calll const
-14. reserved_instruction
+Full name:
+Encoding:
+Description:
+
+5. je const
+Full name:
+Encoding:
+Description:
+
+6. jne const
+Full name:
+Encoding:
+Description:
+
+7. jge const
+Full name:
+Encoding:
+Description:
+
+8. jg const
+Full name:
+Encoding:
+Description:
+
+9. jle const
+Full name:
+Encoding:
+Description:
+
+10. jl const
+Full name:
+Encoding:
+Description:
+
+11. call const
+Full name:
+Encoding:
+Description:
+
+12. calle const
+Full name:
+Encoding:
+Description:
+
+13. callg const
+Full name:
+Encoding:
+Description:
+
+14. callle const
+Full name:
+Encoding:
+Description:
