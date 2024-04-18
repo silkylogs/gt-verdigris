@@ -43,12 +43,7 @@ Description: Subtracts the contents of registers Z from Y, then stores the
              result in register X. (X = Y - Z)
              Sets overflow or underflow flags.
 
-3. umulr X Y Z
-Full name: unsigned multiply register
-Encoding: 3X YZ __ __
-Description: Unsigned multiplies the contents of 32 bit registers X with Y,
-             storing the 64 bit result in the conjoined register Y:Z.
-             (Y:Z = X * Y)
+3. reserved_instruction
 
 4. smulr X Y Z
 Full name: signed multiply register
@@ -58,14 +53,7 @@ Description: Signed multiplies the contents of 32 bit registers X with Y,
              (Y:Z = X * Y)
              Sets overflow and underflow flags. (TODO: validate this)
 
-5. udivr X Y Z
-Full name: unsigned divide register
-Encoding: 5X YZ __ __
-Description: Unsigned divides the contents of the registers Y with Z,
-             storing the result in the register Z. (X = Y / Z)
-             In case Y is zero, Z is set to the maximum unsigned 32 bit integer
-             to approximate the value of infinity.
-             The divide-by-zero flag is set.
+5. reserved_instruction
 
 6. sdivr X Y Z
 Full name: signed divide register
@@ -78,14 +66,7 @@ Description: Signed divides the contents of the registers Y with Z,
              infinity.
              The divide-by-zero flag is set.
 
-7. ufixmulr X Y Z
-Full name: unsigned fixed point multiply register
-Encoding: 7X YZ __ __
-Description: Unsigned multiplies the contents of the 32 bit registers Y and Z,
-             interpreted as a fixed point number (16.16), adjusting the
-             resulting number to fit within said format and storing the result
-             to register X. (X = Y * Z)
-             Sets the overflow flag.
+7. reserved_instruction
 
 8. sfixmulr X Y Z
 Full name: signed fixed poiont multiply register
@@ -96,16 +77,7 @@ Description: Signed multiplies the contents of the 32 bit registers Y and Z,
              in register X (X = Y * Z)
              May overflow or underflow, in which case relevant flags are set.
 
-9. ufixdivr X Y Z
-Full name: unsigned fixed point divide register
-Encoding: 9X YZ __ __
-Description: Unsigned divides the contents of the 32 bit registers Y and X,
-             interpreted as a fixed point number (16.16), adjusting the
-             resulting number to fit within said format and storing the result
-             to register X. (X = Y / Z)
-             In case Z is zero, X is set to the maximum signed 32 bit integer
-             to approximate, albeit crudely, the value of infinity.
-             Sets the divide-by-zero flag.
+9. reserved_instruction
 
 10. sfixdivr X Y Z
 Full name: signed fixed point divide register
@@ -170,7 +142,7 @@ Description: Copies register contents from Y to X. (X = Y)
 4. cmpr X Y
 Full name: compare registers
 Encoding F4 XY __ __
-Description: Unsigned subtracts the contents of registers Y from X, then sets
+Description: Signed subtracts the contents of registers Y from X, then sets
              the following flags: lt, l, gt, g, e
 
 5. lshiftr X Y
