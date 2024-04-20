@@ -1,30 +1,29 @@
-/// This contains all opcodes to be used by this version of the virtual machine
 #[rustfmt::skip]
-static opcodes: [&'static str; 50] = [
-	// Three reg op
-	"addr", "subr", "umulr", "udivr", "smulr", "sdivr",
-	"sfixmulr", "sfixdivr", "ufixmulr", "ufixdivr",
+enum Register {
+    R0, R1, R2, R3, R4, R5, R6, R7,
+    R8, R9, RA, RB, RC, RD, RE, RF,
+}
 
-	// Two reg op
-	"movr", "cmpr",
-	"andr", "orr", "notr", "xorr",
-	"lshlr", "lshrr", "ashlr", "ashrr", "rolr", "rorr",
-	"ufixsqrtr",
+enum ThreeRegOpCode {
+    INVALID_ZERO = 0,
+    ADDR = 1,
+    SUBR = 2,
+    MULR = 3,
+    DIVR = 4,
+    FIXMULR = 5,
+    FIXDIVR = 6,
+    CFIXSQRTR = 7,
+    INVALID_RESERVED, // 0x8..0xE
+    INVALID_NEXT_INSTR_PAGE = 0xF,
+}
 
-	// One reg op
-	"gotor", "callr",
+pub struct ThreeRegInstr {
+    code: ThreeRegOpcode,
+    reg1: Register,
+    reg2: Register,
+    reg3: Register,
+}
 
-	// One reg op with constant
-	"mov", "cmp",
-	"read", "write",
-	"add", "sub", "umul", "udiv", "smul", "sdiv",
-	"lshl", "lshr",
-
-	// Zero reg op
-	"nop", "ret",
-
-	// Zero reg op with constant
-	"call", "callge", "callg", "callle", "calll",
-	"jmp", "jge", "jg", "jle", "jl",
-	"goto",
-];
+fn u32_to_ThreeRegInstr(x: u32) -> ThreeRegInstr {
+    todo!();
+}
