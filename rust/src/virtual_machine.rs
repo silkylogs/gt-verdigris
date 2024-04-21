@@ -132,7 +132,7 @@ impl TwoRegOpcode {
 
 // Code:Reg1 Reg2:Reg3 _:_ _:_
 pub struct TwoRegInstr {
-    code: ThreeRegOpcode,
+    code: TwoRegOpcode,
     reg1: Register,
     reg2: Register,
 }
@@ -143,7 +143,7 @@ impl TwoRegInstr {
         let reg1 = ((x >> 24) & 0x0f) as u8;
         let reg2 = ((x >> 20) & 0x0f) as u8;
 
-        let code = ThreeRegOpcode::from_u4(code);
+        let code = TwoRegOpcode::from_u4(code);
         let reg1 = Register::from_u4(reg1);
         let reg2 = Register::from_u4(reg2);
 
@@ -154,3 +154,10 @@ impl TwoRegInstr {
         }
     }
 }
+
+// -- Two reg opcodes ---------------------------------------------------------
+
+// -- One reg opcodes ---------------------------------------------------------
+
+// -- One reg opcodes ---------------------------------------------------------
+
