@@ -4,3 +4,4 @@ target
 *.dll
 loaded_resource
 *.bak
+*.swp

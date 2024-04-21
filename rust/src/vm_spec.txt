@@ -185,71 +185,89 @@ Description: This bit combination is currently reserved. Trying to execute
 
 1 Register operations:
 -----------------------
-1. read X const
+- readc X const
 Full name: read constant to register
-Encoding: FF 1X __ __
+Encoding: FF 1X __ __ + const
 Description: Copies the 32 bit constant to the register X.
 
-2. write X const
+- writec X const
 Full name: write register to constant pointer
-Encoding: FF 2X __ __
+Encoding: FF 2X __ __ + const
 Description: Writes the contents of the register X to the address provided in the constant.
 
-3. mov X const
-Full name: Move constant to register
-Encoding: FF 3X __ __
+- movc X const
+Full name: move constant to register
+Encoding: FF 3X __ __ + const
 Description: Copies the constant provided in the instruction to the register X.
 
-4. callr X
-Full name:
-Encoding:
-Description:
+- callr X
+Full name: call procedure at register
+Encoding: FF 4X __ __
+Description: Calls the procedure at the address pointed to by the register X.
 
-6. cmp X const
-Full name:
-Encoding:
-Description:
+- cmpc X const
+Full name: compare register with constant
+Encoding: FF 5X __ __ + const
+Description: Performs a signed subtraction with the register X and the constant.
+             The result is then parsed to set the following flags (TODO)
 
-7. lshl X const
-Full name:
-Encoding:
-Description:
+- lshiftc X const
+Full name: logical shift register by constant
+Encoding: FF 6X __ __ + const
+Description: Logical shifts the contents of register X.
+             The magnitude of the shift is determined by the magnitude of the
+             constant.
+             The direction is determined by the sign of the value of the
+             constant, which is interpreted as a twos complement binary number.
+             A positive value indicates a left shift, else a right shift.
 
-8. lshr X const
-Full name:
-Encoding:
-Description:
+- ashiftc X const
+Full name: arithmetic shift register by constant
+Encoding: FF 7X __ __ + const
+Description: Arithmetic shifts the contents of register X.
+             The magnitude of the shift is determined by the magnitude of the
+             constant.
+             The direction is determined by the sign of the value of the
+             constant, which is interpreted as a twos complement binary number.
+             A positive value indicates a left shift, else a right shift.
 
-9. ashl X const
-Full name:
-Encoding:
-Description:
+- rollc X const
+Full name: roll register by constant
+Encoding: FF 8X __ __ + const
+Description: Rolls the contents of register X by the amount represented by the
+             constant, interpreted as a twos complement signed
+             integer. A positive value of Y rolls left, and a negative rolls
+             right.
 
-10. ashr X const
-Full name:
-Encoding:
-Description:
+- andc X const
+Full name: binary and constant
+Encoding: FF 9X __ __ + const
+Description: Computes the binary AND operation of the contents of register X
+             and the constant, then stores the result to register X.
 
-11. roll X const
-Full name:
-Encoding:
-Description:
+- orc X const
+Full name: binary or constant
+Encoding: FF AX __ __ + const
+Description: Computes the binary OR operation of the contents of register X
+             and the constant, then stores the result to register X.
 
-13. and X const
-Full name:
-Encoding:
-Description:
+- notr X 
+Full name: binary not register
+Encoding: FF BX __ __
+Description: Computes the binary NOT operation of the contents of register X,
+             then stores the result to register X.
 
-14. or X const
-Full name:
-Encoding:
-Description:
+- xorc X const
+Full name: binary xor constant
+Encoding: FF CX __ __ + const
+Description: Computes the binary XOR operation of the contents of register X
+             and the constant, then stores the result to register X.
 
-14. not X
-Full name:
-Encoding:
-Description:
-
+- reserved_instruction X
+Full name: reserved instruction
+Encoding: FF DX __ __ through FF EX __ __
+Description: These bit combinations are currently reserved. Trying to execute
+             them will result in the reserved_instruction flag being set.
 
 0 Register operations:
 -----------------------

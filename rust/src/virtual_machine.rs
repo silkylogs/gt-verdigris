@@ -7,9 +7,9 @@ enum Register {
 }
 
 impl Register {
-    fn from_u4(x: u8) -> Option<Register> {
-        #[rustfmt::skip]
-        let reg = match x {
+    #[rustfmt::skip]
+    fn from_u4(x: u8) -> Register {
+        match x & 0x0F {
             0x0 => Register::R0, 0x1 => Register::R1,
             0x2 => Register::R2, 0x3 => Register::R3,
             0x4 => Register::R4, 0x5 => Register::R5,
@@ -18,10 +18,8 @@ impl Register {
             0xA => Register::RA, 0xB => Register::RB,
             0xC => Register::RC, 0xD => Register::RD,
             0xE => Register::RE, 0xF => Register::RF,
-            _ => { return None },
-        };
-
-        Some(reg)
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -33,15 +31,23 @@ impl Register {
 #[rustfmt::skip]
 enum ThreeRegOpcode {
     INVALID_ZERO = 0,
-    ADDR = 1, SUBR = 2, MULR = 3, DIVR = 4,
-    FIXMULR = 5, FIXDIVR = 6, CFIXSQRTR = 7,
+    
+    ADDR = 1,
+    SUBR = 2,
+    MULR = 3,
+    DIVR = 4,
+
+    FIXMULR = 5,
+    FIXDIVR = 6,
+    CFIXSQRTR = 7,
+
     INVALID_RESERVED, // 0x8..0xE
     INVALID_NEXT_INSTR_PAGE = 0xF,
 }
 
 impl ThreeRegOpcode {
     fn from_u4(x: u8) -> ThreeRegOpcode {
-        match x {
+        match x & 0x0F {
             0 => ThreeRegOpcode::INVALID_ZERO,
             1 => ThreeRegOpcode::ADDR,
             2 => ThreeRegOpcode::SUBR,
@@ -66,22 +72,17 @@ pub struct ThreeRegInstr {
 
 impl ThreeRegInstr {
     fn from_u32(x: u32) -> ThreeRegInstr {
-        let cd = ((x >> 28) & 0x0f) as u8;
-        let r1 = ((x >> 24) & 0x0f) as u8;
-        let r2 = ((x >> 20) & 0x0f) as u8;
-        let r3 = ((x >> 16) & 0x0f) as u8;
+        let code = ((x >> 28) & 0x0f) as u8;
+        let reg1 = ((x >> 24) & 0x0f) as u8;
+        let reg2 = ((x >> 20) & 0x0f) as u8;
+        let reg3 = ((x >> 16) & 0x0f) as u8;
 
-        let cd = ThreeRegOpcode::from_u4(cd);
-        let r1 = Register::from_u4(r1);
-        let r2 = Register::from_u4(r2);
-        let r3 = Register::from_u4(r3);
+        let code = ThreeRegOpcode::from_u4(code);
+        let reg1 = Register::from_u4(reg1);
+        let reg2 = Register::from_u4(reg2);
+        let reg3 = Register::from_u4(reg3);
 
-        ThreeRegInstr {
-            code: cd,
-            reg1: r1.expect("Impossible program state"),
-            reg2: r2.expect("Impossible program state"),
-            reg3: r3.expect("Impossible program state"),
-        }
+        ThreeRegInstr { code, reg1, reg2, reg3, }
     }
 }
 
@@ -112,7 +113,7 @@ enum TwoRegOpcode {
 
 impl TwoRegOpcode {
     fn from_u4(x: u8) -> TwoRegOpcode {
-        match x {
+        match x & 0x0F {
             0x0 => TwoRegOpcode::INVALID_ZERO,
             0x1 => TwoRegOpcode::WRITER,
             0x2 => TwoRegOpcode::READR,
@@ -147,17 +148,100 @@ impl TwoRegInstr {
         let reg1 = Register::from_u4(reg1);
         let reg2 = Register::from_u4(reg2);
 
-        TwoRegInstr {
-            code,
-            reg1: reg1.expect("Impossible program state"),
-            reg2: reg2.expect("Impossible program state"),
-        }
+        TwoRegInstr { code, reg1, reg2, }
     }
 }
 
 // -- Two reg opcodes ---------------------------------------------------------
 
 // -- One reg opcodes ---------------------------------------------------------
+
+#[allow(non_camel_case_types)]
+#[rustfmt::skip]
+enum OneRegOpcode {
+    INVALID_ZERO = 0x0,
+    
+    READC = 0x1,
+    WRITEC = 0x2,
+    MOVC = 0x3,
+    CALLR = 0x4,
+    CMPC = 0x5,
+
+    LSHIFTC = 0x6,
+    ASHIFTC = 0x7,
+    ROLLC = 0x8,
+
+    ANDC = 0x9,
+    ORC = 0xA,
+    NOTR = 0xB,
+    XORC = 0xC,
+
+    INVALID_RESERVED, // 0xD .. 0xE
+    INVALID_NEXT_INSTR_PAGE = 0xF,
+}
+
+impl OneRegOpcode {
+    fn from_u4(x: u8) -> OneRegOpcode {
+        match x & 0xF {
+            0x0 => OneRegOpcode::INVALID_ZERO,
+            0x1 => OneRegOpcode::READC,
+            0x2 => OneRegOpcode::WRITEC,
+            0x3 => OneRegOpcode::MOVC,
+            0x4 => OneRegOpcode::CALLR,
+            0x5 => OneRegOpcode::CMPC,
+            0x6 => OneRegOpcode::LSHIFTC,
+            0x7 => OneRegOpcode::ASHIFTC,
+            0x8 => OneRegOpcode::ROLLC,
+            0x9 => OneRegOpcode::ANDC,
+            0xA => OneRegOpcode::ORC,
+            0xB => OneRegOpcode::NOTR,
+            0xC => OneRegOpcode::XORC,
+            _ => OneRegOpcode::INVALID_RESERVED,
+            0xF => OneRegOpcode::INVALID_NEXT_INSTR_PAGE,
+        }
+    }
+
+    fn has_constant(code: &OneRegOpcode) -> bool {
+        match code {
+            OneRegOpcode::READC => true,
+            OneRegOpcode::WRITEC => true,
+            OneRegOpcode::MOVC => true,
+            OneRegOpcode::CMPC => true,
+            OneRegOpcode::LSHIFTC => true,
+            OneRegOpcode::ASHIFTC => true,
+            OneRegOpcode::ROLLC => true,
+            OneRegOpcode::ANDC => true,
+            OneRegOpcode::ORC => true,
+            OneRegOpcode::XORC => true,
+            OneRegOpcode::INVALID_ZERO => false,
+            OneRegOpcode::CALLR => false,
+            OneRegOpcode::NOTR => false,
+            OneRegOpcode::INVALID_RESERVED => false,
+            OneRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
+        }
+    }
+}
+
+// Code:Reg1 Reg2:Reg3 _:_ _:_
+pub struct OneRegInstr {
+    code: OneRegOpcode,
+    reg1: Register,
+    optional_const_exists: bool,
+    optional_const: u32,
+}
+
+impl OneRegInstr {
+    fn from_u32_and_const(x: u32, optional_const: u32) -> OneRegInstr {
+        let code = ((x >> 28) & 0x0f) as u8;
+        let reg1 = ((x >> 24) & 0x0f) as u8;
+        
+        let code = OneRegOpcode::from_u4(code);
+        let reg1 = Register::from_u4(reg1);
+        let hasc = OneRegOpcode::has_constant(&code);
+
+        OneRegInstr { code, reg1, optional_const_exists: hasc, optional_const }
+    }
+}
 
 // -- One reg opcodes ---------------------------------------------------------
 
