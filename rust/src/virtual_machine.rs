@@ -78,7 +78,6 @@ impl ThreeRegOpcode {
     }
 }
 
-// Code:Reg1 Reg2:Reg3 _:_ _:_
 pub struct ThreeRegInstr {
     code: ThreeRegOpcode,
     reg1: Register,
@@ -155,7 +154,6 @@ impl TwoRegOpcode {
     }
 }
 
-// Code:Reg1 Reg2:Reg3 _:_ _:_
 pub struct TwoRegInstr {
     code: TwoRegOpcode,
     reg1: Register,
@@ -164,9 +162,10 @@ pub struct TwoRegInstr {
 
 impl TwoRegInstr {
     fn from_u32(x: u32) -> TwoRegInstr {
-        let code = ((x >> 28) & 0x0f) as u8;
-        let reg1 = ((x >> 24) & 0x0f) as u8;
-        let reg2 = ((x >> 20) & 0x0f) as u8;
+        let code = ((x >> 24) & 0x0f) as u8;
+        let reg1 = ((x >> 20) & 0x0f) as u8;
+        let reg2 = ((x >> 16) & 0x0f) as u8;
+
 
         let code = TwoRegOpcode::from_u4(code);
         let reg1 = Register::from_u4(reg1);
@@ -251,7 +250,6 @@ impl OneRegOpcode {
     }
 }
 
-// Code:Reg1 Reg2:Reg3 _:_ _:_
 pub struct OneRegInstr {
     code: OneRegOpcode,
     reg1: Register,
@@ -261,8 +259,8 @@ pub struct OneRegInstr {
 
 impl OneRegInstr {
     fn from_u32_and_const(x: u32, optional_const: u32) -> OneRegInstr {
-        let code = ((x >> 28) & 0x0f) as u8;
-        let reg1 = ((x >> 24) & 0x0f) as u8;
+        let code = ((x >> 20) & 0x0f) as u8;
+        let reg1 = ((x >> 16) & 0x0f) as u8;
         
         let code = OneRegOpcode::from_u4(code);
         let reg1 = Register::from_u4(reg1);
@@ -274,3 +272,58 @@ impl OneRegInstr {
 
 // -- One reg opcodes ---------------------------------------------------------
 
+// -- Zero reg opcodes --------------------------------------------------------
+
+
+#[allow(non_camel_case_types)]
+#[rustfmt::skip]
+enum ZeroRegOpcode {
+    INVALID_ZERO = 0x0,
+    
+
+    INVALID_RESERVED_D = 0xD,
+    INVALID_RESERVED_E = 0xE,
+
+    INVALID_NEXT_INSTR_PAGE = 0xF,
+}
+
+impl OneRegOpcode {
+    fn from_u4(x: u8) -> OneRegOpcode {
+        match x & 0xF {
+            0x0 => ZeroRegOpcode::INVALID_ZERO,
+            0xD => ZeroRegOpcode::INVALID_RESERVED_D,
+            0xE => ZeroRegOpcode::INVALID_RESERVED_E,
+            0xF => ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE,
+            _ => unreachable!(),
+        }
+    }
+
+    fn has_constant(code: &OneRegOpcode) -> bool {
+        match code {
+            ZeroRegOpcode::INVALID_ZERO => false,
+            ZeroRegOpcode::INVALID_RESERVED_D => false,
+            ZeroRegOpcode::INVALID_RESERVED_E => false,
+            ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
+        }
+    }
+}
+
+pub struct OneRegInstr {
+    code: OneRegOpcode,
+    optional_const_exists: bool,
+    optional_const: u32,
+}
+
+impl OneRegInstr {
+    fn from_u32_and_const(x: u32, optional_const: u32) -> OneRegInstr {
+        let code = ((x >> 28) & 0x0f) as u8;
+        
+        let code = OneRegOpcode::from_u4(code);
+        let reg1 = Register::from_u4(reg1);
+        let hasc = OneRegOpcode::has_constant(&code);
+
+        OneRegInstr { code, reg1, optional_const_exists: hasc, optional_const }
+    }
+}
+
+// -- Zero reg opcodes --------------------------------------------------------
