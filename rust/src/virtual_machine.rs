@@ -43,13 +43,13 @@ enum ThreeRegOpcode {
     FIXDIVR = 6,
     CFIXSQRTR = 7,
 
-    INVALID_RESERVED_8,
-    INVALID_RESERVED_9,
-    INVALID_RESERVED_A,
-    INVALID_RESERVED_B,
-    INVALID_RESERVED_C,
-    INVALID_RESERVED_D,
-    INVALID_RESERVED_E,
+    INVALID_RESERVED_8 = 0x8,
+    INVALID_RESERVED_9 = 0x9,
+    INVALID_RESERVED_A = 0xA,
+    INVALID_RESERVED_B = 0xB,
+    INVALID_RESERVED_C = 0xC,
+    INVALID_RESERVED_D = 0xD,
+    INVALID_RESERVED_E = 0xE,
 
     INVALID_NEXT_INSTR_PAGE = 0xF,
 }
@@ -57,16 +57,23 @@ enum ThreeRegOpcode {
 impl ThreeRegOpcode {
     fn from_u4(x: u8) -> ThreeRegOpcode {
         match x & 0x0F {
-            0 => ThreeRegOpcode::INVALID_ZERO,
-            1 => ThreeRegOpcode::ADDR,
-            2 => ThreeRegOpcode::SUBR,
-            3 => ThreeRegOpcode::MULR,
-            4 => ThreeRegOpcode::DIVR,
-            5 => ThreeRegOpcode::FIXMULR,
-            6 => ThreeRegOpcode::FIXDIVR,
-            7 => ThreeRegOpcode::CFIXSQRTR,
-            _ => ThreeRegOpcode::INVALID_RESERVED,
+            0x0 => ThreeRegOpcode::INVALID_ZERO,
+            0x1 => ThreeRegOpcode::ADDR,
+            0x2 => ThreeRegOpcode::SUBR,
+            0x3 => ThreeRegOpcode::MULR,
+            0x4 => ThreeRegOpcode::DIVR,
+            0x5 => ThreeRegOpcode::FIXMULR,
+            0x6 => ThreeRegOpcode::FIXDIVR,
+            0x7 => ThreeRegOpcode::CFIXSQRTR,
+            0x8 => ThreeRegOpcode::INVALID_RESERVED_8,
+            0x9 => ThreeRegOpcode::INVALID_RESERVED_9,
+            0xA => ThreeRegOpcode::INVALID_RESERVED_A,
+            0xB => ThreeRegOpcode::INVALID_RESERVED_B,
+            0xC => ThreeRegOpcode::INVALID_RESERVED_C,
+            0xD => ThreeRegOpcode::INVALID_RESERVED_D,
+            0xE => ThreeRegOpcode::INVALID_RESERVED_E,
             0xF => ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE,
+            _ => unreachable!(),
         }
     }
 }
@@ -116,7 +123,11 @@ enum TwoRegOpcode {
     ORR = 9,
     XORR = 0xA,
 
-    INVALID_RESERVED, // 0xB .. 0xE
+    INVALID_RESERVED_B = 0xB,
+    INVALID_RESERVED_C = 0xC,
+    INVALID_RESERVED_D = 0xD,
+    INVALID_RESERVED_E = 0xE,
+
     INVALID_NEXT_INSTR_PAGE = 0xF,
 }
 
@@ -134,8 +145,12 @@ impl TwoRegOpcode {
             0x8 => TwoRegOpcode::ANDR,
             0x9 => TwoRegOpcode::ORR,
             0xA => TwoRegOpcode::XORR,
-            _ => TwoRegOpcode::INVALID_RESERVED,
+            0xB => TwoRegOpcode::INVALID_RESERVED_B,
+            0xC => TwoRegOpcode::INVALID_RESERVED_C,
+            0xD => TwoRegOpcode::INVALID_RESERVED_D,
+            0xE => TwoRegOpcode::INVALID_RESERVED_E,
             0xF => TwoRegOpcode::INVALID_NEXT_INSTR_PAGE,
+            _ => unreachable!(),
         }
     }
 }
@@ -185,7 +200,9 @@ enum OneRegOpcode {
     NOTR = 0xB,
     XORC = 0xC,
 
-    INVALID_RESERVED, // 0xD .. 0xE
+    INVALID_RESERVED_D = 0xD,
+    INVALID_RESERVED_E = 0xE,
+
     INVALID_NEXT_INSTR_PAGE = 0xF,
 }
 
@@ -205,8 +222,10 @@ impl OneRegOpcode {
             0xA => OneRegOpcode::ORC,
             0xB => OneRegOpcode::NOTR,
             0xC => OneRegOpcode::XORC,
-            _ => OneRegOpcode::INVALID_RESERVED,
+            0xD => OneRegOpcode::INVALID_RESERVED_D,
+            0xE => OneRegOpcode::INVALID_RESERVED_E,
             0xF => OneRegOpcode::INVALID_NEXT_INSTR_PAGE,
+            _ => unreachable!(),
         }
     }
 
@@ -225,7 +244,8 @@ impl OneRegOpcode {
             OneRegOpcode::INVALID_ZERO => false,
             OneRegOpcode::CALLR => false,
             OneRegOpcode::NOTR => false,
-            OneRegOpcode::INVALID_RESERVED => false,
+            OneRegOpcode::INVALID_RESERVED_D => false,
+            OneRegOpcode::INVALID_RESERVED_E => false,
             OneRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
         }
     }
