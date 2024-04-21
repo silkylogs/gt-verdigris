@@ -27,6 +27,8 @@ impl Register {
 
 // -- Three reg opcodes -------------------------------------------------------
 
+
+// TODO: fix "unreachable pattern" warnings by enumerating every single bit pattern
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum ThreeRegOpcode {
@@ -41,7 +43,14 @@ enum ThreeRegOpcode {
     FIXDIVR = 6,
     CFIXSQRTR = 7,
 
-    INVALID_RESERVED, // 0x8..0xE
+    INVALID_RESERVED_8,
+    INVALID_RESERVED_9,
+    INVALID_RESERVED_A,
+    INVALID_RESERVED_B,
+    INVALID_RESERVED_C,
+    INVALID_RESERVED_D,
+    INVALID_RESERVED_E,
+
     INVALID_NEXT_INSTR_PAGE = 0xF,
 }
 
