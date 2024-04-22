@@ -27,8 +27,6 @@ impl Register {
 
 // -- Three reg opcodes -------------------------------------------------------
 
-
-// TODO: fix "unreachable pattern" warnings by enumerating every single bit pattern
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum ThreeRegOpcode {
@@ -141,7 +139,7 @@ impl TwoRegInstr {
 #[rustfmt::skip]
 enum OneRegOpcode {
     INVALID_ZERO,
-    READC, WRITEC, MOVC, CALLR, CMPC,
+    READC, WRITEC, MOVC, JMPR, CMPC,
     LSHIFTC, ASHIFTC, ROLLC,
     ANDC, ORC, NOTR, XORC,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
@@ -154,7 +152,7 @@ impl OneRegOpcode {
             0x1 => OneRegOpcode::READC,
             0x2 => OneRegOpcode::WRITEC,
             0x3 => OneRegOpcode::MOVC,
-            0x4 => OneRegOpcode::CALLR,
+            0x4 => OneRegOpcode::JMPR,
             0x5 => OneRegOpcode::CMPC,
             0x6 => OneRegOpcode::LSHIFTC,
             0x7 => OneRegOpcode::ASHIFTC,
@@ -182,7 +180,7 @@ impl OneRegOpcode {
             OneRegOpcode::ORC => true,
             OneRegOpcode::XORC => true,
             OneRegOpcode::INVALID_ZERO => false,
-            OneRegOpcode::CALLR => false,
+            OneRegOpcode::JMPR => false,
             OneRegOpcode::NOTR => false,
             OneRegOpcode::INVALID_RESERVED => false,
             OneRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
@@ -219,7 +217,6 @@ impl OneRegInstr {
 enum ZeroRegOpcode {
     INVALID_ZERO,
     NOP,
-    CALL, RET,
     JMP, JE, JG, JL,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
@@ -229,13 +226,11 @@ impl ZeroRegOpcode {
         match x & 0xF {
             0x0 => ZeroRegOpcode::INVALID_ZERO,
             0x1 => ZeroRegOpcode::NOP,
-            0x2 => ZeroRegOpcode::CALL,
-            0x3 => ZeroRegOpcode::RET,
-            0x4 => ZeroRegOpcode::JMP,
-            0x5 => ZeroRegOpcode::JE,
-            0x6 => ZeroRegOpcode::JG,
-            0x7 => ZeroRegOpcode::JL,
-            0x8..=0xE => ZeroRegOpcode::INVALID_RESERVED,
+            0x2 => ZeroRegOpcode::JMP,
+            0x3 => ZeroRegOpcode::JE,
+            0x4 => ZeroRegOpcode::JG,
+            0x5 => ZeroRegOpcode::JL,
+            0x6..=0xE => ZeroRegOpcode::INVALID_RESERVED,
             0xF => ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -245,8 +240,6 @@ impl ZeroRegOpcode {
         match code {
             ZeroRegOpcode::INVALID_ZERO => false,
             ZeroRegOpcode::NOP => false,
-            ZeroRegOpcode::CALL => true,
-            ZeroRegOpcode::RET => false,
             ZeroRegOpcode::JMP => true,
             ZeroRegOpcode::JE => true,
             ZeroRegOpcode::JG => true,

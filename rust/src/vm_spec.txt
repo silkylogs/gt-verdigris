@@ -200,10 +200,10 @@ Full name: move constant to register
 Encoding: FF 3X __ __ + const
 Description: Copies the constant provided in the instruction to the register X.
 
-- callr X
-Full name: call procedure at register
+- jmpr X
+Full name: unconditional jump to register
 Encoding: FF 4X __ __
-Description: Calls the procedure at the address pointed to by the register X.
+Description: Assigns address contained by register X to the instruction pointer.
 
 - cmpc X const
 Full name: compare register with constant
@@ -272,45 +272,35 @@ Description: These bit combinations are currently reserved. Trying to execute
 0 Register operations:
 -----------------------
 - nop
-Full name: no operations
+Full name: no operation
 Encoding: FF F1 __ __
 Description: Does nothing.
 
-- call const
-Full name: call procedure
-Encoding: FF F2 __ __ + const
-Description: Calls a procedure at the address provided.
-
-- ret
-Full name: return from procedure
-Encoding: FF F3 __ __
-Description: Returns from a procedure previously called.
-
 - jmp const
 Full name: unconditional jump
-Encoding: FF F4 __ __ + const
+Encoding: FF F2 __ __ + const
 Description: Sets the instruction pointer to the constant.
 
 - je const
 Full name: jump if equal
-Encoding: FF F5 __ __ + const
+Encoding: FF F3 __ __ + const
 Description: If the equal flag is set, sets the instruction pointer to the
              constant.
 
 - jg const
 Full name: jump if greater than
-Encoding: FF F6 __ __ + const
+Encoding: FF F4 __ __ + const
 Description: If the greater_than flag is set, sets the instruction pointer to the
              constant.
 
 - jl const
 Full name: jump if less than
-Encoding: FF F7 __ __ + const
+Encoding: FF F5 __ __ + const
 Description: If the less_than flag is set, sets the instruction pointer to the
              constant.
 
 - reserved_instruction
 Full name: reserved instruction
-Encoding: FF F8 __ __ through FF FE __ __
+Encoding: FF F6 __ __ through FF FE __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
