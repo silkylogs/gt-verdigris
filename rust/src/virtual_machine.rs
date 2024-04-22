@@ -68,7 +68,7 @@ struct VmRegisters {
 impl<'a, 'b> VmRegisters {
     fn get_mut_gpr(
         registers: &'a mut VmRegisters,
-        reg_enum: &'b GeneralPurposeRegister
+        reg_enum: &'b GeneralPurposeRegister,
     ) -> &'a mut u32 {
         match reg_enum {
             GeneralPurposeRegister::R0 => &mut registers.R0,
@@ -92,10 +92,7 @@ impl<'a, 'b> VmRegisters {
 }
 
 impl<'a, 'b> VmRegisters {
-    fn get_gpr(
-        registers: &'a mut VmRegisters,
-        reg_enum: &'b GeneralPurposeRegister
-    ) -> &'a u32 {
+    fn get_gpr(registers: &'a mut VmRegisters, reg_enum: &'b GeneralPurposeRegister) -> &'a u32 {
         match reg_enum {
             GeneralPurposeRegister::R0 => &registers.R0,
             GeneralPurposeRegister::R1 => &registers.R1,
@@ -176,12 +173,76 @@ impl ThreeRegInstr {
         }
     }
 
-    fn execute_single_instruction(
-        instruction: &ThreeRegInstr,
-        registers: &mut VmRegisters,
-        memory: &mut Vec<u32>,
-    ) {
-        todo!();
+    fn execute_single_instruction(instr: &ThreeRegInstr, registers: &mut VmRegisters) {
+        match instr.code {
+            ThreeRegOpcode::INVALID_ZERO => {
+                registers.FLAGS.invalid_instruction = true;
+            },
+            ThreeRegOpcode::ADDR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
+                let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+
+                *dest = arg1.wrapping_add(arg2);
+            },
+            ThreeRegOpcode::SUBR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
+                let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+
+                *dest = arg1.wrapping_sub(arg2);
+            },
+            ThreeRegOpcode::MULR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
+
+                let arg1 = arg1 as u64;
+                let arg2 = arg2 as u64;
+
+                let intermediate = arg1
+                    .checked_mul(arg2)
+                    .expect("Overflow of u32 scaled to u64: unreachable condition");
+                let dest_lo = (intermediate & 0x0000_0000_ffff_ffff) as u32;
+                let dest_hi = ((intermediate & 0xffff_ffff_0000_0000) >> 32) as u32;
+
+                let dest_hi_ref = VmRegisters::get_mut_gpr(registers, &instr.reg2);
+                *dest_hi_ref = dest_hi;
+
+                let dest_lo_ref = VmRegisters::get_mut_gpr(registers, &instr.reg3);
+                *dest_lo_ref = dest_lo;
+            },
+            ThreeRegOpcode::DIVR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
+                let result = if arg2 == 0 { 0xffff_ffff_u32 } else { arg1 / arg2 };
+
+                *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
+            },
+            ThreeRegOpcode::FIXMULR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let intermediate = arg1 as u64 * arg2 as u64;
+                let result = intermediate / u16::MAX as u64;
+                *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result as u32;
+            },
+            ThreeRegOpcode::FIXDIVR => {
+                let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let scaled_numerator = arg1 as u64 * u16::MAX as u64;
+                let quotient = scaled_numerator / arg2 as u64;
+                let result = quotient as u32;
+                *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
+            },
+            ThreeRegOpcode::CFIXSQRTR => {
+                todo!();
+            },
+            ThreeRegOpcode::INVALID_RESERVED => {
+                registers.FLAGS.reserved_instruction = true;
+            },
+            ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                unreachable!();
+            },
+        }
     }
 }
 
@@ -435,42 +496,7 @@ fn execute_single_instruction(
     memory: &mut Vec<u32>,
 ) {
     match instruction {
-        VmInstruction::ThreeRegInstr(instr) => match instr.code {
-            ThreeRegOpcode::INVALID_ZERO => {
-                registers.FLAGS.invalid_instruction = true;
-            }
-            ThreeRegOpcode::ADDR => {
-                let arg1 = *VmRegisters::get_mut_gpr(registers, &instr.reg2);
-                let arg2 = *VmRegisters::get_mut_gpr(registers, &instr.reg3);
-                let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
-
-                *dest = arg1.wrapping_add(arg2);
-            }
-            ThreeRegOpcode::SUBR => {
-                todo!();
-            }
-            ThreeRegOpcode::MULR => {
-                todo!();
-            }
-            ThreeRegOpcode::DIVR => {
-                todo!();
-            }
-            ThreeRegOpcode::FIXMULR => {
-                todo!();
-            }
-            ThreeRegOpcode::FIXDIVR => {
-                todo!();
-            }
-            ThreeRegOpcode::CFIXSQRTR => {
-                todo!();
-            }
-            ThreeRegOpcode::INVALID_RESERVED => {
-                todo!();
-            }
-            ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
-                unreachable!();
-            }
-        },
+        VmInstruction::ThreeRegInstr(instr) => todo!(),
         VmInstruction::TwoRegInstr(instr) => match instr.code {
             TwoRegOpcode::INVALID_ZERO => {
                 todo!();
