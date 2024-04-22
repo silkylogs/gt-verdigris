@@ -274,55 +274,63 @@ impl OneRegInstr {
 
 // -- Zero reg opcodes --------------------------------------------------------
 
-
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum ZeroRegOpcode {
-    INVALID_ZERO = 0x0,
-    
-
-    INVALID_RESERVED_D = 0xD,
-    INVALID_RESERVED_E = 0xE,
-
-    INVALID_NEXT_INSTR_PAGE = 0xF,
+    INVALID_ZERO,
+    NOP,
+    CALL, RET,
+    JMP, JE, JG, JL,
+    INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
-impl OneRegOpcode {
-    fn from_u4(x: u8) -> OneRegOpcode {
+impl ZeroRegOpcode {
+    fn from_u4(x: u8) -> ZeroRegOpcode {
         match x & 0xF {
             0x0 => ZeroRegOpcode::INVALID_ZERO,
-            0xD => ZeroRegOpcode::INVALID_RESERVED_D,
-            0xE => ZeroRegOpcode::INVALID_RESERVED_E,
+            0x1 => ZeroRegOpcode::NOP,
+            0x2 => ZeroRegOpcode::CALL,
+            0x3 => ZeroRegOpcode::RET,
+            0x4 => ZeroRegOpcode::JMP,
+            0x5 => ZeroRegOpcode::JE,
+            0x6 => ZeroRegOpcode::JG,
+            0x7 => ZeroRegOpcode::JL,
+            0x8..=0xE => ZeroRegOpcode::INVALID_RESERVED,
             0xF => ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
     }
 
-    fn has_constant(code: &OneRegOpcode) -> bool {
+    fn has_constant(code: &ZeroRegOpcode) -> bool {
         match code {
             ZeroRegOpcode::INVALID_ZERO => false,
-            ZeroRegOpcode::INVALID_RESERVED_D => false,
-            ZeroRegOpcode::INVALID_RESERVED_E => false,
+            ZeroRegOpcode::NOP => false,
+            ZeroRegOpcode::CALL => true,
+            ZeroRegOpcode::RET => false,
+            ZeroRegOpcode::JMP => true,
+            ZeroRegOpcode::JE => true,
+            ZeroRegOpcode::JG => true,
+            ZeroRegOpcode::JL => true,
+            ZeroRegOpcode::INVALID_RESERVED => false,
             ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
         }
     }
 }
 
-pub struct OneRegInstr {
-    code: OneRegOpcode,
+pub struct ZeroRegInstr {
+    code: ZeroRegOpcode,
     optional_const_exists: bool,
     optional_const: u32,
 }
 
-impl OneRegInstr {
-    fn from_u32_and_const(x: u32, optional_const: u32) -> OneRegInstr {
-        let code = ((x >> 28) & 0x0f) as u8;
+impl ZeroRegInstr {
+    fn from_u32_and_const(x: u32, optional_const: u32) -> ZeroRegInstr {
+        let code = ((x >> 16) & 0x0f) as u8;
         
-        let code = OneRegOpcode::from_u4(code);
-        let reg1 = Register::from_u4(reg1);
-        let hasc = OneRegOpcode::has_constant(&code);
+        let code = ZeroRegOpcode::from_u4(code);
+        let optional_const_exists = ZeroRegOpcode::has_constant(&code);
 
-        OneRegInstr { code, reg1, optional_const_exists: hasc, optional_const }
+        ZeroRegInstr { code, optional_const_exists, optional_const }
     }
 }
 
