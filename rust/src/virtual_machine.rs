@@ -65,6 +65,58 @@ struct VmRegisters {
     RIP: u32, FLAGS: FlagsRegister,
 }
 
+impl<'a, 'b> VmRegisters {
+    fn get_mut_gpr(
+        registers: &'a mut VmRegisters,
+        reg_enum: &'b GeneralPurposeRegister
+    ) -> &'a mut u32 {
+        match reg_enum {
+            GeneralPurposeRegister::R0 => &mut registers.R0,
+            GeneralPurposeRegister::R1 => &mut registers.R1,
+            GeneralPurposeRegister::R2 => &mut registers.R2,
+            GeneralPurposeRegister::R3 => &mut registers.R3,
+            GeneralPurposeRegister::R4 => &mut registers.R4,
+            GeneralPurposeRegister::R5 => &mut registers.R5,
+            GeneralPurposeRegister::R6 => &mut registers.R6,
+            GeneralPurposeRegister::R7 => &mut registers.R7,
+            GeneralPurposeRegister::R8 => &mut registers.R8,
+            GeneralPurposeRegister::R9 => &mut registers.R9,
+            GeneralPurposeRegister::RA => &mut registers.RA,
+            GeneralPurposeRegister::RB => &mut registers.RB,
+            GeneralPurposeRegister::RC => &mut registers.RC,
+            GeneralPurposeRegister::RD => &mut registers.RD,
+            GeneralPurposeRegister::RE => &mut registers.RE,
+            GeneralPurposeRegister::RF => &mut registers.RF,
+        }
+    }
+}
+
+impl<'a, 'b> VmRegisters {
+    fn get_gpr(
+        registers: &'a mut VmRegisters,
+        reg_enum: &'b GeneralPurposeRegister
+    ) -> &'a u32 {
+        match reg_enum {
+            GeneralPurposeRegister::R0 => &registers.R0,
+            GeneralPurposeRegister::R1 => &registers.R1,
+            GeneralPurposeRegister::R2 => &registers.R2,
+            GeneralPurposeRegister::R3 => &registers.R3,
+            GeneralPurposeRegister::R4 => &registers.R4,
+            GeneralPurposeRegister::R5 => &registers.R5,
+            GeneralPurposeRegister::R6 => &registers.R6,
+            GeneralPurposeRegister::R7 => &registers.R7,
+            GeneralPurposeRegister::R8 => &registers.R8,
+            GeneralPurposeRegister::R9 => &registers.R9,
+            GeneralPurposeRegister::RA => &registers.RA,
+            GeneralPurposeRegister::RB => &registers.RB,
+            GeneralPurposeRegister::RC => &registers.RC,
+            GeneralPurposeRegister::RD => &registers.RD,
+            GeneralPurposeRegister::RE => &registers.RE,
+            GeneralPurposeRegister::RF => &registers.RF,
+        }
+    }
+}
+
 // -- Registers ---------------------------------------------------------------
 
 // -- Three reg opcodes -------------------------------------------------------
@@ -116,7 +168,20 @@ impl ThreeRegInstr {
         let reg2 = GeneralPurposeRegister::from_u4(reg2);
         let reg3 = GeneralPurposeRegister::from_u4(reg3);
 
-        ThreeRegInstr { code, reg1, reg2, reg3, }
+        ThreeRegInstr {
+            code,
+            reg1,
+            reg2,
+            reg3,
+        }
+    }
+
+    fn execute_single_instruction(
+        instruction: &ThreeRegInstr,
+        registers: &mut VmRegisters,
+        memory: &mut Vec<u32>,
+    ) {
+        todo!();
     }
 }
 
@@ -171,7 +236,7 @@ impl TwoRegInstr {
         let reg1 = GeneralPurposeRegister::from_u4(reg1);
         let reg2 = GeneralPurposeRegister::from_u4(reg2);
 
-        TwoRegInstr { code, reg1, reg2, }
+        TwoRegInstr { code, reg1, reg2 }
     }
 }
 
@@ -244,12 +309,17 @@ impl OneRegInstr {
     fn from_u32_and_const(x: u32, optional_const: u32) -> OneRegInstr {
         let code = ((x >> 20) & 0x0f) as u8;
         let reg1 = ((x >> 16) & 0x0f) as u8;
-        
+
         let code = OneRegOpcode::from_u4(code);
         let reg1 = GeneralPurposeRegister::from_u4(reg1);
         let hasc = OneRegOpcode::has_constant(&code);
 
-        OneRegInstr { code, reg1, optional_const_exists: hasc, optional_const }
+        OneRegInstr {
+            code,
+            reg1,
+            optional_const_exists: hasc,
+            optional_const,
+        }
     }
 }
 
@@ -305,11 +375,15 @@ pub struct ZeroRegInstr {
 impl ZeroRegInstr {
     fn from_u32_and_const(x: u32, optional_const: u32) -> ZeroRegInstr {
         let code = ((x >> 16) & 0x0f) as u8;
-        
+
         let code = ZeroRegOpcode::from_u4(code);
         let optional_const_exists = ZeroRegOpcode::has_constant(&code);
 
-        ZeroRegInstr { code, optional_const_exists, optional_const }
+        ZeroRegInstr {
+            code,
+            optional_const_exists,
+            optional_const,
+        }
     }
 }
 
@@ -322,32 +396,199 @@ enum VmInstruction {
     TwoRegInstr(TwoRegInstr),
     OneRegInstr(OneRegInstr),
     ZeroRegInstr(ZeroRegInstr),
+    ErrorInstructionFromFutureISA,
 }
 
 impl VmInstruction {
     fn decode(word0: u32, word1: u32) -> VmInstruction {
         let possibly_three = ThreeRegInstr::from_u32(word0);
-        if possibly_three.code == ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE {
-            let possibly_two = TwoRegInstr::from_u32(word0);
-            if possibly_two.code == TwoRegOpcode::INVALID_NEXT_INSTR_PAGE {
-                let possibly_one = OneRegInstr::from_u32_and_const(word0, word1);
-                if possibly_one.code == OneRegOpcode::INVALID_NEXT_INSTR_PAGE {
-                    let possibly_zero = ZeroRegInstr::from_u32_and_const(word0, word1);
-                    if possibly_zero.code == ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE {
-                        unreachable!("Attempt to decode an instruction set from the future");
-                    } else {
-                        VmInstruction::ZeroRegInstr(possibly_zero)
-                    }
-                } else {
-                    VmInstruction::OneRegInstr(possibly_one)
-                }
-            } else {
-                VmInstruction::TwoRegInstr(possibly_two)
-            }
-        } else {
-            VmInstruction::ThreeRegInstr(possibly_three)
+        if possibly_three.code != ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE {
+            return VmInstruction::ThreeRegInstr(possibly_three);
         }
+
+        let possibly_two = TwoRegInstr::from_u32(word0);
+        if possibly_two.code != TwoRegOpcode::INVALID_NEXT_INSTR_PAGE {
+            return VmInstruction::TwoRegInstr(possibly_two);
+        }
+
+        let possibly_one = OneRegInstr::from_u32_and_const(word0, word1);
+        if possibly_one.code != OneRegOpcode::INVALID_NEXT_INSTR_PAGE {
+            return VmInstruction::OneRegInstr(possibly_one);
+        }
+
+        let possibly_zero = ZeroRegInstr::from_u32_and_const(word0, word1);
+        if possibly_zero.code != ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE {
+            return VmInstruction::ZeroRegInstr(possibly_zero);
+        }
+
+        VmInstruction::ErrorInstructionFromFutureISA
     }
 }
 
 // -- Decoder -----------------------------------------------------------------
+
+// -- Executor ----------------------------------------------------------------
+
+fn execute_single_instruction(
+    registers: &mut VmRegisters,
+    instruction: &VmInstruction,
+    memory: &mut Vec<u32>,
+) {
+    match instruction {
+        VmInstruction::ThreeRegInstr(instr) => match instr.code {
+            ThreeRegOpcode::INVALID_ZERO => {
+                registers.FLAGS.invalid_instruction = true;
+            }
+            ThreeRegOpcode::ADDR => {
+                let arg1 = *VmRegisters::get_mut_gpr(registers, &instr.reg2);
+                let arg2 = *VmRegisters::get_mut_gpr(registers, &instr.reg3);
+                let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+
+                *dest = arg1.wrapping_add(arg2);
+            }
+            ThreeRegOpcode::SUBR => {
+                todo!();
+            }
+            ThreeRegOpcode::MULR => {
+                todo!();
+            }
+            ThreeRegOpcode::DIVR => {
+                todo!();
+            }
+            ThreeRegOpcode::FIXMULR => {
+                todo!();
+            }
+            ThreeRegOpcode::FIXDIVR => {
+                todo!();
+            }
+            ThreeRegOpcode::CFIXSQRTR => {
+                todo!();
+            }
+            ThreeRegOpcode::INVALID_RESERVED => {
+                todo!();
+            }
+            ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                unreachable!();
+            }
+        },
+        VmInstruction::TwoRegInstr(instr) => match instr.code {
+            TwoRegOpcode::INVALID_ZERO => {
+                todo!();
+            }
+            TwoRegOpcode::WRITER => {
+                todo!();
+            }
+            TwoRegOpcode::READR => {
+                todo!();
+            }
+            TwoRegOpcode::MOVR => {
+                todo!();
+            }
+            TwoRegOpcode::CMPR => {
+                todo!();
+            }
+            TwoRegOpcode::LSHIFTR => {
+                todo!();
+            }
+            TwoRegOpcode::ASHIFTR => {
+                todo!();
+            }
+            TwoRegOpcode::ROLLR => {
+                todo!();
+            }
+            TwoRegOpcode::ANDR => {
+                todo!();
+            }
+            TwoRegOpcode::ORR => {
+                todo!();
+            }
+            TwoRegOpcode::XORR => {
+                todo!();
+            }
+            TwoRegOpcode::INVALID_RESERVED => {
+                todo!();
+            }
+            TwoRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                unreachable!();
+            }
+        },
+        VmInstruction::OneRegInstr(instr) => match instr.code {
+            OneRegOpcode::INVALID_ZERO => {
+                todo!();
+            }
+            OneRegOpcode::READC => {
+                todo!();
+            }
+            OneRegOpcode::WRITEC => {
+                todo!();
+            }
+            OneRegOpcode::MOVC => {
+                todo!();
+            }
+            OneRegOpcode::JMPR => {
+                todo!();
+            }
+            OneRegOpcode::CMPC => {
+                todo!();
+            }
+            OneRegOpcode::LSHIFTC => {
+                todo!();
+            }
+            OneRegOpcode::ASHIFTC => {
+                todo!();
+            }
+            OneRegOpcode::ROLLC => {
+                todo!();
+            }
+            OneRegOpcode::ANDC => {
+                todo!();
+            }
+            OneRegOpcode::ORC => {
+                todo!();
+            }
+            OneRegOpcode::NOTR => {
+                todo!();
+            }
+            OneRegOpcode::XORC => {
+                todo!();
+            }
+            OneRegOpcode::INVALID_RESERVED => {
+                todo!();
+            }
+            OneRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                unreachable!();
+            }
+        },
+        VmInstruction::ZeroRegInstr(instr) => match instr.code {
+            ZeroRegOpcode::INVALID_ZERO => {
+                todo!();
+            }
+            ZeroRegOpcode::NOP => {
+                todo!();
+            }
+            ZeroRegOpcode::JMP => {
+                todo!();
+            }
+            ZeroRegOpcode::JE => {
+                todo!();
+            }
+            ZeroRegOpcode::JG => {
+                todo!();
+            }
+            ZeroRegOpcode::JL => {
+                todo!();
+            }
+            ZeroRegOpcode::INVALID_RESERVED => {
+                todo!();
+            }
+            ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                unreachable!();
+            }
+        },
+        VmInstruction::ErrorInstructionFromFutureISA => {
+            todo!();
+        }
+    }
+}
+
+// -- Executor ----------------------------------------------------------------

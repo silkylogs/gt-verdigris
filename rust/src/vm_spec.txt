@@ -105,6 +105,12 @@ Description: These bit combinations are currently reserved. Trying to execute
 
 2 Register operations:
 -----------------------
+- invalid_instruction X Y
+Full name: zero trap instruction
+Encoding F0 XY __ __
+Description: This is a "trap bit" combination. Trying to execute it will set the
+             invalid_instruction flag.
+
 - writer X Y
 Full name: write register to pointer
 Encoding: F1 XY __ __
@@ -185,6 +191,12 @@ Description: This bit combination is currently reserved. Trying to execute
 
 1 Register operations:
 -----------------------
+- invalid_instruction X
+Full name: zero trap instruction
+Encoding FF 0X __ __
+Description: This is a "trap bit" combination. Trying to execute it will set the
+             invalid_instruction flag.
+
 - readc X const
 Full name: read constant to register
 Encoding: FF 1X __ __ + const
@@ -272,6 +284,12 @@ Description: These bit combinations are currently reserved. Trying to execute
 
 0 Register operations:
 -----------------------
+- invalid_instruction
+Full name: zero trap instruction
+Encoding FF F0 __ __
+Description: This is a "trap bit" combination. Trying to execute it will set the
+             invalid_instruction flag.
+
 - nop
 Full name: no operation
 Encoding: FF F1 __ __
@@ -351,7 +369,7 @@ to determine the instruction page:
   The assumption is that X in FF FX __ __ is between 0x0 and 0xE inclusive.
   If X == 0xF, continue; else the instruction is in the fourth instruction page.
 - Error
-  The algorithm has decided that this instruction is one of the following:
-  - It is an instruction from a future ISA,
+  The algorithm has decided one of the following:
+  - This is an instruction from a future ISA,
   - There's a memory error in the program the VM is running,
   - The host machine is malfunctioning.
