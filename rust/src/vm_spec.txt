@@ -324,10 +324,34 @@ Description: Contains state of this CPU.
 Bit values (in big endian order):
   00: equal
   01: greater_than
-  03: less_than
-  04: reserved_instruction
-  05: invalid_instruction
-  06: zero_div
-  07: overflow
-  08: underflow
-  09 through 1F: reserved
+  02: less_than
+  03: reserved_instruction
+  04: invalid_instruction
+  05: zero_div
+  06: overflow
+  07: underflow
+  08 through 1F: reserved
+
+
+//============================================================================\\
+|| Instruction decoding                                                       ||
+\\============================================================================//
+The decoding logic is fairly simple. In order, these are the steps to be taken
+to determine the instruction page:
+- First instruction page
+  The assumption is that X in X_ __ __ __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in the first instruction page.
+- Second instruction page
+  The assumption is that X in FX __ __ __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in the second instruction page.
+- Third instruction page
+  The assumption is that X in FF X_ __ __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in the third instruction page.
+- Fourth instruction page
+  The assumption is that X in FF FX __ __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in the fourth instruction page.
+- Error
+  The algorithm has decided that this instruction is one of the following:
+  - It is an instruction from a future ISA,
+  - There's a memory error in the program the VM is running,
+  - The host machine is malfunctioning.

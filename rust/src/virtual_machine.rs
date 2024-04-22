@@ -1,6 +1,7 @@
 // -- Registers ---------------------------------------------------------------
 
 #[rustfmt::skip]
+#[derive(PartialEq)]
 enum GeneralPurposeRegister {
     R0, R1, R2, R3, R4, R5, R6, R7,
     R8, R9, RA, RB, RC, RD, RE, RF,
@@ -68,8 +69,9 @@ struct VmRegisters {
 
 // -- Three reg opcodes -------------------------------------------------------
 
-#[rustfmt::skip]
 #[allow(non_camel_case_types)]
+#[rustfmt::skip]
+#[derive(PartialEq)]
 enum ThreeRegOpcode {
     INVALID_ZERO,
     ADDR, SUBR, MULR, DIVR,
@@ -124,6 +126,7 @@ impl ThreeRegInstr {
 
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
+#[derive(PartialEq)]
 enum TwoRegOpcode {
     INVALID_ZERO, WRITER, READR, MOVR, CMPR,
     LSHIFTR, ASHIFTR, ROLLR,
@@ -178,6 +181,7 @@ impl TwoRegInstr {
 
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
+#[derive(PartialEq)]
 enum OneRegOpcode {
     INVALID_ZERO,
     READC, WRITEC, MOVC, JMPR, CMPC,
@@ -255,6 +259,7 @@ impl OneRegInstr {
 
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
+#[derive(PartialEq)]
 enum ZeroRegOpcode {
     INVALID_ZERO,
     NOP,
@@ -309,3 +314,40 @@ impl ZeroRegInstr {
 }
 
 // -- Zero reg opcodes --------------------------------------------------------
+
+// -- Decoder -----------------------------------------------------------------
+
+enum VmInstruction {
+    ThreeRegInstr(ThreeRegInstr),
+    TwoRegInstr(TwoRegInstr),
+    OneRegInstr(OneRegInstr),
+    ZeroRegInstr(ZeroRegInstr),
+}
+
+impl VmInstruction {
+    fn decode(word0: u32, word1: u32) -> VmInstruction {
+        let possibly_three = ThreeRegInstr::from_u32(word0);
+        if possibly_three.code == ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE {
+            let possibly_two = TwoRegInstr::from_u32(word0);
+            if possibly_two.code == TwoRegOpcode::INVALID_NEXT_INSTR_PAGE {
+                let possibly_one = OneRegInstr::from_u32_and_const(word0, word1);
+                if possibly_one.code == OneRegOpcode::INVALID_NEXT_INSTR_PAGE {
+                    let possibly_zero = ZeroRegInstr::from_u32_and_const(word0, word1);
+                    if possibly_zero.code == ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE {
+                        unreachable!("Attempt to decode an instruction set from the future");
+                    } else {
+                        VmInstruction::ZeroRegInstr(possibly_zero)
+                    }
+                } else {
+                    VmInstruction::OneRegInstr(possibly_one)
+                }
+            } else {
+                VmInstruction::TwoRegInstr(possibly_two)
+            }
+        } else {
+            VmInstruction::ThreeRegInstr(possibly_three)
+        }
+    }
+}
+
+// -- Decoder -----------------------------------------------------------------
