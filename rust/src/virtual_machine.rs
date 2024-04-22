@@ -32,26 +32,10 @@ impl Register {
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum ThreeRegOpcode {
-    INVALID_ZERO = 0,
-    
-    ADDR = 1,
-    SUBR = 2,
-    MULR = 3,
-    DIVR = 4,
-
-    FIXMULR = 5,
-    FIXDIVR = 6,
-    CFIXSQRTR = 7,
-
-    INVALID_RESERVED_8 = 0x8,
-    INVALID_RESERVED_9 = 0x9,
-    INVALID_RESERVED_A = 0xA,
-    INVALID_RESERVED_B = 0xB,
-    INVALID_RESERVED_C = 0xC,
-    INVALID_RESERVED_D = 0xD,
-    INVALID_RESERVED_E = 0xE,
-
-    INVALID_NEXT_INSTR_PAGE = 0xF,
+    INVALID_ZERO,
+    ADDR, SUBR, MULR, DIVR,
+    FIXMULR, FIXDIVR, CFIXSQRTR,
+    INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
 impl ThreeRegOpcode {
@@ -65,13 +49,7 @@ impl ThreeRegOpcode {
             0x5 => ThreeRegOpcode::FIXMULR,
             0x6 => ThreeRegOpcode::FIXDIVR,
             0x7 => ThreeRegOpcode::CFIXSQRTR,
-            0x8 => ThreeRegOpcode::INVALID_RESERVED_8,
-            0x9 => ThreeRegOpcode::INVALID_RESERVED_9,
-            0xA => ThreeRegOpcode::INVALID_RESERVED_A,
-            0xB => ThreeRegOpcode::INVALID_RESERVED_B,
-            0xC => ThreeRegOpcode::INVALID_RESERVED_C,
-            0xD => ThreeRegOpcode::INVALID_RESERVED_D,
-            0xE => ThreeRegOpcode::INVALID_RESERVED_E,
+            0x8..=0xE => ThreeRegOpcode::INVALID_RESERVED,
             0xF => ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -108,26 +86,10 @@ impl ThreeRegInstr {
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum TwoRegOpcode {
-    INVALID_ZERO = 0,
-    WRITER = 1,
-    READR = 2,
-    MOVR = 3,
-    CMPR = 4,
-    
-    LSHIFTR = 5,
-    ASHIFTR = 6,
-    ROLLR = 7,
-    
-    ANDR = 8,
-    ORR = 9,
-    XORR = 0xA,
-
-    INVALID_RESERVED_B = 0xB,
-    INVALID_RESERVED_C = 0xC,
-    INVALID_RESERVED_D = 0xD,
-    INVALID_RESERVED_E = 0xE,
-
-    INVALID_NEXT_INSTR_PAGE = 0xF,
+    INVALID_ZERO, WRITER, READR, MOVR, CMPR,
+    LSHIFTR, ASHIFTR, ROLLR,
+    ANDR, ORR, XORR,
+    INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
 impl TwoRegOpcode {
@@ -144,10 +106,7 @@ impl TwoRegOpcode {
             0x8 => TwoRegOpcode::ANDR,
             0x9 => TwoRegOpcode::ORR,
             0xA => TwoRegOpcode::XORR,
-            0xB => TwoRegOpcode::INVALID_RESERVED_B,
-            0xC => TwoRegOpcode::INVALID_RESERVED_C,
-            0xD => TwoRegOpcode::INVALID_RESERVED_D,
-            0xE => TwoRegOpcode::INVALID_RESERVED_E,
+            0xB..=0xE => TwoRegOpcode::INVALID_RESERVED,
             0xF => TwoRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -166,7 +125,6 @@ impl TwoRegInstr {
         let reg1 = ((x >> 20) & 0x0f) as u8;
         let reg2 = ((x >> 16) & 0x0f) as u8;
 
-
         let code = TwoRegOpcode::from_u4(code);
         let reg1 = Register::from_u4(reg1);
         let reg2 = Register::from_u4(reg2);
@@ -182,27 +140,11 @@ impl TwoRegInstr {
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 enum OneRegOpcode {
-    INVALID_ZERO = 0x0,
-    
-    READC = 0x1,
-    WRITEC = 0x2,
-    MOVC = 0x3,
-    CALLR = 0x4,
-    CMPC = 0x5,
-
-    LSHIFTC = 0x6,
-    ASHIFTC = 0x7,
-    ROLLC = 0x8,
-
-    ANDC = 0x9,
-    ORC = 0xA,
-    NOTR = 0xB,
-    XORC = 0xC,
-
-    INVALID_RESERVED_D = 0xD,
-    INVALID_RESERVED_E = 0xE,
-
-    INVALID_NEXT_INSTR_PAGE = 0xF,
+    INVALID_ZERO,
+    READC, WRITEC, MOVC, CALLR, CMPC,
+    LSHIFTC, ASHIFTC, ROLLC,
+    ANDC, ORC, NOTR, XORC,
+    INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
 impl OneRegOpcode {
@@ -221,8 +163,7 @@ impl OneRegOpcode {
             0xA => OneRegOpcode::ORC,
             0xB => OneRegOpcode::NOTR,
             0xC => OneRegOpcode::XORC,
-            0xD => OneRegOpcode::INVALID_RESERVED_D,
-            0xE => OneRegOpcode::INVALID_RESERVED_E,
+            0xD..=0xE => OneRegOpcode::INVALID_RESERVED,
             0xF => OneRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -243,8 +184,7 @@ impl OneRegOpcode {
             OneRegOpcode::INVALID_ZERO => false,
             OneRegOpcode::CALLR => false,
             OneRegOpcode::NOTR => false,
-            OneRegOpcode::INVALID_RESERVED_D => false,
-            OneRegOpcode::INVALID_RESERVED_E => false,
+            OneRegOpcode::INVALID_RESERVED => false,
             OneRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
         }
     }
