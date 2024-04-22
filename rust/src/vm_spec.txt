@@ -40,14 +40,14 @@ Full name: add register
 Encoding: 1X YZ __ __
 Description: Adds the contents of registers Y and Z, then stores the result in
              register X (X = Y + Z).
-             Sets overflow or underflow flags.
+             Sets overflow and underflow flags.
 
 - subr X Y Z
 Full name: subtract register
 Encoding: 2X YZ __ __
 Description: Subtracts the contents of registers Z from Y, then stores the
              result in register X. (X = Y - Z)
-             Sets overflow or underflow flags.
+             Sets overflow and underflow flags.
 
 - mulr X Y Z
 Full name: multiply register
@@ -55,7 +55,6 @@ Encoding: 3X YZ __ __
 Description: Signed multiplies the contents of 32 bit registers X with Y,
              Storing the 64 bit result in the conjoined register Y:Z
              (Y:Z = X * Y)
-             Sets overflow and underflow flags. (TODO: validate this)
 
 - divr X Y Z
 Full name: divide register
@@ -66,7 +65,7 @@ Description: Signed divides the contents of the registers Y with Z,
              integer depending on whether Y was positive or negative,
              respectively, to approximate, albeit crudely, the value of
              infinity.
-             The divide-by-zero flag is set.
+             Sets the zero_div flag.
 
 - fixmulr X Y Z
 Full name: fixed poiont multiply register
@@ -75,7 +74,7 @@ Description: Signed multiplies the contents of the 32 bit registers Y and Z,
              interpreted as a fixed point number (16.16), adjusting the
              resulting number to fit within said format and storing the result
              in register X (X = Y * Z)
-             May overflow or underflow, in which case relevant flags are set.
+             Sets overflow and underflow flags.
 
 - fixdivr X Y Z
 Full name: fixed point divide register
@@ -128,8 +127,9 @@ Description: Copies register contents from Y to X. (X = Y)
 - cmpr X Y
 Full name: compare registers
 Encoding F4 XY __ __
-Description: Signed subtracts the contents of registers Y from X, then sets
-             the following flags: lt, l, gt, g, e
+Description: Signed subtracts the contents of registers Y from X, then
+             uses the result to set the following flags:
+             equal, greater_than, less_than
 
 - lshiftr X Y
 Full name: logical shift register
@@ -209,7 +209,8 @@ Description: Assigns address contained by register X to the instruction pointer.
 Full name: compare register with constant
 Encoding: FF 5X __ __ + const
 Description: Performs a signed subtraction with the register X and the constant.
-             The result is then parsed to set the following flags (TODO)
+             The result is then parsed to set the following flags:
+             equal, greater_than, less_than
 
 - lshiftc X const
 Full name: logical shift register by constant
@@ -304,3 +305,29 @@ Full name: reserved instruction
 Encoding: FF F6 __ __ through FF FE __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
+
+//============================================================================\\
+|| The registers                                                              ||
+\\============================================================================//
+All registers used by this virtual machine and their purpose is described below.
+- R0 through RF
+Full name: Register 0 through Register 16
+Description: These are general purpose registers.
+
+- RIP
+Full name: Instruction pointer
+Description: Contains the address of the next instruction to be executed.
+
+- FLAGS
+Full name: Flags register
+Description: Contains state of this CPU.
+Bit values (in big endian order):
+  00: equal
+  01: greater_than
+  03: less_than
+  04: reserved_instruction
+  05: invalid_instruction
+  06: zero_div
+  07: overflow
+  08: underflow
+  09 through 1F: reserved

@@ -1,34 +1,75 @@
 // -- Registers ---------------------------------------------------------------
 
 #[rustfmt::skip]
-enum Register {
+enum GeneralPurposeRegister {
     R0, R1, R2, R3, R4, R5, R6, R7,
     R8, R9, RA, RB, RC, RD, RE, RF,
 }
 
-impl Register {
-    #[rustfmt::skip]
-    fn from_u4(x: u8) -> Register {
+impl GeneralPurposeRegister {
+    fn from_u4(x: u8) -> GeneralPurposeRegister {
         match x & 0x0F {
-            0x0 => Register::R0, 0x1 => Register::R1,
-            0x2 => Register::R2, 0x3 => Register::R3,
-            0x4 => Register::R4, 0x5 => Register::R5,
-            0x6 => Register::R6, 0x7 => Register::R7,
-            0x8 => Register::R8, 0x9 => Register::R9,
-            0xA => Register::RA, 0xB => Register::RB,
-            0xC => Register::RC, 0xD => Register::RD,
-            0xE => Register::RE, 0xF => Register::RF,
+            0x0 => GeneralPurposeRegister::R0,
+            0x1 => GeneralPurposeRegister::R1,
+            0x2 => GeneralPurposeRegister::R2,
+            0x3 => GeneralPurposeRegister::R3,
+            0x4 => GeneralPurposeRegister::R4,
+            0x5 => GeneralPurposeRegister::R5,
+            0x6 => GeneralPurposeRegister::R6,
+            0x7 => GeneralPurposeRegister::R7,
+            0x8 => GeneralPurposeRegister::R8,
+            0x9 => GeneralPurposeRegister::R9,
+            0xA => GeneralPurposeRegister::RA,
+            0xB => GeneralPurposeRegister::RB,
+            0xC => GeneralPurposeRegister::RC,
+            0xD => GeneralPurposeRegister::RD,
+            0xE => GeneralPurposeRegister::RE,
+            0xF => GeneralPurposeRegister::RF,
             _ => unreachable!(),
         }
     }
+}
+
+struct FlagsRegister {
+    equal: bool,
+    greater_than: bool,
+    less_than: bool,
+    reserved_instruction: bool,
+    invalid_instruction: bool,
+    zero_div: bool,
+    overflow: bool,
+    underflow: bool,
+}
+
+impl FlagsRegister {
+    fn from_u32(x: u32) -> FlagsRegister {
+        FlagsRegister {
+            equal: ((x >> 0) & 0x1) == 0x1,
+            greater_than: ((x >> 1) & 0x1) == 0x1,
+            less_than: ((x >> 2) & 0x1) == 0x1,
+            reserved_instruction: ((x >> 3) & 0x1) == 0x1,
+            invalid_instruction: ((x >> 4) & 0x1) == 0x1,
+            zero_div: ((x >> 5) & 0x1) == 0x1,
+            overflow: ((x >> 6) & 0x1) == 0x1,
+            underflow: ((x >> 7) & 0x1) == 0x1,
+        }
+    }
+}
+
+#[rustfmt::skip]
+#[allow(non_snake_case)]
+struct VmRegisters {
+    R0: u32, R1: u32, R2: u32, R3: u32, R4: u32, R5: u32, R6: u32, R7: u32,
+    R8: u32, R9: u32, RA: u32, RB: u32, RC: u32, RD: u32, RE: u32, RF: u32,
+    RIP: u32, FLAGS: FlagsRegister,
 }
 
 // -- Registers ---------------------------------------------------------------
 
 // -- Three reg opcodes -------------------------------------------------------
 
-#[allow(non_camel_case_types)]
 #[rustfmt::skip]
+#[allow(non_camel_case_types)]
 enum ThreeRegOpcode {
     INVALID_ZERO,
     ADDR, SUBR, MULR, DIVR,
@@ -56,9 +97,9 @@ impl ThreeRegOpcode {
 
 pub struct ThreeRegInstr {
     code: ThreeRegOpcode,
-    reg1: Register,
-    reg2: Register,
-    reg3: Register,
+    reg1: GeneralPurposeRegister,
+    reg2: GeneralPurposeRegister,
+    reg3: GeneralPurposeRegister,
 }
 
 impl ThreeRegInstr {
@@ -69,9 +110,9 @@ impl ThreeRegInstr {
         let reg3 = ((x >> 16) & 0x0f) as u8;
 
         let code = ThreeRegOpcode::from_u4(code);
-        let reg1 = Register::from_u4(reg1);
-        let reg2 = Register::from_u4(reg2);
-        let reg3 = Register::from_u4(reg3);
+        let reg1 = GeneralPurposeRegister::from_u4(reg1);
+        let reg2 = GeneralPurposeRegister::from_u4(reg2);
+        let reg3 = GeneralPurposeRegister::from_u4(reg3);
 
         ThreeRegInstr { code, reg1, reg2, reg3, }
     }
@@ -113,8 +154,8 @@ impl TwoRegOpcode {
 
 pub struct TwoRegInstr {
     code: TwoRegOpcode,
-    reg1: Register,
-    reg2: Register,
+    reg1: GeneralPurposeRegister,
+    reg2: GeneralPurposeRegister,
 }
 
 impl TwoRegInstr {
@@ -124,8 +165,8 @@ impl TwoRegInstr {
         let reg2 = ((x >> 16) & 0x0f) as u8;
 
         let code = TwoRegOpcode::from_u4(code);
-        let reg1 = Register::from_u4(reg1);
-        let reg2 = Register::from_u4(reg2);
+        let reg1 = GeneralPurposeRegister::from_u4(reg1);
+        let reg2 = GeneralPurposeRegister::from_u4(reg2);
 
         TwoRegInstr { code, reg1, reg2, }
     }
@@ -190,7 +231,7 @@ impl OneRegOpcode {
 
 pub struct OneRegInstr {
     code: OneRegOpcode,
-    reg1: Register,
+    reg1: GeneralPurposeRegister,
     optional_const_exists: bool,
     optional_const: u32,
 }
@@ -201,7 +242,7 @@ impl OneRegInstr {
         let reg1 = ((x >> 16) & 0x0f) as u8;
         
         let code = OneRegOpcode::from_u4(code);
-        let reg1 = Register::from_u4(reg1);
+        let reg1 = GeneralPurposeRegister::from_u4(reg1);
         let hasc = OneRegOpcode::has_constant(&code);
 
         OneRegInstr { code, reg1, optional_const_exists: hasc, optional_const }
