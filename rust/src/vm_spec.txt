@@ -350,6 +350,17 @@ Bit values (in big endian order):
   07: underflow
   08 through 1F: reserved
 
+Flags register handler:
+- equal =
+- greater_than =
+- less_than =
+- reserved_instruction = opcode == INVALID_RESERVED
+- invalid_instruction = opcode == INVALID_ZERO || INVALID_NEXT_INSTR_PAGE
+- zero_div = 
+- overflow = 
+- underflow =
+- 08 through 1F = 0
+
 
 //============================================================================\\
 || Instruction decoding                                                       ||
@@ -373,3 +384,16 @@ to determine the instruction page:
   - This is an instruction from a future ISA,
   - There's a memory error in the program the VM is running,
   - The host machine is malfunctioning.
+
+//============================================================================\\
+|| Instruction execution cycle                                                ||
+\\============================================================================//
+FFF1 0000 FFF1 0000
+FFF1 FFF1 FFF1 FFF1
+The steps of executing an instruction, from start to finish, are:
+- Fetch word from memory at address pointed to by RIP 
+- Zero or otherwise ignore the 2 least significant bytes
+- Pass the resulting 16 bit instruction to the decoder
+- Use the data from the decoder to execute the opcode
+- If opcode has constant, RIP += 2 else RIP += 3 (bytes)
+- Call the flags register handler using opcode info

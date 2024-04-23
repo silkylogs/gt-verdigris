@@ -55,6 +55,10 @@ impl FlagsRegister {
             underflow: ((x >> 7) & 0x1) == 0x1,
         }
     }
+
+    fn set_from_current_instr(this: &mut FlagsRegister, instr: &VmInstruction) {
+        todo!();
+    }
 }
 
 #[rustfmt::skip]
@@ -175,23 +179,21 @@ impl ThreeRegInstr {
 
     fn execute_single_instruction(instr: &ThreeRegInstr, registers: &mut VmRegisters) {
         match instr.code {
-            ThreeRegOpcode::INVALID_ZERO => {
-                registers.FLAGS.invalid_instruction = true;
-            },
+            ThreeRegOpcode::INVALID_ZERO => {}
             ThreeRegOpcode::ADDR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
                 let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
 
                 *dest = arg1.wrapping_add(arg2);
-            },
+            }
             ThreeRegOpcode::SUBR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
                 let dest = VmRegisters::get_mut_gpr(registers, &instr.reg1);
 
                 *dest = arg1.wrapping_sub(arg2);
-            },
+            }
             ThreeRegOpcode::MULR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
@@ -210,38 +212,41 @@ impl ThreeRegInstr {
 
                 let dest_lo_ref = VmRegisters::get_mut_gpr(registers, &instr.reg3);
                 *dest_lo_ref = dest_lo;
-            },
+            }
             ThreeRegOpcode::DIVR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
-                let result = if arg2 == 0 { 0xffff_ffff_u32 } else { arg1 / arg2 };
+                let result = if arg2 == 0 {
+                    0xffff_ffff_u32
+                } else {
+                    arg1 / arg2
+                };
 
                 *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
-            },
+            }
             ThreeRegOpcode::FIXMULR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let intermediate = arg1 as u64 * arg2 as u64;
                 let result = intermediate / u16::MAX as u64;
                 *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result as u32;
-            },
+            }
             ThreeRegOpcode::FIXDIVR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg1);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let scaled_numerator = arg1 as u64 * u16::MAX as u64;
                 let quotient = scaled_numerator / arg2 as u64;
                 let result = quotient as u32;
+                registers.FLAGS.reserved_instruction = true;
                 *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
-            },
+            }
             ThreeRegOpcode::CFIXSQRTR => {
                 todo!();
-            },
-            ThreeRegOpcode::INVALID_RESERVED => {
-                registers.FLAGS.reserved_instruction = true;
-            },
+            }
+            ThreeRegOpcode::INVALID_RESERVED => {}
             ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
                 unreachable!();
-            },
+            }
         }
     }
 }
@@ -298,6 +303,10 @@ impl TwoRegInstr {
         let reg2 = GeneralPurposeRegister::from_u4(reg2);
 
         TwoRegInstr { code, reg1, reg2 }
+    }
+
+    fn execute_single_instruction(instr: &TwoRegInstr, registers: &mut VmRegisters) {
+        todo!();
     }
 }
 
@@ -382,6 +391,10 @@ impl OneRegInstr {
             optional_const,
         }
     }
+
+    fn execute_single_instruction(instr: &OneRegInstr, registers: &mut VmRegisters) {
+        todo!();
+    }
 }
 
 // -- One reg opcodes ---------------------------------------------------------
@@ -446,6 +459,10 @@ impl ZeroRegInstr {
             optional_const,
         }
     }
+
+    fn execute_single_instruction(instr: &ZeroRegInstr, registers: &mut VmRegisters) {
+        todo!();
+    }
 }
 
 // -- Zero reg opcodes --------------------------------------------------------
@@ -496,125 +513,27 @@ fn execute_single_instruction(
     memory: &mut Vec<u32>,
 ) {
     match instruction {
-        VmInstruction::ThreeRegInstr(instr) => todo!(),
-        VmInstruction::TwoRegInstr(instr) => match instr.code {
-            TwoRegOpcode::INVALID_ZERO => {
-                todo!();
-            }
-            TwoRegOpcode::WRITER => {
-                todo!();
-            }
-            TwoRegOpcode::READR => {
-                todo!();
-            }
-            TwoRegOpcode::MOVR => {
-                todo!();
-            }
-            TwoRegOpcode::CMPR => {
-                todo!();
-            }
-            TwoRegOpcode::LSHIFTR => {
-                todo!();
-            }
-            TwoRegOpcode::ASHIFTR => {
-                todo!();
-            }
-            TwoRegOpcode::ROLLR => {
-                todo!();
-            }
-            TwoRegOpcode::ANDR => {
-                todo!();
-            }
-            TwoRegOpcode::ORR => {
-                todo!();
-            }
-            TwoRegOpcode::XORR => {
-                todo!();
-            }
-            TwoRegOpcode::INVALID_RESERVED => {
-                todo!();
-            }
-            TwoRegOpcode::INVALID_NEXT_INSTR_PAGE => {
-                unreachable!();
-            }
-        },
-        VmInstruction::OneRegInstr(instr) => match instr.code {
-            OneRegOpcode::INVALID_ZERO => {
-                todo!();
-            }
-            OneRegOpcode::READC => {
-                todo!();
-            }
-            OneRegOpcode::WRITEC => {
-                todo!();
-            }
-            OneRegOpcode::MOVC => {
-                todo!();
-            }
-            OneRegOpcode::JMPR => {
-                todo!();
-            }
-            OneRegOpcode::CMPC => {
-                todo!();
-            }
-            OneRegOpcode::LSHIFTC => {
-                todo!();
-            }
-            OneRegOpcode::ASHIFTC => {
-                todo!();
-            }
-            OneRegOpcode::ROLLC => {
-                todo!();
-            }
-            OneRegOpcode::ANDC => {
-                todo!();
-            }
-            OneRegOpcode::ORC => {
-                todo!();
-            }
-            OneRegOpcode::NOTR => {
-                todo!();
-            }
-            OneRegOpcode::XORC => {
-                todo!();
-            }
-            OneRegOpcode::INVALID_RESERVED => {
-                todo!();
-            }
-            OneRegOpcode::INVALID_NEXT_INSTR_PAGE => {
-                unreachable!();
-            }
-        },
-        VmInstruction::ZeroRegInstr(instr) => match instr.code {
-            ZeroRegOpcode::INVALID_ZERO => {
-                todo!();
-            }
-            ZeroRegOpcode::NOP => {
-                todo!();
-            }
-            ZeroRegOpcode::JMP => {
-                todo!();
-            }
-            ZeroRegOpcode::JE => {
-                todo!();
-            }
-            ZeroRegOpcode::JG => {
-                todo!();
-            }
-            ZeroRegOpcode::JL => {
-                todo!();
-            }
-            ZeroRegOpcode::INVALID_RESERVED => {
-                todo!();
-            }
-            ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE => {
-                unreachable!();
-            }
-        },
+        VmInstruction::ThreeRegInstr(instr) => {
+            ThreeRegInstr::execute_single_instruction(instr, registers);
+        }
+        VmInstruction::TwoRegInstr(instr) => {
+            TwoRegInstr::execute_single_instruction(instr, registers);
+        }
+        VmInstruction::OneRegInstr(instr) => {
+            OneRegInstr::execute_single_instruction(instr, registers);
+        }
+        VmInstruction::ZeroRegInstr(instr) => {
+            ZeroRegInstr::execute_single_instruction(instr, registers);
+        }
         VmInstruction::ErrorInstructionFromFutureISA => {
-            todo!();
+            // This will be handled by one of the FlagsRegister methods
+            //todo!();
         }
     }
+
+    FlagsRegister::set_from_current_instr(&mut registers.FLAGS, &instruction);
+
+    // If opcode has constant, RIP += 2 else RIP += 3 (bytes)
 }
 
 // -- Executor ----------------------------------------------------------------
