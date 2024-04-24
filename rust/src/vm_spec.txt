@@ -97,41 +97,35 @@ Description: These bit combinations are currently reserved. Trying to execute
 
 2 Register operations:
 -----------------------
-- invalid_instruction X Y
-Full name: zero trap instruction
-Encoding F0 XY __ __
-Description: This is a "trap bit" combination. Trying to execute it will set the
-             invalid_instruction flag.
-
 - writer X Y
 Full name: write register to pointer
-Encoding: F1 XY __ __
+Encoding: F0 XY __ __
 Description: Writes the contents of X to the memory address pointed to by Y.
              There are no alignment restrictions of Y, but it is considered to
              be good practice to keep the alignment to the word size.
 
 - readr X Y
 Full name: read register from pointer
-Encoding: F2 XY __ __
+Encoding: F1 XY __ __
 Description: Reads the contents of X from the memory address pointed to by Y.
              There are no alignment restrictions of Y, but it is considered to
              be good practice to keep the alignment to the word size.
 
 - movr X Y
 Full name: move register to register
-Encoding: F3 XY __ __
+Encoding: F2 XY __ __
 Description: Copies register contents from Y to X. (X = Y)
 
 - cmpr X Y
 Full name: compare registers
-Encoding F4 XY __ __
+Encoding F3 XY __ __
 Description: Signed subtracts the contents of registers Y from X, then
              uses the result to set the following flags:
              equal, greater_than, less_than
 
 - lshiftr X Y
 Full name: logical shift register
-Encoding: F5 XY __ __
+Encoding: F4 XY __ __
 Description: Logically shifts the contents of register X.
              The magnitude of the shift is determined by the magnitude of the
              value of register Y.
@@ -141,7 +135,7 @@ Description: Logically shifts the contents of register X.
 
 - ashiftr X Y
 Full name: arithmetic shift register
-Encoding: F6 XY __ __
+Encoding: F5 XY __ __
 Description: Signed multiplies the contents of register X by 2 to the power Y.
              The magnitude of the shift is determined by the magnitude of the
              value of register Y.
@@ -151,7 +145,7 @@ Description: Signed multiplies the contents of register X by 2 to the power Y.
 
 - rollr X Y
 Full name: roll register
-Encoding: F7 XY __ __
+Encoding: F6 XY __ __
 Description: Rolls the contents of register X by the amount represented by the
              contents of register Y, interpreted as a twos complement signed
              integer. A positive value of Y rolls left, and a negative rolls
@@ -159,66 +153,60 @@ Description: Rolls the contents of register X by the amount represented by the
 
 - andr X Y
 Full name: binary and register
-Encoding: F8 XY __ __
+Encoding: F7 XY __ __
 Description: Computes the binary AND operation of the contents of registers
              X and Y, then stores the result to register X.
 
 - orr X Y
 Full name: binary or register
-Encoding: F9 XY __ __
+Encoding: F8 XY __ __
 Description: Computes the binary OR operation of the contents of registers
              X and Y, then stores the result to register X.
 
 - xorr X Y
 Full name: binary xor register
-Encoding: FA XY __ __
+Encoding: F9 XY __ __
 Description: Computes the binary XOR operation of the contents of registers
              X and Y, then stores the result to register X.
 
 - reserved_instruction X Y
 Full name: reserved instruction
-Encoding: FB XY __ __ through FE XY __ __
+Encoding: FA XY __ __ through FE XY __ __
 Description: This bit combination is currently reserved. Trying to execute
              it will result in the reserved_instruction flag being set.
 
 1 Register operations:
 -----------------------
-- invalid_instruction X
-Full name: zero trap instruction
-Encoding FF 0X __ __
-Description: This is a "trap bit" combination. Trying to execute it will set the
-             invalid_instruction flag.
-
 - readc X const
 Full name: read constant to register
-Encoding: FF 1X __ __ + const
+Encoding: FF 0X __ __ + const
 Description: Copies the 32 bit constant to the register X.
 
 - writec X const
 Full name: write register to constant pointer
-Encoding: FF 2X __ __ + const
+Encoding: FF 1X __ __ + const
 Description: Writes the contents of the register X to the address provided in the constant.
 
 - movc X const
 Full name: move constant to register
-Encoding: FF 3X __ __ + const
+Encoding: FF 2X __ __ + const
 Description: Copies the constant provided in the instruction to the register X.
 
 - jmpr X
 Full name: unconditional jump to register
-Encoding: FF 4X __ __
+Encoding: FF 3X __ __
 Description: Assigns address contained by register X to the instruction pointer.
 
 - cmpc X const
 Full name: compare register with constant
-Encoding: FF 5X __ __ + const
+Encoding: FF 4X __ __ + const
 Description: Performs a signed subtraction with the register X and the constant.
              The result is then parsed to set the following flags:
              equal, greater_than, less_than
 
 - lshiftc X const
 Full name: logical shift register by constant
-Encoding: FF 6X __ __ + const
+Encoding: FF 5X __ __ + const
 Description: Logical shifts the contents of register X.
              The magnitude of the shift is determined by the magnitude of the
              constant.
@@ -228,7 +216,7 @@ Description: Logical shifts the contents of register X.
 
 - ashiftc X const
 Full name: arithmetic shift register by constant
-Encoding: FF 7X __ __ + const
+Encoding: FF 6X __ __ + const
 Description: Arithmetic shifts the contents of register X.
              The magnitude of the shift is determined by the magnitude of the
              constant.
@@ -238,7 +226,7 @@ Description: Arithmetic shifts the contents of register X.
 
 - rollc X const
 Full name: roll register by constant
-Encoding: FF 8X __ __ + const
+Encoding: FF 7X __ __ + const
 Description: Rolls the contents of register X by the amount represented by the
              constant, interpreted as a twos complement signed
              integer. A positive value of Y rolls left, and a negative rolls
@@ -246,73 +234,67 @@ Description: Rolls the contents of register X by the amount represented by the
 
 - andc X const
 Full name: binary and constant
-Encoding: FF 9X __ __ + const
+Encoding: FF 8X __ __ + const
 Description: Computes the binary AND operation of the contents of register X
              and the constant, then stores the result to register X.
 
 - orc X const
 Full name: binary or constant
-Encoding: FF AX __ __ + const
+Encoding: FF 9X __ __ + const
 Description: Computes the binary OR operation of the contents of register X
              and the constant, then stores the result to register X.
 
 - notr X 
 Full name: binary not register
-Encoding: FF BX __ __
+Encoding: FF AX __ __
 Description: Computes the binary NOT operation of the contents of register X,
              then stores the result to register X.
 
 - xorc X const
 Full name: binary xor constant
-Encoding: FF CX __ __ + const
+Encoding: FF BX __ __ + const
 Description: Computes the binary XOR operation of the contents of register X
              and the constant, then stores the result to register X.
 
 - reserved_instruction X
 Full name: reserved instruction
-Encoding: FF DX __ __ through FF EX __ __
+Encoding: FF CX __ __ through FF EX __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
 
 0 Register operations:
 -----------------------
-- invalid_instruction
-Full name: zero trap instruction
-Encoding FF F0 __ __
-Description: This is a "trap bit" combination. Trying to execute it will set the
-             invalid_instruction flag.
-
 - nop
 Full name: no operation
-Encoding: FF F1 __ __
+Encoding: FF F0 __ __
 Description: Does nothing.
 
 - jmp const
 Full name: unconditional jump
-Encoding: FF F2 __ __ + const
+Encoding: FF F1 __ __ + const
 Description: Sets the instruction pointer to the constant.
 
 - je const
 Full name: jump if equal
-Encoding: FF F3 __ __ + const
+Encoding: FF F2 __ __ + const
 Description: If the equal flag is set, sets the instruction pointer to the
              constant.
 
 - jg const
 Full name: jump if greater than
-Encoding: FF F4 __ __ + const
+Encoding: FF F3 __ __ + const
 Description: If the greater_than flag is set, sets the instruction pointer to the
              constant.
 
 - jl const
 Full name: jump if less than
-Encoding: FF F5 __ __ + const
+Encoding: FF F4 __ __ + const
 Description: If the less_than flag is set, sets the instruction pointer to the
              constant.
 
 - reserved_instruction
 Full name: reserved instruction
-Encoding: FF F6 __ __ through FF FE __ __
+Encoding: FF F5 __ __ through FF FE __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
 

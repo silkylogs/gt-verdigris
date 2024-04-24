@@ -126,7 +126,7 @@ impl<'a, 'b> VmRegisters {
 #[rustfmt::skip]
 #[derive(PartialEq)]
 enum ThreeRegOpcode {
-    INVALID_ZERO,
+    INVALID_ZERO_TRAP,
     ADDR, SUBR, MULR, DIVR,
     FIXMULR, FIXDIVR,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
@@ -135,7 +135,7 @@ enum ThreeRegOpcode {
 impl ThreeRegOpcode {
     fn from_u4(x: u8) -> ThreeRegOpcode {
         match x & 0x0F {
-            0x0 => ThreeRegOpcode::INVALID_ZERO,
+            0x0 => ThreeRegOpcode::INVALID_ZERO_TRAP,
             0x1 => ThreeRegOpcode::ADDR,
             0x2 => ThreeRegOpcode::SUBR,
             0x3 => ThreeRegOpcode::MULR,
@@ -178,7 +178,9 @@ impl ThreeRegInstr {
 
     fn execute_single_instruction(instr: &ThreeRegInstr, registers: &mut VmRegisters) {
         match instr.code {
-            ThreeRegOpcode::INVALID_ZERO => {}
+            ThreeRegOpcode::INVALID_ZERO_TRAP => {
+                unreachable!("This is executed, handle this!");
+            }
             ThreeRegOpcode::ADDR => {
                 let arg1 = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let arg2 = *VmRegisters::get_gpr(registers, &instr.reg3);
@@ -239,9 +241,11 @@ impl ThreeRegInstr {
                 registers.FLAGS.reserved_instruction = true;
                 *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
             }
-            ThreeRegOpcode::INVALID_RESERVED => {}
+            ThreeRegOpcode::INVALID_RESERVED => {
+                todo!("This is executed, handle this!");
+            }
             ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
-                unreachable!();
+                unreachable!("This is executed, handle this!");
             }
         }
     }
@@ -255,7 +259,7 @@ impl ThreeRegInstr {
 #[rustfmt::skip]
 #[derive(PartialEq)]
 enum TwoRegOpcode {
-    INVALID_ZERO, WRITER, READR, MOVR, CMPR,
+    WRITER, READR, MOVR, CMPR,
     LSHIFTR, ASHIFTR, ROLLR,
     ANDR, ORR, XORR,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
@@ -264,18 +268,17 @@ enum TwoRegOpcode {
 impl TwoRegOpcode {
     fn from_u4(x: u8) -> TwoRegOpcode {
         match x & 0x0F {
-            0x0 => TwoRegOpcode::INVALID_ZERO,
-            0x1 => TwoRegOpcode::WRITER,
-            0x2 => TwoRegOpcode::READR,
-            0x3 => TwoRegOpcode::MOVR,
-            0x4 => TwoRegOpcode::CMPR,
-            0x5 => TwoRegOpcode::LSHIFTR,
-            0x6 => TwoRegOpcode::ASHIFTR,
-            0x7 => TwoRegOpcode::ROLLR,
-            0x8 => TwoRegOpcode::ANDR,
-            0x9 => TwoRegOpcode::ORR,
-            0xA => TwoRegOpcode::XORR,
-            0xB..=0xE => TwoRegOpcode::INVALID_RESERVED,
+            0x0 => TwoRegOpcode::WRITER,
+            0x1 => TwoRegOpcode::READR,
+            0x2 => TwoRegOpcode::MOVR,
+            0x3 => TwoRegOpcode::CMPR,
+            0x4 => TwoRegOpcode::LSHIFTR,
+            0x5 => TwoRegOpcode::ASHIFTR,
+            0x6 => TwoRegOpcode::ROLLR,
+            0x7 => TwoRegOpcode::ANDR,
+            0x8 => TwoRegOpcode::ORR,
+            0x9 => TwoRegOpcode::XORR,
+            0xA..=0xE => TwoRegOpcode::INVALID_RESERVED,
             0xF => TwoRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -302,7 +305,20 @@ impl TwoRegInstr {
     }
 
     fn execute_single_instruction(instr: &TwoRegInstr, registers: &mut VmRegisters) {
-        todo!();
+        match instr.code {
+            TwoRegOpcode::WRITER => { todo!(); },
+            TwoRegOpcode::READR => { todo!(); },
+            TwoRegOpcode::MOVR => { todo!(); },
+            TwoRegOpcode::CMPR => { todo!(); },
+            TwoRegOpcode::LSHIFTR => { todo!(); },
+            TwoRegOpcode::ASHIFTR => { todo!(); },
+            TwoRegOpcode::ROLLR => { todo!(); },
+            TwoRegOpcode::ANDR => { todo!(); },
+            TwoRegOpcode::ORR => { todo!(); },
+            TwoRegOpcode::XORR => { todo!(); },
+            TwoRegOpcode::INVALID_RESERVED => { todo!(); },
+            TwoRegOpcode::INVALID_NEXT_INSTR_PAGE => { todo!(); },
+        }
     }
 }
 
@@ -314,7 +330,6 @@ impl TwoRegInstr {
 #[rustfmt::skip]
 #[derive(PartialEq)]
 enum OneRegOpcode {
-    INVALID_ZERO,
     READC, WRITEC, MOVC, JMPR, CMPC,
     LSHIFTC, ASHIFTC, ROLLC,
     ANDC, ORC, NOTR, XORC,
@@ -324,20 +339,19 @@ enum OneRegOpcode {
 impl OneRegOpcode {
     fn from_u4(x: u8) -> OneRegOpcode {
         match x & 0xF {
-            0x0 => OneRegOpcode::INVALID_ZERO,
-            0x1 => OneRegOpcode::READC,
-            0x2 => OneRegOpcode::WRITEC,
-            0x3 => OneRegOpcode::MOVC,
-            0x4 => OneRegOpcode::JMPR,
-            0x5 => OneRegOpcode::CMPC,
-            0x6 => OneRegOpcode::LSHIFTC,
-            0x7 => OneRegOpcode::ASHIFTC,
-            0x8 => OneRegOpcode::ROLLC,
-            0x9 => OneRegOpcode::ANDC,
-            0xA => OneRegOpcode::ORC,
-            0xB => OneRegOpcode::NOTR,
-            0xC => OneRegOpcode::XORC,
-            0xD..=0xE => OneRegOpcode::INVALID_RESERVED,
+            0x0 => OneRegOpcode::READC,
+            0x1 => OneRegOpcode::WRITEC,
+            0x2 => OneRegOpcode::MOVC,
+            0x3 => OneRegOpcode::JMPR,
+            0x4 => OneRegOpcode::CMPC,
+            0x5 => OneRegOpcode::LSHIFTC,
+            0x6 => OneRegOpcode::ASHIFTC,
+            0x7 => OneRegOpcode::ROLLC,
+            0x8 => OneRegOpcode::ANDC,
+            0x9 => OneRegOpcode::ORC,
+            0xA => OneRegOpcode::NOTR,
+            0xB => OneRegOpcode::XORC,
+            0xC..=0xE => OneRegOpcode::INVALID_RESERVED,
             0xF => OneRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -355,7 +369,6 @@ impl OneRegOpcode {
             OneRegOpcode::ANDC => true,
             OneRegOpcode::ORC => true,
             OneRegOpcode::XORC => true,
-            OneRegOpcode::INVALID_ZERO => false,
             OneRegOpcode::JMPR => false,
             OneRegOpcode::NOTR => false,
             OneRegOpcode::INVALID_RESERVED => false,
@@ -401,7 +414,6 @@ impl OneRegInstr {
 #[rustfmt::skip]
 #[derive(PartialEq)]
 enum ZeroRegOpcode {
-    INVALID_ZERO,
     NOP,
     JMP, JE, JG, JL,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
@@ -410,13 +422,12 @@ enum ZeroRegOpcode {
 impl ZeroRegOpcode {
     fn from_u4(x: u8) -> ZeroRegOpcode {
         match x & 0xF {
-            0x0 => ZeroRegOpcode::INVALID_ZERO,
-            0x1 => ZeroRegOpcode::NOP,
-            0x2 => ZeroRegOpcode::JMP,
-            0x3 => ZeroRegOpcode::JE,
-            0x4 => ZeroRegOpcode::JG,
-            0x5 => ZeroRegOpcode::JL,
-            0x6..=0xE => ZeroRegOpcode::INVALID_RESERVED,
+            0x0 => ZeroRegOpcode::NOP,
+            0x1 => ZeroRegOpcode::JMP,
+            0x2 => ZeroRegOpcode::JE,
+            0x3 => ZeroRegOpcode::JG,
+            0x4 => ZeroRegOpcode::JL,
+            0x5..=0xE => ZeroRegOpcode::INVALID_RESERVED,
             0xF => ZeroRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -424,7 +435,6 @@ impl ZeroRegOpcode {
 
     fn has_constant(code: &ZeroRegOpcode) -> bool {
         match code {
-            ZeroRegOpcode::INVALID_ZERO => false,
             ZeroRegOpcode::NOP => false,
             ZeroRegOpcode::JMP => true,
             ZeroRegOpcode::JE => true,
