@@ -97,17 +97,17 @@ Description: These bit combinations are currently reserved. Trying to execute
 
 2 Register operations:
 -----------------------
-- writer X Y
-Full name: write register to pointer
+- readr X Y
+Full name: read register from pointer
 Encoding: F0 XY __ __
-Description: Writes the contents of X to the memory address pointed to by Y.
+Description: Reads the contents of X from the memory address pointed to by Y.
              There are no alignment restrictions of Y, but it is considered to
              be good practice to keep the alignment to the word size.
 
-- readr X Y
-Full name: read register from pointer
+- writer X Y
+Full name: write register to pointer
 Encoding: F1 XY __ __
-Description: Reads the contents of X from the memory address pointed to by Y.
+Description: Writes the contents of X to the memory address pointed to by Y.
              There are no alignment restrictions of Y, but it is considered to
              be good practice to keep the alignment to the word size.
 

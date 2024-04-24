@@ -268,8 +268,8 @@ enum TwoRegOpcode {
 impl TwoRegOpcode {
     fn from_u4(x: u8) -> TwoRegOpcode {
         match x & 0x0F {
-            0x0 => TwoRegOpcode::WRITER,
-            0x1 => TwoRegOpcode::READR,
+            0x0 => TwoRegOpcode::READR,
+            0x1 => TwoRegOpcode::WRITER,
             0x2 => TwoRegOpcode::MOVR,
             0x3 => TwoRegOpcode::CMPR,
             0x4 => TwoRegOpcode::LSHIFTR,
@@ -304,10 +304,60 @@ impl TwoRegInstr {
         TwoRegInstr { code, reg1, reg2 }
     }
 
-    fn execute_single_instruction(instr: &TwoRegInstr, registers: &mut VmRegisters) {
+    fn execute_single_instruction(instr: &TwoRegInstr, registers: &mut VmRegisters, memory: &mut Vec<u32>) {
         match instr.code {
-            TwoRegOpcode::WRITER => { todo!(); },
-            TwoRegOpcode::READR => { todo!(); },
+            TwoRegOpcode::READR => {
+                // Check whether unaligned and get other info
+                let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let alignment = reg_y % 0x4;
+                let is_aligned = 0 == alignment;
+                if is_aligned {
+                    let word_address = reg_y as usize / 4;
+                    let word = memory
+                        .get(word_address)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    *VmRegisters::get_mut_gpr(registers, &instr.reg1) = *word;
+                } else {
+                    let word_addr_1 = reg_y as usize / 4;
+                    let word_addr_2 = word_addr_1 + 1;
+                    let word_1 = *memory
+                        .get(word_addr_1)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    let word_2 = *memory
+                        .get(word_addr_2)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    let shifted = (word_1 << alignment) | (word_2 >> (4 - alignment));
+                    *VmRegisters::get_mut_gpr(registers, &instr.reg1) = shifted;
+                }
+            },
+            TwoRegOpcode::WRITER => {
+                // Check whether unaligned and get other info
+                let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let alignment = reg_y % 0x4;
+                let is_aligned = 0 == alignment;
+                if is_aligned {
+                    let word_address = reg_y as usize / 4;
+                    let word_ref = memory
+                        .get_mut(word_address)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    *word_ref = *VmRegisters::get_mut_gpr(registers, &instr.reg1);
+                } else {
+                    let word_addr_1 = reg_y as usize / 4;
+                    let word_addr_2 = word_addr_1 + 1;
+                    let to_write = *VmRegisters::get_gpr(registers, &instr.reg1);
+                    
+                    let word_ref_1 = memory
+                        .get_mut(word_addr_1)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    *word_ref_1 = (*word_ref_1 ); todo!();
+                    // 0123 4567 89ab cdef
+                    //   bb bbcc cc
+
+                    let word_ref_2 = memory
+                        .get_mut(word_addr_2)
+                        .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                }
+            },
             TwoRegOpcode::MOVR => { todo!(); },
             TwoRegOpcode::CMPR => { todo!(); },
             TwoRegOpcode::LSHIFTR => { todo!(); },
@@ -523,7 +573,7 @@ fn execute_single_instruction(
             ThreeRegInstr::execute_single_instruction(instr, registers);
         }
         VmInstruction::TwoRegInstr(instr) => {
-            TwoRegInstr::execute_single_instruction(instr, registers);
+            TwoRegInstr::execute_single_instruction(instr, registers, memory);
         }
         VmInstruction::OneRegInstr(instr) => {
             OneRegInstr::execute_single_instruction(instr, registers);
