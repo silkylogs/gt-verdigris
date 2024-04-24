@@ -89,17 +89,9 @@ Description: Signed divides the contents of the 32 bit registers Y and Z,
              infinity.
              Sets the divide-by-zero flag.
 
-- cfixsqrtr X Y Z
-Full name: complex fixed point square root register
-Encoding: 7X YZ __ __
-Description: Computes the square root of the contents of the register X,
-             interpreted as a signed fixed point number (16.16).
-             The real and imaginary components of the result are stored in
-             registers Y and Z respectively.
-
 - reserved_instruction X Y Z
 Full name: reserved instruction
-Encoding: 8X YZ __ __ through EX YZ __ __
+Encoding: 7X YZ __ __ through EX YZ __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
 

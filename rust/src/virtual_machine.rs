@@ -128,7 +128,7 @@ impl<'a, 'b> VmRegisters {
 enum ThreeRegOpcode {
     INVALID_ZERO,
     ADDR, SUBR, MULR, DIVR,
-    FIXMULR, FIXDIVR, CFIXSQRTR,
+    FIXMULR, FIXDIVR,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
@@ -142,8 +142,7 @@ impl ThreeRegOpcode {
             0x4 => ThreeRegOpcode::DIVR,
             0x5 => ThreeRegOpcode::FIXMULR,
             0x6 => ThreeRegOpcode::FIXDIVR,
-            0x7 => ThreeRegOpcode::CFIXSQRTR,
-            0x8..=0xE => ThreeRegOpcode::INVALID_RESERVED,
+            0x7..=0xE => ThreeRegOpcode::INVALID_RESERVED,
             0xF => ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
         }
@@ -239,9 +238,6 @@ impl ThreeRegInstr {
                 let result = quotient as u32;
                 registers.FLAGS.reserved_instruction = true;
                 *VmRegisters::get_mut_gpr(registers, &instr.reg1) = result;
-            }
-            ThreeRegOpcode::CFIXSQRTR => {
-                todo!();
             }
             ThreeRegOpcode::INVALID_RESERVED => {}
             ThreeRegOpcode::INVALID_NEXT_INSTR_PAGE => {
