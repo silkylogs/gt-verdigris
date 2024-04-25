@@ -304,7 +304,11 @@ impl TwoRegInstr {
         TwoRegInstr { code, reg1, reg2 }
     }
 
-    fn execute_single_instruction(instr: &TwoRegInstr, registers: &mut VmRegisters, memory: &mut Vec<u32>) {
+    fn execute_single_instruction(
+        instr: &TwoRegInstr,
+        registers: &mut VmRegisters,
+        memory: &mut Vec<u32>,
+    ) {
         match instr.code {
             TwoRegOpcode::READR => {
                 // Check whether unaligned and get other info
@@ -329,7 +333,7 @@ impl TwoRegInstr {
                     let shifted = (word_1 << alignment) | (word_2 >> (4 - alignment));
                     *VmRegisters::get_mut_gpr(registers, &instr.reg1) = shifted;
                 }
-            },
+            }
             TwoRegOpcode::WRITER => {
                 // Check whether unaligned and get other info
                 let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
@@ -345,29 +349,85 @@ impl TwoRegInstr {
                     let word_addr_1 = reg_y as usize / 4;
                     let word_addr_2 = word_addr_1 + 1;
                     let to_write = *VmRegisters::get_gpr(registers, &instr.reg1);
-                    
+
                     let word_ref_1 = memory
                         .get_mut(word_addr_1)
                         .expect("Not enough memory, handle this case by... doing nothing maybe??");
-                    *word_ref_1 = (*word_ref_1 ); todo!();
-                    // 0123 4567 89ab cdef
-                    //   bb bbcc cc
+                    let mask = u32::MAX << (4 - alignment);
+                    *word_ref_1 = (*word_ref_1 & mask) | (to_write >> alignment);
 
                     let word_ref_2 = memory
                         .get_mut(word_addr_2)
                         .expect("Not enough memory, handle this case by... doing nothing maybe??");
+                    let mask = u32::MAX >> alignment;
+                    *word_ref_2 = (*word_ref_2 & mask) | (to_write << (4 - alignment));
                 }
-            },
-            TwoRegOpcode::MOVR => { todo!(); },
-            TwoRegOpcode::CMPR => { todo!(); },
-            TwoRegOpcode::LSHIFTR => { todo!(); },
-            TwoRegOpcode::ASHIFTR => { todo!(); },
-            TwoRegOpcode::ROLLR => { todo!(); },
-            TwoRegOpcode::ANDR => { todo!(); },
-            TwoRegOpcode::ORR => { todo!(); },
-            TwoRegOpcode::XORR => { todo!(); },
-            TwoRegOpcode::INVALID_RESERVED => { todo!(); },
-            TwoRegOpcode::INVALID_NEXT_INSTR_PAGE => { todo!(); },
+            }
+            TwoRegOpcode::MOVR => {
+                *VmRegisters::get_mut_gpr(registers, &instr.reg1) =
+                    *VmRegisters::get_gpr(registers, &instr.reg2);
+            }
+            TwoRegOpcode::CMPR => { /* do nothing, flags handler will take care of this */ }
+            TwoRegOpcode::LSHIFTR => {
+                enum Direction { Left, Right };
+                let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
+                    Direction::Left
+                } else {
+                    Direction::Right
+                };
+                let shift_mag = reg_y & (u32::MAX >> 1);
+                let reg_x = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+
+                match shift_dir {
+                    Direction::Left => *reg_x = *reg_x << shift_mag,
+                    Direction::Right => *reg_x = *reg_x >> shift_mag,
+                }
+            }
+            TwoRegOpcode::ASHIFTR => {
+                enum Direction { Left, Right };
+                let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
+                    Direction::Left
+                } else {
+                    Direction::Right
+                };
+                let shift_mag = reg_y & (u32::MAX >> 1);
+                let reg_x = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+
+                match shift_dir {
+                    Direction::Left => *reg_x = ((*reg_x as i32) << shift_mag) as u32,
+                    Direction::Right => *reg_x = ((*reg_x as i32) >> shift_mag) as u32,
+                }
+            }
+            TwoRegOpcode::ROLLR => {
+                enum Direction { Left, Right };
+                let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
+                    Direction::Left
+                } else {
+                    Direction::Right
+                };
+                let shift_mag = reg_y & (u32::MAX >> 1);
+                let reg_x = VmRegisters::get_mut_gpr(registers, &instr.reg1);
+                
+                todo!();
+            }
+            TwoRegOpcode::ANDR => {
+                todo!();
+            }
+            TwoRegOpcode::ORR => {
+                todo!();
+            }
+            TwoRegOpcode::XORR => {
+                todo!();
+            }
+            TwoRegOpcode::INVALID_RESERVED => {
+                todo!();
+            }
+            TwoRegOpcode::INVALID_NEXT_INSTR_PAGE => {
+                todo!();
+            }
         }
     }
 }
