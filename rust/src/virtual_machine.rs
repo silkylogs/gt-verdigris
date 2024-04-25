@@ -401,6 +401,7 @@ impl TwoRegInstr {
                 }
             }
             TwoRegOpcode::ROLLR => {
+                // todo: u32::rotate_left()
                 enum Direction { Left, Right }
                 let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
@@ -431,14 +432,22 @@ impl TwoRegInstr {
                 }
             }
             TwoRegOpcode::ANDR => {
-                
-                
+                let src = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let res = arg & src;
+                *VmRegisters::get_mut_gpr(registers, &instr.reg2) = res;
             }
             TwoRegOpcode::ORR => {
-                todo!();
+                let src = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let res = arg | src;
+                *VmRegisters::get_mut_gpr(registers, &instr.reg2) = res;
             }
             TwoRegOpcode::XORR => {
-                todo!();
+                let src = *VmRegisters::get_gpr(registers, &instr.reg1);
+                let arg = *VmRegisters::get_gpr(registers, &instr.reg2);
+                let res = arg ^ src;
+                *VmRegisters::get_mut_gpr(registers, &instr.reg2) = res;
             }
             TwoRegOpcode::INVALID_RESERVED => {
                 todo!();
