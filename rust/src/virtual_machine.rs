@@ -470,6 +470,7 @@ enum OneRegOpcode {
     READC, WRITEC, MOVC, JMPR, CMPC,
     LSHIFTC, ASHIFTC, ROLLC,
     ANDC, ORC, NOTR, XORC,
+    CHKFLG,
     INVALID_RESERVED, INVALID_NEXT_INSTR_PAGE,
 }
 
@@ -488,6 +489,7 @@ impl OneRegOpcode {
             0x9 => OneRegOpcode::ORC,
             0xA => OneRegOpcode::NOTR,
             0xB => OneRegOpcode::XORC,
+            0xC => OneRegOpcode::CHKFLG,
             0xC..=0xE => OneRegOpcode::INVALID_RESERVED,
             0xF => OneRegOpcode::INVALID_NEXT_INSTR_PAGE,
             _ => unreachable!(),
@@ -508,6 +510,7 @@ impl OneRegOpcode {
             OneRegOpcode::XORC => true,
             OneRegOpcode::JMPR => false,
             OneRegOpcode::NOTR => false,
+            OneRegOpcode::CHKFLG => false,
             OneRegOpcode::INVALID_RESERVED => false,
             OneRegOpcode::INVALID_NEXT_INSTR_PAGE => false,
         }
@@ -539,7 +542,7 @@ impl OneRegInstr {
     }
 
     fn execute_single_instruction(instr: &OneRegInstr, registers: &mut VmRegisters) {
-        todo!();
+        
     }
 }
 
@@ -603,7 +606,11 @@ impl ZeroRegInstr {
         }
     }
 
-    fn execute_single_instruction(instr: &ZeroRegInstr, registers: &mut VmRegisters) {
+    fn execute_single_instruction(
+        instr: &ZeroRegInstr,
+        registers: &mut VmRegisters,
+        memory: &mut Vec<u32>
+    ) {
         todo!();
     }
 }
@@ -666,7 +673,7 @@ fn execute_single_instruction(
             OneRegInstr::execute_single_instruction(instr, registers);
         }
         VmInstruction::ZeroRegInstr(instr) => {
-            ZeroRegInstr::execute_single_instruction(instr, registers);
+            ZeroRegInstr::execute_single_instruction(instr, registers, memory);
         }
         VmInstruction::ErrorInstructionFromFutureISA => {
             // This will be handled by one of the FlagsRegister methods

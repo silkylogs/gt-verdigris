@@ -256,9 +256,15 @@ Encoding: FF BX __ __ + const
 Description: Computes the binary XOR operation of the contents of register X
              and the constant, then stores the result to register X.
 
+- chkflag X
+Full name: check flags register
+Encoding: FF CX __ __
+Description: Checks whether a flag at index X is set or not, by setting the is_equal flag
+             Out of range flags always set the is_equal flag to 0.
+
 - reserved_instruction X
 Full name: reserved instruction
-Encoding: FF CX __ __ through FF EX __ __
+Encoding: FF DX __ __ through FF EX __ __
 Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
 
