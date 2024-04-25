@@ -385,7 +385,7 @@ impl TwoRegInstr {
                 }
             }
             TwoRegOpcode::ASHIFTR => {
-                enum Direction { Left, Right };
+                enum Direction { Left, Right }
                 let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
                     Direction::Left
@@ -401,7 +401,7 @@ impl TwoRegInstr {
                 }
             }
             TwoRegOpcode::ROLLR => {
-                enum Direction { Left, Right };
+                enum Direction { Left, Right }
                 let reg_y = *VmRegisters::get_gpr(registers, &instr.reg2);
                 let shift_dir = if (reg_y >> 31) & 0x1 == 1 {
                     Direction::Left
@@ -411,10 +411,28 @@ impl TwoRegInstr {
                 let shift_mag = reg_y & (u32::MAX >> 1);
                 let reg_x = VmRegisters::get_mut_gpr(registers, &instr.reg1);
                 
-                todo!();
+                fn rotate_once(what: u32, direction: &Direction) -> u32 {
+                    match direction {
+                        Direction::Left => {
+                            // 1010
+                            // 010 + 1
+                            let left_most_bit = (what & 0x7FFF_FFFF) >> 31;
+                            left_most_bit | (what << 1)
+                        },
+                        Direction::Right => {
+                            let right_most_bit = what & 0x1;
+                            (what >> 1) | right_most_bit
+                        }
+                    }
+                }
+
+                for rot_cnt in 0..(shift_mag % 4) {
+                    *reg_x = rotate_once(*reg_x, &shift_dir);
+                }
             }
             TwoRegOpcode::ANDR => {
-                todo!();
+                
+                
             }
             TwoRegOpcode::ORR => {
                 todo!();
