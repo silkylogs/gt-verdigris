@@ -1,99 +1,110 @@
-This is the specification for the virtual machine of gt-verdigris. (v0.0.1)
-Codenamed "glass", it is a little endian machine with a word size of 32 bits.
-More than average care has been taken to ensure that all instructions of this
-version of the ISA fits within 16 bits, while still retaining the potential for
-backwards compatible extension.
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //============================================================================\\
-|| The instruction set                                                        ||
+|| Green Top: Verdigris "Glass-16" Virtual Machine technical reference        ||
 \\============================================================================//
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ v0.0.1
+
+==[ About ]=====================================================================
+Glass-16 is an interpreted programming language intended to be used for hosting
+Green Top: Verdigris (shortened to "gtv"). This decision came about to be after
+facing a barrier porting the game, while in early development, to an old version
+of linux, coming in the form of the compiler for the odin programming language
+being unable to be run nor be compiled. It is hoped that porting the game to
+other platforms will only involve implementing this language for the target
+platform.
+
++------------------------------------------------------------------------------+
++-[ Revisions needed from this point onward ]----------------------------------+
++------------------------------------------------------------------------------+
+
+==[ Specification ]=============================================================
+This section describes the memory model and registers.
+
+Memory model
+-------------
+it is a big endian machine
+
+
+Registers
+----------
+register width of 16 bits.
+
+
+==[ The instruction set ]====================================================
 The possible combinations of instructions ("instruction pages") with the
 following criteria are shown below:
-- Bytes padded to 32 bits
-- Bytes displayed in little endian order
 - Numbered in order of evaluation
 - Key:
   - x: any hexadecimal literal between 1 to E inclusive
   - R: the register label, between 0 to F inclusive
   - F: the hexadecimal literal F
   - c: a constant hexadecimal number between 0 to F inclusive
-1. xR RR __ __             | 3 register operation
-2. Fx RR __ __             | 2 register operation
-3. FF xR __ __             | 1 register operation
-3. FF xR __ __ cc cc cc cc | 1 register operation plus 32 bit constant
-4. FF Fx __ __             | 0 register operation
-4. FF Fx __ __ cc cc cc cc | 0 register operation plus 32 bit constant
+1. xR RR       | 3 register operation
+2. Fx RR       | 2 register operation
+3. FF xR       | 1 register operation
+3. FF xR cc cc | 1 register operation plus 16 bit constant
+4. FF Fx       | 0 register operation
+4. FF Fx cc cc | 0 register operation plus 16 bit constant
 
+Notes:
+- The flags not mentioned in the "Flags set" category remains unchanged
+  throughout execution of the instruction
+- TODO: to avoid repetition, specify flag behaviour
 +------------------------------------------------------------------------------+
 | The full list of instructions, grouped according to instruction pages:       |
 +------------------------------------------------------------------------------+
 3 Register operations:
 -----------------------
-- invalid_instruction X Y Z
+- invalid_instruction
 Full name: zero trap instruction
-Encoding 0X YZ __ __
-Description: This is a "trap bit" combination. Trying to execute it will set the
-             invalid_instruction flag.
+Encoding 00 00
+Description: This is a "trap bit" combination, intended to catch bugs.
+Flags turned on: invalid_instruction, zero
+
+- reserved_instruction
+Full name: reserved instruction
+Encoding 0X YZ
+Description: This combination, where nibbles X, Y and Z are != 0, is reserved.
+Flags set: invalid_instruction, reserved_instruction
 
 - addr X Y Z
 Full name: add register
-Encoding: 1X YZ __ __
-Description: Adds the contents of registers Y and Z, then stores the result in
-             register X (X = Y + Z).
-             Sets overflow and underflow flags.
+Encoding: 1X YZ
+Description: Adds registers Y and Z, then stores the result in X (X = Y + Z).
+Flags set: overflow, underflow
 
 - subr X Y Z
 Full name: subtract register
-Encoding: 2X YZ __ __
-Description: Subtracts the contents of registers Z from Y, then stores the
-             result in register X. (X = Y - Z)
-             Sets overflow and underflow flags.
+Encoding: 2X YZ
+Description: Subtracts registers Z from Y, then stores the result in X.
+             (X = Y - Z).
+Flags set: overflow, underflow, zero
 
 - mulr X Y Z
 Full name: multiply register
-Encoding: 3X YZ __ __
-Description: Signed multiplies the contents of 32 bit registers X with Y,
-             Storing the 64 bit result in the conjoined register Y:Z
-             (Y:Z = X * Y)
+Encoding: 3X YZ
+Description: Signed multiplies registers X with Y,
+             storing the result in conjoined register Y:Z.
+             (Y:Z = X * Y).
+Flags set: zero
 
 - divr X Y Z
 Full name: divide register
-Encoding: 4X YZ __ __
-Description: Signed divides the contents of the registers Y with Z,
-             storing the result in the register X. (X = Y / Z)
-             In case Z is zero, X is set to the maximum or minimum signed 32 bit
+Encoding: 4X YZ
+Description: Signed divides registers Y with Z, storing the result in X.
+             (X = Y / Z).
+             If Z is zero, X is set to the maximum or minimum signed
              integer depending on whether Y was positive or negative,
-             respectively, to approximate, albeit crudely, the value of
-             infinity.
-             Sets the zero_div flag.
-
-- fixmulr X Y Z
-Full name: fixed poiont multiply register
-Encoding: 5X YZ __ __
-Description: Signed multiplies the contents of the 32 bit registers Y and Z,
-             interpreted as a fixed point number (16.16), adjusting the
-             resulting number to fit within said format and storing the result
-             in register X (X = Y * Z)
-             Sets overflow and underflow flags.
-
-- fixdivr X Y Z
-Full name: fixed point divide register
-Encoding: 6X YZ __ __
-Description: Signed divides the contents of the 32 bit registers Y and Z,
-             interpreted as a fixed point number (16.16), adjusting the
-             resulting number to fit within said format and storing the result
-             to register X. (X = Y / Z)
-             In case Z is zero, X is set to the maximum or minimum signed 32 bit
-             integer depending on whether Y was positive or negative,
-             respectively, to approximate, albeit crudely, the value of
-             infinity.
-             Sets the divide-by-zero flag.
+             respectively, to approximate the value of
+             infinity, albeit crudely.
+Flags set: zero_div
 
 - reserved_instruction X Y Z
 Full name: reserved instruction
-Encoding: 7X YZ __ __ through EX YZ __ __
-Description: These bit combinations are currently reserved. Trying to execute
-             them will result in the reserved_instruction flag being set.
+Encoding: 5X YZ through EX YZ
+Description: These bit combinations are currently reserved.
+Flags set: invalid_instruction, reserved_instruction
+
 
 2 Register operations:
 -----------------------
@@ -305,7 +316,7 @@ Description: These bit combinations are currently reserved. Trying to execute
              them will result in the reserved_instruction flag being set.
 
 //============================================================================\\
-|| The registers                                                              ||
+|| The registers (todo: mix rip, flags, etc with the general purpose regs)    ||
 \\============================================================================//
 All registers used by this virtual machine and their purpose is described below.
 - R0 through RF
