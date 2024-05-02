@@ -91,21 +91,20 @@ Key:
 Notes on flag behaviour:
 - If instruction is not (reserved or invalid), those flags are set to zero.
 - The other flags not mentioned in the "Flags set" field remains unchanged
-  throughout execution of the instruction
-+------------------------------------------------------------------------------+
-+-[ Revisions needed from this point onward ]----------------------------------+
-+------------------------------------------------------------------------------+
- 
-+------------------------------------------------------------------------------+
-| The full list of instructions, grouped according to instruction pages:       |
-+------------------------------------------------------------------------------+
-3 Register operations:
------------------------
-- invalid_instruction
+  throughout execution of the instruction.
+  If not otherwise mentioned, those flags will be set to 1.
+- Comparison flags (equal, greater_than, less_than), are set to zero once an
+  instruction executes, except when it is a comparison instruction.
+  (rewording needed?)
+--[ Glass-16 instruction list ]-------------------------------------------------
+
+Page 0:
+--------
+- zero_trap_instruction
 Full name: zero trap instruction
 Encoding 00 00
 Description: This is a "trap bit" combination, intended to catch bugs.
-Flags turned on: invalid_instruction, zero
+Flags set: invalid_instruction, zero
 
 - reserved_instruction
 Full name: reserved instruction
@@ -117,13 +116,14 @@ Flags set: invalid_instruction, reserved_instruction
 Full name: add register
 Encoding: 1X YZ
 Description: Adds registers Y and Z, then stores the result in X (X = Y + Z).
-Flags set: overflow, underflow
+Flags set: overflow, underflow, zero
 
 - subr X Y Z
 Full name: subtract register
 Encoding: 2X YZ
 Description: Subtracts registers Z from Y, then stores the result in X.
              (X = Y - Z).
+             Implementor's note: This is equivalent to X = Y + (0x8000 XOR Z)
 Flags set: overflow, underflow, zero
 
 - mulr X Y Z
@@ -140,9 +140,8 @@ Encoding: 4X YZ
 Description: Signed divides registers Y with Z, storing the result in X.
              (X = Y / Z).
              If Z is zero, X is set to the maximum or minimum signed
-             integer depending on whether Y was positive or negative,
-             respectively, to approximate the value of
-             infinity, albeit crudely.
+             integer depending on whether Y was positive or negative
+             respectively to approximate the value of infinity, albeit crudely.
 Flags set: zero_div
 
 - reserved_instruction X Y Z
@@ -151,7 +150,10 @@ Encoding: 5X YZ through EX YZ
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
-
++------------------------------------------------------------------------------+
++-[ Revisions needed from this point onward ]----------------------------------+
++------------------------------------------------------------------------------+
+ 
 2 Register operations:
 -----------------------
 - readr X Y
