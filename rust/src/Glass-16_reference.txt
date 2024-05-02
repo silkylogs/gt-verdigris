@@ -13,21 +13,62 @@ being unable to be run nor be compiled. It is hoped that porting the game to
 other platforms will only involve implementing this language for the target
 platform.
 
-+------------------------------------------------------------------------------+
-+-[ Revisions needed from this point onward ]----------------------------------+
-+------------------------------------------------------------------------------+
-
 ==[ Specification ]=============================================================
 This section describes the memory model and registers.
 
 Memory model
 -------------
-it is a big endian machine
+One Glass-16 instance is capable of addressing up to ~65.5 KiB (65,535 bytes)
+of RAM, from location 0x0000 to 0xFFFF inclusive.
+As a measure to reduce the complexity of implementation, the language stores,
+accesses and uses data and instructions in the same memory space.
+The language is big-endian; in simple terms, what you see in the byte-formatted
+memory dump directly corresponds to the layout of bytes in the registers.
+As this language is intended to be emulated in machines capable of addressing
+much, much larger amounts of memory, it is also intended for the host program
+to "weld" the RAMs of multiple instances of the CPU, and use said instances as
+a data fetcher of sorts, if more memory is needed.
 
++------------------------------------------------------------------------------+
++-[ Revisions needed from this point onward ]----------------------------------+
++------------------------------------------------------------------------------+
 
 Registers
 ----------
 register width of 16 bits.
+All registers used by this virtual machine and their purpose is described below.
+- R0 through RF
+Full name: Register 0 through Register 16
+Description: These are general purpose registers.
+
+- RIP
+Full name: Instruction pointer
+Description: Contains the address of the next instruction to be executed.
+
+- FLAGS
+Full name: Flags register
+Description: Contains state of this CPU.
+Bit values (in big endian order):
+  00: equal
+  01: greater_than
+  02: less_than
+  03: reserved_instruction
+  04: invalid_instruction
+  05: zero_div
+  06: overflow
+  07: underflow
+  08 through 1F: reserved
+
+Flags register handler:
+- equal =
+- greater_than =
+- less_than =
+- reserved_instruction = opcode == INVALID_RESERVED
+- invalid_instruction = opcode == INVALID_ZERO || INVALID_NEXT_INSTR_PAGE
+- zero_div = 
+- overflow = 
+- underflow =
+- 08 through 1F = 0
 
 
 ==[ The instruction set ]====================================================
@@ -318,39 +359,7 @@ Description: These bit combinations are currently reserved. Trying to execute
 //============================================================================\\
 || The registers (todo: mix rip, flags, etc with the general purpose regs)    ||
 \\============================================================================//
-All registers used by this virtual machine and their purpose is described below.
-- R0 through RF
-Full name: Register 0 through Register 16
-Description: These are general purpose registers.
 
-- RIP
-Full name: Instruction pointer
-Description: Contains the address of the next instruction to be executed.
-
-- FLAGS
-Full name: Flags register
-Description: Contains state of this CPU.
-Bit values (in big endian order):
-  00: equal
-  01: greater_than
-  02: less_than
-  03: reserved_instruction
-  04: invalid_instruction
-  05: zero_div
-  06: overflow
-  07: underflow
-  08 through 1F: reserved
-
-Flags register handler:
-- equal =
-- greater_than =
-- less_than =
-- reserved_instruction = opcode == INVALID_RESERVED
-- invalid_instruction = opcode == INVALID_ZERO || INVALID_NEXT_INSTR_PAGE
-- zero_div = 
-- overflow = 
-- underflow =
-- 08 through 1F = 0
 
 
 //============================================================================\\
