@@ -29,68 +29,73 @@ much, much larger amounts of memory, it is also intended for the host program
 to "weld" the RAMs of multiple instances of the CPU, and use said instances as
 a data fetcher of sorts, if more memory is needed.
 
-+------------------------------------------------------------------------------+
-+-[ Revisions needed from this point onward ]----------------------------------+
-+------------------------------------------------------------------------------+
 
 Registers
 ----------
-register width of 16 bits.
-All registers used by this virtual machine and their purpose is described below.
-- R0 through RF
-Full name: Register 0 through Register 16
+Glass-16 has 16 registers in total, all of which are 16 bits wide.
+They're usually referred to as Rx, where x is a hexadecimal digit (0 through F).
+While all of the registers are accessible through the instruction set, some are
+used by the langauge for its own internal purposes.
+
+- R0 through RD
+Full name: Register 0 through Register 14
 Description: These are general purpose registers.
 
-- RIP
+- RE or RIP
 Full name: Instruction pointer
 Description: Contains the address of the next instruction to be executed.
 
-- FLAGS
+- RF or RFLAGS
 Full name: Flags register
 Description: Contains state of this CPU.
-Bit values (in big endian order):
-  00: equal
-  01: greater_than
-  02: less_than
-  03: reserved_instruction
-  04: invalid_instruction
-  05: zero_div
-  06: overflow
-  07: underflow
-  08 through 1F: reserved
 
-Flags register handler:
-- equal =
-- greater_than =
-- less_than =
-- reserved_instruction = opcode == INVALID_RESERVED
-- invalid_instruction = opcode == INVALID_ZERO || INVALID_NEXT_INSTR_PAGE
-- zero_div = 
-- overflow = 
-- underflow =
-- 08 through 1F = 0
+Flags register
+---------------
+Bit values:
++0123-4567-89AB-CDEF+
+|0000 0000 0000 0000|
++-------------------+
+0: zero/equal
+1: greater_than
+2: less_than
+3: zero_div
 
+4: overflow
+5: underflow
+6: reserved_instruction
+7: invalid_instruction
 
 ==[ The instruction set ]====================================================
-The possible combinations of instructions ("instruction pages") with the
-following criteria are shown below:
-- Numbered in order of evaluation
-- Key:
-  - x: any hexadecimal literal between 1 to E inclusive
-  - R: the register label, between 0 to F inclusive
-  - F: the hexadecimal literal F
-  - c: a constant hexadecimal number between 0 to F inclusive
-1. xR RR       | 3 register operation
-2. Fx RR       | 2 register operation
-3. FF xR       | 1 register operation
-3. FF xR cc cc | 1 register operation plus 16 bit constant
-4. FF Fx       | 0 register operation
-4. FF Fx cc cc | 0 register operation plus 16 bit constant
+Glass-16 instructions are either two or four bytes long.
+For reading convenience, they are grouped in categories known as
+"instruction pages".
++-------------+-------------------+
+| Bit pattern | Instruction page  |
++-------------+-------------------+
+| xR RR       | Page 0            |
+|_____________|___________________|
+| Fx RR       | Page 1            |
+|_____________|___________________|
+| FF xR       | Page 2            |
+| FF xR cc cc |                   | 
+|_____________|___________________|
+| FF Fx       | Page 3            |
+| FF Fx cc cc |                   | 
+\_____________|___________________/
+Key:
+- x: any hexadecimal literal between 1 to E inclusive
+- R: the register label, between 0 to F inclusive
+- F: the hexadecimal literal F
+- c: a constant hexadecimal number between 0 to F inclusive
 
-Notes:
-- The flags not mentioned in the "Flags set" category remains unchanged
+Notes on flag behaviour:
+- If instruction is not (reserved or invalid), those flags are set to zero.
+- The other flags not mentioned in the "Flags set" field remains unchanged
   throughout execution of the instruction
-- TODO: to avoid repetition, specify flag behaviour
++------------------------------------------------------------------------------+
++-[ Revisions needed from this point onward ]----------------------------------+
++------------------------------------------------------------------------------+
+ 
 +------------------------------------------------------------------------------+
 | The full list of instructions, grouped according to instruction pages:       |
 +------------------------------------------------------------------------------+
