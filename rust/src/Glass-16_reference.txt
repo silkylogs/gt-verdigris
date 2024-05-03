@@ -96,8 +96,8 @@ Notes on flag behaviour:
 - Comparison flags (equal, greater_than, less_than), are set to zero once an
   instruction executes, except when it is a comparison instruction.
   (rewording needed?)
---[ Glass-16 instruction list ]-------------------------------------------------
 
+--[ Glass-16 instruction list ]-------------------------------------------------
 Page 0:
 --------
 - zero_trap_instruction
@@ -150,90 +150,85 @@ Encoding: 5X YZ through EX YZ
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
-+------------------------------------------------------------------------------+
-+-[ Revisions needed from this point onward ]----------------------------------+
-+------------------------------------------------------------------------------+
- 
-2 Register operations:
------------------------
-- readr X Y
-Full name: read register from pointer
-Encoding: F0 XY __ __
+Page 1:
+--------
+- ldr X Y
+Full name: load register from pointer
+Encoding: F0 XY
 Description: Reads the contents of X from the memory address pointed to by Y.
-             There are no alignment restrictions of Y, but it is considered to
-             be good practice to keep the alignment to the word size.
+Flags set:
 
-- writer X Y
-Full name: write register to pointer
-Encoding: F1 XY __ __
+- stor X Y
+Full name: store register to pointer
+Encoding: F1 XY
 Description: Writes the contents of X to the memory address pointed to by Y.
-             There are no alignment restrictions of Y, but it is considered to
-             be good practice to keep the alignment to the word size.
+Flags set:
 
 - movr X Y
 Full name: move register to register
-Encoding: F2 XY __ __
+Encoding: F2 XY
 Description: Copies register contents from Y to X. (X = Y)
+Flags set:
 
 - cmpr X Y
 Full name: compare registers
-Encoding F3 XY __ __
-Description: Signed subtracts the contents of registers Y from X, then
-             uses the result to set the following flags:
-             equal, greater_than, less_than
+Encoding F3 XY
+Description: Subtracts register Y from X, discarding the result.
+Flags set: equal, greater_than, less_than
 
 - lshiftr X Y
 Full name: logical shift register
-Encoding: F4 XY __ __
+Encoding: F4 XY
 Description: Logically shifts the contents of register X.
              The magnitude of the shift is determined by the magnitude of the
              value of register Y.
              The direction is determined by the sign of the value of register Y,
              which is interpreted as a twos complement binary number. A positive
              value indicates a left shift, else a right shift.
+Flags set:
 
 - ashiftr X Y
 Full name: arithmetic shift register
-Encoding: F5 XY __ __
+Encoding: F5 XY
 Description: Signed multiplies the contents of register X by 2 to the power Y.
              The magnitude of the shift is determined by the magnitude of the
              value of register Y.
              The direction is determined by the sign of the value of register Y,
              which is interpreted as a twos complement binary number. A positive
              value indicates a left shift, else a right shift.
-
-- rollr X Y
-Full name: roll register
-Encoding: F6 XY __ __
-Description: Rolls the contents of register X by the amount represented by the
-             contents of register Y, interpreted as a twos complement signed
-             integer. A positive value of Y rolls left, and a negative rolls
-             right.
+Flags set:
 
 - andr X Y
 Full name: binary and register
-Encoding: F7 XY __ __
+Encoding: F6 XY
 Description: Computes the binary AND operation of the contents of registers
              X and Y, then stores the result to register X.
+Flags set:
 
 - orr X Y
 Full name: binary or register
-Encoding: F8 XY __ __
+Encoding: F7 XY
 Description: Computes the binary OR operation of the contents of registers
              X and Y, then stores the result to register X.
+Flags set:
 
 - xorr X Y
 Full name: binary xor register
-Encoding: F9 XY __ __
+Encoding: F8 XY
 Description: Computes the binary XOR operation of the contents of registers
              X and Y, then stores the result to register X.
+Flags set:
 
 - reserved_instruction X Y
 Full name: reserved instruction
-Encoding: FA XY __ __ through FE XY __ __
-Description: This bit combination is currently reserved. Trying to execute
-             it will result in the reserved_instruction flag being set.
+Encoding: F9 XY through FE XY
+Description: These bit combinations are currently reserved.
+Flags set: invalid_instruction, reserved_instruction
 
++------------------------------------------------------------------------------+
++-[ Revisions needed from this point onward ]----------------------------------+
++------------------------------------------------------------------------------+
+ 
 1 Register operations:
 -----------------------
 - readc X const
