@@ -2,7 +2,7 @@
 //============================================================================\\
 || Green Top: Verdigris "Glass-16" Virtual Machine technical reference        ||
 \\============================================================================//
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ v0.0.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ v1.0.0
 
 ==[ About ]=====================================================================
 Glass-16 is an interpreted programming language intended to be used for hosting
@@ -434,7 +434,7 @@ Description: Writes the version identifier of this language to the address in
              - mmmm: Semver minor version
              - pppp: Semver patch version
              For this version, the resulting data to be written is exactly
-             0x4710_0000_0000_0001.
+             0x4710_0001_0000_0000.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
                 
