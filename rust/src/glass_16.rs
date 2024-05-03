@@ -95,6 +95,69 @@ impl Vm {
             // reserved
         }
 
+        let page1 = self.opcode_reg & 0x0100_u16;
+        if page1 == 0x0000_u16 {
+            // ldr
+        } else if page1 == 0x0100_u16 {
+            // stor
+        } else if page1 == 0x0200_u16 {
+            // movr
+        } else if page1 == 0x0300_u16 {
+            // cmpr
+        } else if page1 == 0x0400_u16 {
+            // lshl
+        } else if page1 == 0x0500_u16 {
+            // lshr
+        } else if page1 == 0x0600_u16 {
+            // ashl
+        } else if page1 == 0x0700_u16 {
+            // ashr
+        } else if page1 == 0x0800_u16 {
+            // andr
+        } else if page1 == 0x0900_u16 {
+            // orr
+        } else if page1 == 0x0A00_u16 {
+            // xorr
+        } else if page1 == 0x0B00_u16 {
+            // chkbit
+        } else if page1 == 0x0C00_u16 {
+            // setbit
+        } else {
+            // reserved
+        }
 
+        let page2 = self.opcode_reg & 0x0010_u16;
+        if page2 == 0x0000_u16 {
+            // ldc
+        } else if page2 == 0x0010_u16 {
+            // stoc
+        } else if page2 == 0x0020_u16 {
+            // movc
+        } else if page2 == 0x0030_u16 {
+            // cmpc
+        } else if page2 == 0x0040_u16 {
+            // andc
+        } else if page2 == 0x0050_u16 {
+            // orc
+        } else if page2 == 0x0060_u16 {
+            // xorc
+        } else if page2 == 0x0070_u16 {
+            // notr
+        } else {
+            // reserved
+        }
+
+        let page3 = self.opcode_reg & 0x0001_u16;
+        if page3 == 0x0000_u16 {
+            // nop
+        } else if page3 == 0x0001_u16 {
+            // dumpregs
+        } else if page3 == 0x0002_u16 {
+            // dumpversion
+        } else if page3 == 0x000F_u16 {
+            // reserved_future
+        } else {
+            // reserved
+        }
     }
 }
