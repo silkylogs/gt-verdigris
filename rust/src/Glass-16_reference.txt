@@ -106,13 +106,12 @@ Encoding 00 00
 Description: This is a "trap bit" combination, intended to catch bugs.
 Flags set: invalid_instruction, zero
 
-- cmov X Y Z
-Full name: conditional move
+- reserved_instruction
+Full name: reserved instruction
 Encoding: 0X YZ
-Description: X=index to RF, Y=dest, Z=src
-Flags set: 
-Note: Conditional jump is simulated by setting X to 0xE, that is, using RE/RIP
-      as the operand register.
+Description: These bit combinations, where nibbles X, Y, and Z are nonzero,
+             are currently reserved.
+Flags set: invalid_instruction, reserved_instruction
 
 - addr X Y Z
 Full name: add register
@@ -125,7 +124,6 @@ Full name: subtract register
 Encoding: 2X YZ
 Description: Subtracts registers Z from Y, then stores the result in X.
              (X = Y - Z).
-             Implementor's note: This is equivalent to X = Y + (0x8000 XOR Z)
 Flags set: overflow, underflow, zero
 
 - mulr X Y Z
@@ -145,6 +143,40 @@ Description: Signed divides registers Y with Z, storing the result in X.
              integer depending on whether Y was positive or negative
              respectively to approximate the value of infinity, albeit crudely.
 Flags set: zero_div
+
+- um2pr X Y Z
+Full name: unsigned multiply two to the power register
+Encoding: 5X YZ
+Description: Multiplies registers Y with 2^Z, then assigns the result to X.
+             Y interpreted as a twos complement signed binary number,
+             while X and Z are the same but unsigned.
+             Note that this is exactly equivalent to a logical shift, where
+             the shift's magnitude is determined by the constant's magnitude,
+             the shift's direction is determined by the constant's sign bit and
+             a positive value shifts left, else shifts right. For this reason
+             expect numerical accuracy loss upon performing division.
+Flags set: overflow
+
+- sm2pr X Y Z
+Full name: signed multiply two to the power register
+Encoding: 6X YZ
+Description: Multiplies registers Y with 2^Z, then assigns the result to X.
+             X, Y and Z are interpreted as signed twos complement numbers.
+             Note that this is exactly equivalent to a arithmetic shift, where
+             the shift's magnitude is determined by the constant's magnitude,
+             the shift's direction is determined by the constant's sign bit and
+             a positive value shifts left, else shifts right. For this reason
+             expect numerical accuracy loss upon performing division.
+Flags set: overflow, underflow
+
+- cmov X Y Z
+Full name: conditional move
+Encoding: 7X YZ
+Description: Conditionally copies registers Z to Y, using the nibble positioned
+             at X as the condition. (if (1 == RFLAGS[X]) Y = Z).
+             X acts as an big endian index to RFLAGS, and its range is
+             guaranteed to be [0, F]
+Flags set: 
 
 - reserved_instruction X Y Z
 Full name: reserved instruction
@@ -178,62 +210,73 @@ Encoding F3 XY
 Description: Subtracts register Y from X, discarding the result.
 Flags set: equal, greater_than, less_than
 
-- lshiftr X Y
-Full name: logical shift register
+- lshl X Y
+Full name: logical shift left
 Encoding: F4 XY
-Description: Logically shifts registers X by Y, interpreted as a twos
-             complement signed binary number.
-             The shift's magnitude is determined by the constant's magnitude.
-             The shift's direction is determined by the constant's sign bit.
-             A positive value shifts left, shifts right.
+Description: Logically shifts register X by Y bits to the left,
+             where Y is an unsigned nibble in range [0, F].
 Flags set:
 
-- ashiftr X Y
-Full name: arithmetic shift register
+- lshr X Y
+Full name: logical shift right
 Encoding: F5 XY
-Description: Multiplies registers X with 2^Y, both interpreted as a twos
-             complement signed binary number.
+Description: Logically shifts register X by Y bits to the right,
+             where Y is an unsigned nibble in range [0, F].
 Flags set:
+
+- ashl X Y
+Full name: arithmetic shift left
+Encoding: F6 XY
+Description: Multiplies register X by 2^Y, (X *= 2^Y)
+             where Y is an unsigned nibble in range [0, F].
+Flags set: 
+
+- ashr X Y
+Full name: arithmetic shift right
+Encoding: F7 XY
+Description: Divides register X by 2^Y, (X /= 2^Y)
+             where Y is an unsigned nibble in range [0, F].
+Flags set: 
 
 - andr X Y
 Full name: binary and register
-Encoding: F6 XY
+Encoding: F8 XY
 Description: Computes the binary AND operation of the contents of registers
              X and Y, then stores the result to register X.
 Flags set:
 
 - orr X Y
 Full name: binary or register
-Encoding: F7 XY
+Encoding: F9 XY
 Description: Computes the binary OR operation of the contents of registers
              X and Y, then stores the result to register X.
 Flags set:
 
 - xorr X Y
 Full name: binary xor register
-Encoding: F8 XY
+Encoding: FA XY
 Description: Computes the binary XOR operation of the contents of registers
              X and Y, then stores the result to register X.
 Flags set:
 
 - chkbit X Y
 Full name: check bit
-Encoding: F9 XY
-Description: Checks whether bit Y is set in X, where Y is a signed integer.
-             If Y is out of range [0, F], is_equal is always set to 0.
+Encoding: FB XY
+Description: Checks whether bit X is set in Y, where X is a nibble.
              This is intended to be used to probe the flags register.
+             X is guaranteed to be in range [0, F].
 Flags set: is_equal
 
 - setbit X Y
 Full name: set bit
-Encoding: FA XY
-Description: Sets bit Y in register X, where Y is a signed integer.
-             No effect if Y is out of range [0, F].
+Encoding: FC XY
+Description: Sets bit X in register Y, where X is a nibble.
+             X is guaranteed to be in range [0, F].
 Flags set: is_equal
 
 - reserved_instruction X Y
 Full name: reserved instruction
-Encoding: F9 XY through FE XY
+Encoding: FD XY through FE XY
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
@@ -268,54 +311,37 @@ Encoding: FF 3X cc cc
 Description: Subtracts register X from the constant, discarding the result.
 Flags set: equal, greater_than, less_than
 
-- lshiftc X const
-Full name: logical shift register by constant
-Encoding: FF 4X cc cc
-Description: Logical shifts register X by the constant, interpreted as a twos
-             complement signed binary number.
-             The shift's magnitude is determined by the constant's magnitude.
-             The shift's direction is determined by the constant's sign bit.
-             A positive value shifts left, shifts right.
-Flags set:
-
-- ashiftc X const
-Full name: arithmetic shift register by constant
-Encoding: FF 5X cc cc
-Description: Multiplies registers X with 2^constant, both interpreted as a twos
-             complement signed binary number.
-Flags set:
-
 - andc X const
 Full name: binary and constant
-Encoding: FF 6X cc cc
+Encoding: FF 4X cc cc
 Description: Computes the binary AND operation of the contents of register X
              and the constant, then stores the result to register X.
 Flags set:
 
 - orc X const
 Full name: binary or constant
-Encoding: FF 7X cc cc
+Encoding: FF 5X cc cc
 Description: Computes the binary OR operation of the contents of register X
              and the constant, then stores the result to register X.
 Flags set:
 
 - xorc X const
 Full name: binary xor constant
-Encoding: FF 8X cc cc
+Encoding: FF 6X cc cc
 Description: Computes the binary XOR operation of the contents of register X
              and the constant, then stores the result to register X.
 Flags set:
 
 - notr X 
 Full name: binary not register
-Encoding: FF 9X
+Encoding: FF 7X
 Description: Computes the binary NOT operation of the contents of register X,
              then stores the result to register X.
 Flags set:
 
 - reserved_instruction X
 Full name: reserved instruction
-Encoding: FF AX __ __ through FF EX __ __
+Encoding: FF 8X through FF EX
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
