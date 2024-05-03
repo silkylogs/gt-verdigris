@@ -65,7 +65,7 @@ Bit values:
 6: reserved_instruction
 7: invalid_instruction
 
-==[ The instruction set ]====================================================
+==[ The instruction set ]=======================================================
 Glass-16 instructions are either two or four bytes long.
 For reading convenience, they are grouped in categories known as
 "instruction pages".
@@ -345,6 +345,13 @@ Encoding: FF 8X through FF EX
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
+- reserved_instruction_future
+Full name: reserved instruction from a future version
+Encoding: FF FF
+Description: The language is trying to execute an instruction from a future
+             version of said language.
+Flags set: invalid_instruction, reserved_instruction
+
 Instruction page 3:
 --------------------
 - nop
@@ -353,39 +360,59 @@ Encoding: FF F0
 Description: Does nothing.
 Flags set:
 
+- dumpregs const
+Full name: Dump register info
+Encoding: FF F1 cc cc
+Description: Writes the contents of registers R0 through RF in order
+             at address in constant, writing 32 bytes in total.
+Flags set:
+
+- dumpversion const
+Full name: Dump machine version
+Encoding FF F2 cc cc
+Description: Writes the version identifier of this language to the address in
+             constant.
+             The format is 'xxxx MMMM mmmm pppp', where
+             - xxxx: "Magic number" ('G' 16 => 0x47 0x10)
+             - MMMM: Semver major version
+             - mmmm: Semver minor version
+             - pppp: Semver patch version
+             For this version, the resulting data to be written is exactly
+             0x4710_0000_0000_0001.
+Flags set:
+
 - reserved_instruction
 Full name: reserved instruction
-Encoding: FF F1 through FF FE
+Encoding: FF F2 through FF FE
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
+
+==[ Instruction decoding ]======================================================
+The decoding logic is straightforward. In order, these are the steps to be taken
+to determine the instruction page:
+- Instruction page 0
+  The assumption is that X in X_ __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in page 0.
+- Instruction page 1
+  The assumption is that X in FX __ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in page 1.
+- Instruction page 2
+  The assumption is that X in FF X_ is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in page 2.
+- Instruction page 3
+  The assumption is that X in FF FX is between 0x0 and 0xE inclusive.
+  If X == 0xF, continue; else the instruction is in page 3.
+- Instruction page from the future
+  The algorithm has deduced that this is an instruction from a future version
+  of the language.
+  Other possible reasons for arriving at this state are: 
+  - There's a memory error in the program the VM is running,
+  - The host machine is malfunctioning.
 
 +------------------------------------------------------------------------------+
 +-[ Revisions needed from this point onward ]----------------------------------+
 +------------------------------------------------------------------------------+
  
-//============================================================================\\
-|| Instruction decoding                                                       ||
-\\============================================================================//
-The decoding logic is fairly simple. In order, these are the steps to be taken
-to determine the instruction page:
-- First instruction page
-  The assumption is that X in X_ __ __ __ is between 0x0 and 0xE inclusive.
-  If X == 0xF, continue; else the instruction is in the first instruction page.
-- Second instruction page
-  The assumption is that X in FX __ __ __ is between 0x0 and 0xE inclusive.
-  If X == 0xF, continue; else the instruction is in the second instruction page.
-- Third instruction page
-  The assumption is that X in FF X_ __ __ is between 0x0 and 0xE inclusive.
-  If X == 0xF, continue; else the instruction is in the third instruction page.
-- Fourth instruction page
-  The assumption is that X in FF FX __ __ is between 0x0 and 0xE inclusive.
-  If X == 0xF, continue; else the instruction is in the fourth instruction page.
-- Error
-  The algorithm has decided one of the following:
-  - This is an instruction from a future ISA,
-  - There's a memory error in the program the VM is running,
-  - The host machine is malfunctioning.
-
 //============================================================================\\
 || Instruction execution cycle                                                ||
 \\============================================================================//
