@@ -251,6 +251,8 @@ Encoding: FF 2E cc cc
 Description: Assigns constant address to RIP/RE.
 Flags set:
 
+TODO cmov/cjmp
+
 - cmpc X const
 Full name: compare register with constant
 Encoding: FF 3X cc cc
@@ -316,52 +318,24 @@ Encoding: FF BX __ __ through FF EX __ __
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
+Instruction page 3:
+--------------------
+- nop
+Full name: no operation
+Encoding: FF F0
+Description: Does nothing.
+Flags set:
+
+- reserved_instruction
+Full name: reserved instruction
+Encoding: FF F1 through FF FE
+Description: These bit combinations are currently reserved.
+Flags set: invalid_instruction, reserved_instruction
+
 +------------------------------------------------------------------------------+
 +-[ Revisions needed from this point onward ]----------------------------------+
 +------------------------------------------------------------------------------+
  
-0 Register operations:
------------------------
-- nop
-Full name: no operation
-Encoding: FF F0 __ __
-Description: Does nothing.
-
-- jmp const
-Full name: unconditional jump
-Encoding: FF F1 __ __ + const
-Description: Sets the instruction pointer to the constant.
-
-- je const
-Full name: jump if equal
-Encoding: FF F2 __ __ + const
-Description: If the equal flag is set, sets the instruction pointer to the
-             constant.
-
-- jg const
-Full name: jump if greater than
-Encoding: FF F3 __ __ + const
-Description: If the greater_than flag is set, sets the instruction pointer to the
-             constant.
-
-- jl const
-Full name: jump if less than
-Encoding: FF F4 __ __ + const
-Description: If the less_than flag is set, sets the instruction pointer to the
-             constant.
-
-- reserved_instruction
-Full name: reserved instruction
-Encoding: FF F5 __ __ through FF FE __ __
-Description: These bit combinations are currently reserved. Trying to execute
-             them will result in the reserved_instruction flag being set.
-
-//============================================================================\\
-|| The registers (todo: mix rip, flags, etc with the general purpose regs)    ||
-\\============================================================================//
-
-
-
 //============================================================================\\
 || Instruction decoding                                                       ||
 \\============================================================================//
