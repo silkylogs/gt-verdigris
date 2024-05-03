@@ -6,9 +6,9 @@ extern crate sdl2;
 mod bitmap;
 mod editor;
 mod game;
+mod glass_16;
 mod input;
 mod renderer;
-mod virtual_machine;
 
 use bitmap::Bitmap;
 use editor::{Editor, EditorWindow};
