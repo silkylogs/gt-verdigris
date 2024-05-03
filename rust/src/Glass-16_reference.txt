@@ -98,8 +98,8 @@ Notes on flag behaviour:
   (rewording needed?)
 
 --[ Glass-16 instruction list ]-------------------------------------------------
-Page 0:
---------
+Instruction page 0:
+--------------------
 - zero_trap_instruction
 Full name: zero trap instruction
 Encoding 00 00
@@ -150,8 +150,8 @@ Encoding: 5X YZ through EX YZ
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
-Page 1:
---------
+Instruction page 1:
+--------------------
 - ldr X Y
 Full name: load register from pointer
 Encoding: F0 XY
@@ -179,23 +179,18 @@ Flags set: equal, greater_than, less_than
 - lshiftr X Y
 Full name: logical shift register
 Encoding: F4 XY
-Description: Logically shifts the contents of register X.
-             The magnitude of the shift is determined by the magnitude of the
-             value of register Y.
-             The direction is determined by the sign of the value of register Y,
-             which is interpreted as a twos complement binary number. A positive
-             value indicates a left shift, else a right shift.
+Description: Logically shifts registers X by Y, interpreted as a twos
+             complement signed binary number.
+             The shift's magnitude is determined by the constant's magnitude.
+             The shift's direction is determined by the constant's sign bit.
+             A positive value shifts left, shifts right.
 Flags set:
 
 - ashiftr X Y
 Full name: arithmetic shift register
 Encoding: F5 XY
-Description: Signed multiplies the contents of register X by 2 to the power Y.
-             The magnitude of the shift is determined by the magnitude of the
-             value of register Y.
-             The direction is determined by the sign of the value of register Y,
-             which is interpreted as a twos complement binary number. A positive
-             value indicates a left shift, else a right shift.
+Description: Multiplies registers X with 2^Y, both interpreted as a twos
+             complement signed binary number.
 Flags set:
 
 - andr X Y
@@ -225,103 +220,106 @@ Encoding: F9 XY through FE XY
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
+Instruction page 2:
+--------------------
+- ldc X const
+Full name: load constant to register
+Encoding: FF 0X cc cc
+Description: Copies the constant to the register X.
+Flags set: 
+Note: If the instruction is at, say, 0xFFFE, the constant read would be at addr
+      0x0000 and 0x0001.
+      TODO specify this in the "instruction execution cycle" page?
+
+- stoc X const
+Full name: store register to address
+Encoding: FF 1X cc cc
+Description: Writes the contents of the register X to the constant address.
+Flags set:
+
+- movc X const
+Full name: move constant to register
+Encoding: FF 2X cc cc
+Description: Copies the constant provided in the instruction to the register X.
+             X is assumed to be any hex value except 0xE;
+             that is, X is any register except RIP/RE.
+Flags set:
+
+- jmpc X
+Full name: unconditional jump
+Encoding: FF 2E cc cc
+Description: Assigns constant address to RIP/RE.
+Flags set:
+
+- cmpc X const
+Full name: compare register with constant
+Encoding: FF 3X cc cc
+Description: Subtracts register X from the constant, discarding the result.
+Flags set: equal, greater_than, less_than
+
+- lshiftc X const
+Full name: logical shift register by constant
+Encoding: FF 4X cc cc
+Description: Logical shifts register X by the constant, interpreted as a twos
+             complement signed binary number.
+             The shift's magnitude is determined by the constant's magnitude.
+             The shift's direction is determined by the constant's sign bit.
+             A positive value shifts left, shifts right.
+Flags set:
+
+- ashiftc X const
+Full name: arithmetic shift register by constant
+Encoding: FF 5X cc cc
+Description: Multiplies registers X with 2^constant, both interpreted as a twos
+             complement signed binary number.
+Flags set:
+
+- andc X const
+Full name: binary and constant
+Encoding: FF 6X cc cc
+Description: Computes the binary AND operation of the contents of register X
+             and the constant, then stores the result to register X.
+Flags set:
+
+- orc X const
+Full name: binary or constant
+Encoding: FF 7X cc cc
+Description: Computes the binary OR operation of the contents of register X
+             and the constant, then stores the result to register X.
+Flags set:
+
+- xorc X const
+Full name: binary xor constant
+Encoding: FF 8X cc cc
+Description: Computes the binary XOR operation of the contents of register X
+             and the constant, then stores the result to register X.
+Flags set:
+
+- notr X 
+Full name: binary not register
+Encoding: FF 9X
+Description: Computes the binary NOT operation of the contents of register X,
+             then stores the result to register X.
+Flags set:
+
+- chkbit X
+Full name: check bit
+Encoding: FF AX
+Description: Checks whether bit X is set, where X is a signed integer.
+             If X is out of range [0, F], is_equal is always set to 0.
+             This is intended to be used to probe the flags register.
+Flags set: is_equal
+
+- reserved_instruction X
+Full name: reserved instruction
+Encoding: FF BX __ __ through FF EX __ __
+Description: These bit combinations are currently reserved.
+Flags set: invalid_instruction, reserved_instruction
+
 +------------------------------------------------------------------------------+
 +-[ Revisions needed from this point onward ]----------------------------------+
 +------------------------------------------------------------------------------+
  
-1 Register operations:
------------------------
-- readc X const
-Full name: read constant to register
-Encoding: FF 0X __ __ + const
-Description: Copies the 32 bit constant to the register X.
-
-- writec X const
-Full name: write register to constant pointer
-Encoding: FF 1X __ __ + const
-Description: Writes the contents of the register X to the address provided in the constant.
-
-- movc X const
-Full name: move constant to register
-Encoding: FF 2X __ __ + const
-Description: Copies the constant provided in the instruction to the register X.
-
-- jmpr X
-Full name: unconditional jump to register
-Encoding: FF 3X __ __
-Description: Assigns address contained by register X to the instruction pointer.
-
-- cmpc X const
-Full name: compare register with constant
-Encoding: FF 4X __ __ + const
-Description: Performs a signed subtraction with the register X and the constant.
-             The result is then parsed to set the following flags:
-             equal, greater_than, less_than
-
-- lshiftc X const
-Full name: logical shift register by constant
-Encoding: FF 5X __ __ + const
-Description: Logical shifts the contents of register X.
-             The magnitude of the shift is determined by the magnitude of the
-             constant.
-             The direction is determined by the sign of the value of the
-             constant, which is interpreted as a twos complement binary number.
-             A positive value indicates a left shift, else a right shift.
-
-- ashiftc X const
-Full name: arithmetic shift register by constant
-Encoding: FF 6X __ __ + const
-Description: Arithmetic shifts the contents of register X.
-             The magnitude of the shift is determined by the magnitude of the
-             constant.
-             The direction is determined by the sign of the value of the
-             constant, which is interpreted as a twos complement binary number.
-             A positive value indicates a left shift, else a right shift.
-
-- rollc X const
-Full name: roll register by constant
-Encoding: FF 7X __ __ + const
-Description: Rolls the contents of register X by the amount represented by the
-             constant, interpreted as a twos complement signed
-             integer. A positive value of Y rolls left, and a negative rolls
-             right.
-
-- andc X const
-Full name: binary and constant
-Encoding: FF 8X __ __ + const
-Description: Computes the binary AND operation of the contents of register X
-             and the constant, then stores the result to register X.
-
-- orc X const
-Full name: binary or constant
-Encoding: FF 9X __ __ + const
-Description: Computes the binary OR operation of the contents of register X
-             and the constant, then stores the result to register X.
-
-- notr X 
-Full name: binary not register
-Encoding: FF AX __ __
-Description: Computes the binary NOT operation of the contents of register X,
-             then stores the result to register X.
-
-- xorc X const
-Full name: binary xor constant
-Encoding: FF BX __ __ + const
-Description: Computes the binary XOR operation of the contents of register X
-             and the constant, then stores the result to register X.
-
-- chkflag X
-Full name: check flags register
-Encoding: FF CX __ __
-Description: Checks whether a flag at index X is set or not, by setting the is_equal flag
-             Out of range flags always set the is_equal flag to 0.
-
-- reserved_instruction X
-Full name: reserved instruction
-Encoding: FF DX __ __ through FF EX __ __
-Description: These bit combinations are currently reserved. Trying to execute
-             them will result in the reserved_instruction flag being set.
-
 0 Register operations:
 -----------------------
 - nop
