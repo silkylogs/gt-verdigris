@@ -106,11 +106,13 @@ Encoding 00 00
 Description: This is a "trap bit" combination, intended to catch bugs.
 Flags set: invalid_instruction, zero
 
-- reserved_instruction
-Full name: reserved instruction
-Encoding 0X YZ
-Description: This combination, where nibbles X, Y and Z are != 0, is reserved.
-Flags set: invalid_instruction, reserved_instruction
+- cmov X Y Z
+Full name: conditional move
+Encoding: 0X YZ
+Description: X=index to RF, Y=dest, Z=src
+Flags set: 
+Note: Conditional jump is simulated by setting X to 0xE, that is, using RE/RIP
+      as the operand register.
 
 - addr X Y Z
 Full name: add register
@@ -214,6 +216,21 @@ Description: Computes the binary XOR operation of the contents of registers
              X and Y, then stores the result to register X.
 Flags set:
 
+- chkbit X Y
+Full name: check bit
+Encoding: F9 XY
+Description: Checks whether bit Y is set in X, where Y is a signed integer.
+             If Y is out of range [0, F], is_equal is always set to 0.
+             This is intended to be used to probe the flags register.
+Flags set: is_equal
+
+- setbit X Y
+Full name: set bit
+Encoding: FA XY
+Description: Sets bit Y in register X, where Y is a signed integer.
+             No effect if Y is out of range [0, F].
+Flags set: is_equal
+
 - reserved_instruction X Y
 Full name: reserved instruction
 Encoding: F9 XY through FE XY
@@ -241,17 +258,9 @@ Flags set:
 Full name: move constant to register
 Encoding: FF 2X cc cc
 Description: Copies the constant provided in the instruction to the register X.
-             X is assumed to be any hex value except 0xE;
-             that is, X is any register except RIP/RE.
 Flags set:
-
-- jmpc X
-Full name: unconditional jump
-Encoding: FF 2E cc cc
-Description: Assigns constant address to RIP/RE.
-Flags set:
-
-TODO cmov/cjmp
+Note: Unconditional jump is simulated by setting X to 0xE, that is, using RE/RIP
+      as the operand register.
 
 - cmpc X const
 Full name: compare register with constant
@@ -304,17 +313,9 @@ Description: Computes the binary NOT operation of the contents of register X,
              then stores the result to register X.
 Flags set:
 
-- chkbit X
-Full name: check bit
-Encoding: FF AX
-Description: Checks whether bit X is set, where X is a signed integer.
-             If X is out of range [0, F], is_equal is always set to 0.
-             This is intended to be used to probe the flags register.
-Flags set: is_equal
-
 - reserved_instruction X
 Full name: reserved instruction
-Encoding: FF BX __ __ through FF EX __ __
+Encoding: FF AX __ __ through FF EX __ __
 Description: These bit combinations are currently reserved.
 Flags set: invalid_instruction, reserved_instruction
 
