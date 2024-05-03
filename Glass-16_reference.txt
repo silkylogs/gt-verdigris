@@ -2,7 +2,7 @@
 //============================================================================\\
 || Green Top: Verdigris "Glass-16" Virtual Machine technical reference        ||
 \\============================================================================//
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ v1.0.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ v1.0.1
 
 ==[ About ]=====================================================================
 Glass-16 is an interpreted programming language intended to be used for hosting
@@ -194,7 +194,7 @@ Flag behaviour: - invalid_instruction: 0
 
 - reserved_instruction X Y Z
 Full name: reserved instruction
-Encoding: 5X YZ through EX YZ
+Encoding: 8X YZ through EX YZ
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
                 - reserved_instruction: 1
@@ -399,14 +399,6 @@ Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
                 - reserved_instruction: 1
 
-- reserved_instruction_future
-Full name: reserved instruction from a future version
-Encoding: FF FF
-Description: The language is trying to execute an instruction from a future
-             version of said language.
-Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
-
 Instruction page 3:
 --------------------
 - nop
@@ -434,17 +426,24 @@ Description: Writes the version identifier of this language to the address in
              - mmmm: Semver minor version
              - pppp: Semver patch version
              For this version, the resulting data to be written is exactly
-             0x4710_0001_0000_0000.
+             0x4710_0001_0000_0001.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
                 
 - reserved_instruction
 Full name: reserved instruction
-Encoding: FF F2 through FF FE
+Encoding: FF F3 through FF FE
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
                 - reserved_instruction: 1
 
+- reserved_instruction_future
+Full name: reserved instruction from a future version
+Encoding: FF FF
+Description: The language is trying to execute an instruction from a future
+             version of said language.
+Flag behaviour: - invalid_instruction: 1
+                - reserved_instruction: 1
 
 ==[ Instruction execution cycle ]===============================================
 - Fetch 2 bytes from RIP to opcode register, increment RIP by 2,
