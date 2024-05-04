@@ -3,12 +3,12 @@ use std::ops::BitOrAssign;
 // Registers
 struct Vm {
     registers: [u16; 0x10],
-    version: [u8; 8],
     opcode_reg: u16,
     operand_reg: u16,
 }
 
 impl Vm {
+    const VERSION: [u8; 8] = [0x47, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01];
     const MASK_ZERO_EQUAL: u16 = 0b0000_0000_0000_0001;
     const MASK_GREATER_THAN: u16 = 0b0000_0000_0000_0010;
     const MASK_LESS_THAN: u16 = 0b0000_0000_0000_0100;
@@ -21,7 +21,6 @@ impl Vm {
     pub fn new() -> Vm {
         Vm {
             registers: [0_u16; 0x10],
-            version: [0x47, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01],
             opcode_reg: 0_u16,
             operand_reg: 0_u16,
         }
@@ -51,59 +50,192 @@ impl Vm {
         self.execute_instruction_and_flag_behaviour(memory);
     }
 
-fn p0_zero_trap(&mut self) {
-    self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO;
-    self.registers[0xF] &= !Vm::MASK_RESERVED_INSTRUCTION;
-}
-
-fn p0_reserved_instruction(&mut self) {
-    self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION;
-}
     fn should_fetch_operand(&self) -> bool {
         let page2 = self.opcode_reg & 0x00F0_u16;
         if page2 == 0x0000
-            || page2 == 0x0010
-            || page2 == 0x0020
-            || page2 == 0x0030
-            || page2 == 0x0040
-            || page2 == 0x0060
+        || page2 == 0x0010
+        || page2 == 0x0020
+        || page2 == 0x0030
+        || page2 == 0x0040
+        || page2 == 0x0060
         {
             return true;
         }
-
+        
         let page3 = self.opcode_reg & 0x000F_u16;
         if page3 == 0x0001 || page3 == 0x0002 {
             return true;
         }
-
+        
         return false;
     }
 
+    fn p0_zero_trap(&mut self) {
+        self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO_EQUAL;
+        self.registers[0xF] &= !Vm::MASK_RESERVED_INSTRUCTION;
+    }
+
+    fn p0_reserved_instruction(&mut self) {
+        self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION;
+    }
+
+    fn p0_addr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        let res = self.registers[y] as u32 + self.registers[z] as u32;
+        if res > 0xFFFF_u32 {
+            self.registers[0xF] |= Vm::MASK_OVERFLOW;
+        } else if res == 0 {
+            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+        } else {
+            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+        }
+        
+        self.registers[x] = res as u16;
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p0_subr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        
+        let res = self.registers[y] as i32 - self.registers[z] as i32;
+        if res < i16::MIN as i32 {
+            self.registers[0xF] |= Vm::MASK_OVERFLOW;
+        } else if res == 0 {
+            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+        } else {
+            self.registers[0xF] &= !Vm::MASK_UNDERFLOW;
+        }
+
+        self.registers[x] = res as u16;
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p0_mulr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        let res = self.registers[x] as i32 * self.registers[y] as i32;
+        if res == 0 { 
+            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+        }
+        
+        self.registers[z] = (res & 0x0000_FFFF_u32 as i32) as u16;
+        self.registers[y] = ((res & 0xFFFF_0000_u32 as i32) >> 16) as u16;
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p0_divr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        if self.registers[z] == 0 {
+            self.registers[0xF] |= Vm::MASK_ZERO_DIV;
+            self.registers[x] = i16::MAX as u16;
+        } else {
+            let result = self.registers[y] as i16 / self.registers[z] as i16;
+            self.registers[x] = result as u16;
+        }
+
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p0_um2pr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        let mag = self.registers[z] & 0x7FFF_u16;
+        self.registers[x] = if self.registers[z] as i16 > 0 {
+            let res = self.registers[y] as u32 * (1_u32 << mag);
+            
+            if res > u16::MAX as u32 {
+                self.registers[0xF] |= Vm::MASK_OVERFLOW;
+            } else {
+                self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            }
+
+            res as u16
+        } else if (self.registers[z] as i16) < 0_i16 {
+            let res = self.registers[y] as u32 / (1_u32 << mag);
+            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            res as u16
+        } else {
+            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.registers[x]
+        };
+
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+    
+    fn p0_sm2pr(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        let mag = self.registers[z] & 0x7FFF_u16;
+        self.registers[x] = if self.registers[z] as i16 > 0 {
+            let res = self.registers[y] as i32 * (1_u32 << mag) as i32;
+            
+            if res > i16::MAX as i32 {
+                self.registers[0xF] |= Vm::MASK_OVERFLOW;
+            } else {
+                self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            }
+
+            res as u16
+        } else if (self.registers[z] as i16) < 0_i16 {
+            let res = self.registers[y] as i32 / (1_u32 << mag) as i32;
+            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            res as u16
+        } else {
+            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.registers[x]
+        };
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+    
+    fn p0_cmov(&mut self) {
+        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
+        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
+        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+
+        if 1 == self.registers[0xF] << x {
+            self.registers[y] = self.registers[z];
+        }
+
+        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+    
     fn execute_instruction_and_flag_behaviour(&mut self, memory: &mut Vec<u8>) {
         if self.opcode_reg == 0x0000_u16 {
-            // zero trap
             self.p0_zero_trap();
             return;
-        } 
+        }
         
         let page0 = self.opcode_reg & 0x1000_u16;
         if page0 == 0x1000_u16 {
-            // addr
+            self.p0_addr();
         } else if page0 == 0x2000_u16 {
-            // subr
+            self.p0_subr();
         } else if page0 == 0x3000_u16 {
-            // mulr
+            self.p0_mulr();
         } else if page0 == 0x4000_u16 {
-            // divr
+            self.p0_divr();
         } else if page0 == 0x5000_u16 {
-            // um2pr
+            self.p0_um2pr();
         } else if page0 == 0x6000_u16 {
-            // sm2pr
+            self.p0_sm2pr();
         } else if page0 == 0x7000_u16 {
-            // cmov
+            self.p0_cmov();
         } else {
-            // reserved
-            p0_reserved_instruction();
+            self.p0_reserved_instruction();
         }
 
         let page1 = self.opcode_reg & 0x0100_u16;

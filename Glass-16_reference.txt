@@ -26,8 +26,8 @@ The language is big-endian; in simple terms, what you see in the byte-formatted
 memory dump directly corresponds to the layout of bytes in the registers.
 As this language is intended to be emulated in machines capable of addressing
 much, much larger amounts of memory, it is also intended for the host program
-to "weld" the RAMs of multiple instances of the CPU, and use said instances as
-a data fetcher of sorts, if more memory is needed.
+to "weld" the RAMs of multiple instances of the machine, and use said instances
+as data fetchers of sorts, if more memory is needed.
 
 Registers
 ----------
@@ -115,8 +115,7 @@ Encoding: 1X YZ
 Description: Adds registers Y and Z, then stores the result in X (X = Y + Z).
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                - overflow: if overflow then 1 else 0
-                - underflow: if underflow then 1 else 0
+                - overflow: if result as u32 > 0xFFFF then 1 else 0
                 - zero: if result == 0 then 1 else 0
 
 - subr X Y Z
@@ -126,7 +125,6 @@ Description: Subtracts registers Z from Y, then stores the result in X.
              (X = Y - Z).
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                - overflow: if overflow then 1 else 0
                 - underflow: if underflow then 1 else 0
                 - zero: if result == 0 then 1 else 0
 
