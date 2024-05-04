@@ -51,6 +51,14 @@ impl Vm {
         self.execute_instruction_and_flag_behaviour(memory);
     }
 
+fn p0_zero_trap(&mut self) {
+    self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO;
+    self.registers[0xF] &= !Vm::MASK_RESERVED_INSTRUCTION;
+}
+
+fn p0_reserved_instruction(&mut self) {
+    self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION;
+}
     fn should_fetch_operand(&self) -> bool {
         let page2 = self.opcode_reg & 0x00F0_u16;
         if page2 == 0x0000
@@ -74,6 +82,8 @@ impl Vm {
     fn execute_instruction_and_flag_behaviour(&mut self, memory: &mut Vec<u8>) {
         if self.opcode_reg == 0x0000_u16 {
             // zero trap
+            self.p0_zero_trap();
+            return;
         } 
         
         let page0 = self.opcode_reg & 0x1000_u16;
@@ -93,6 +103,7 @@ impl Vm {
             // cmov
         } else {
             // reserved
+            p0_reserved_instruction();
         }
 
         let page1 = self.opcode_reg & 0x0100_u16;
