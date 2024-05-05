@@ -5,11 +5,11 @@ mod glass_16;
 use raylib::prelude::*;
 
 fn main() {
-    let (mut rl, thread) = raylib::init()
-        .size(640, 480)
-        .title("GTV")
-        .vsync()
-        .build();
+    let mut memory = vec![0u8; 0x100];
+    let mut vm = glass_16::Vm::new();
+    vm.step(&mut memory);
+
+    let (mut rl, thread) = raylib::init().size(640, 480).title("GTV").vsync().build();
 
     while !rl.window_should_close() {
         let mut d = rl.begin_drawing(&thread);
