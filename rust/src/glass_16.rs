@@ -50,7 +50,9 @@ impl Vm {
         self.execute_instruction_and_flag_behaviour(memory);
     }
 
-    pub fn get_vm_regs_opcode_operand(&self) -> ([u16; 16], u16, u16) {
+    // -- Utility --------------------------------------------------------------
+
+    fn get_vm_regs_opcode_operand(&self) -> ([u16; 16], u16, u16) {
         (self.registers, self.opcode_reg, self.operand_reg)
     }
 
@@ -73,16 +75,26 @@ impl Vm {
         
         return false;
     }
+    
+    fn flags_set_hi(&mut self, flag: u16) {
+        self.registers[0xF] |= flag;
+    }
+
+    fn flags_set_lo(&mut self, flag: u16) {
+        self.registers[0xF] &= !flag;
+    }
+
+    // -- Utility --------------------------------------------------------------
 
     // -- Instruction page 0 instructions --------------------------------------
 
     fn p0_zero_trap(&mut self) {
-        self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO_EQUAL;
-        self.registers[0xF] &= !Vm::MASK_RESERVED_INSTRUCTION;
+        self.flags_set_hi(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO_EQUAL);
+        self.flags_set_lo(Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p0_reserved_instruction(&mut self) {
-        self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION;
+        self.flags_set_hi(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn get_opcode_nibbles(&self) -> (usize, usize, usize, usize) {
@@ -99,15 +111,15 @@ impl Vm {
 
         let res = self.registers[y] as u32 + self.registers[z] as u32;
         if res > 0xFFFF_u32 {
-            self.registers[0xF] |= Vm::MASK_OVERFLOW;
+            self.flags_set_hi(Vm::MASK_OVERFLOW);
         } else if res == 0 {
-            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
         } else {
-            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
         }
         
         self.registers[x] = res as u16;
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p0_subr(&mut self) {
@@ -115,15 +127,15 @@ impl Vm {
         
         let res = self.registers[y] as i32 - self.registers[z] as i32;
         if res < i16::MIN as i32 {
-            self.registers[0xF] |= Vm::MASK_OVERFLOW;
+            self.flags_set_hi(Vm::MASK_OVERFLOW);
         } else if res == 0 {
-            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
         } else {
-            self.registers[0xF] &= !Vm::MASK_UNDERFLOW;
+            self.flags_set_lo(Vm::MASK_UNDERFLOW);
         }
 
         self.registers[x] = res as u16;
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p0_mulr(&mut self) {
@@ -131,26 +143,26 @@ impl Vm {
 
         let res = self.registers[x] as i32 * self.registers[y] as i32;
         if res == 0 { 
-            self.registers[0xF] |= Vm::MASK_ZERO_EQUAL;
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
         }
         
         self.registers[z] = (res & 0x0000_FFFF_u32 as i32) as u16;
         self.registers[y] = ((res & 0xFFFF_0000_u32 as i32) >> 16) as u16;
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p0_divr(&mut self) {
         let (_, x, y, z) = self.get_opcode_nibbles();
 
         if self.registers[z] == 0 {
-            self.registers[0xF] |= Vm::MASK_ZERO_DIV;
+            self.flags_set_hi(Vm::MASK_ZERO_DIV);
             self.registers[x] = i16::MAX as u16;
         } else {
             let result = self.registers[y] as i16 / self.registers[z] as i16;
             self.registers[x] = result as u16;
         }
 
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_hi(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p0_um2pr(&mut self) {
@@ -161,22 +173,22 @@ impl Vm {
             let res = self.registers[y] as u32 * (1_u32 << mag);
             
             if res > u16::MAX as u32 {
-                self.registers[0xF] |= Vm::MASK_OVERFLOW;
+                self.flags_set_hi(Vm::MASK_OVERFLOW);
             } else {
-                self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+                self.flags_set_lo(Vm::MASK_OVERFLOW);
             }
 
             res as u16
         } else if (self.registers[z] as i16) < 0_i16 {
             let res = self.registers[y] as u32 / (1_u32 << mag);
-            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
             res as u16
         } else {
-            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
             self.registers[x]
         };
 
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
     
     fn p0_sm2pr(&mut self) {
@@ -187,21 +199,21 @@ impl Vm {
             let res = self.registers[y] as i32 * (1_u32 << mag) as i32;
             
             if res > i16::MAX as i32 {
-                self.registers[0xF] |= Vm::MASK_OVERFLOW;
+                self.flags_set_hi(Vm::MASK_OVERFLOW);
             } else {
-                self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+                self.flags_set_lo(Vm::MASK_OVERFLOW);
             }
 
             res as u16
         } else if (self.registers[z] as i16) < 0_i16 {
             let res = self.registers[y] as i32 / (1_u32 << mag) as i32;
-            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
             res as u16
         } else {
-            self.registers[0xF] &= !Vm::MASK_OVERFLOW;
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
             self.registers[x]
         };
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
     
     fn p0_cmov(&mut self) {
@@ -211,15 +223,19 @@ impl Vm {
             self.registers[y] = self.registers[z];
         }
 
-        self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
     
     // -- Instruction page 0 instructions --------------------------------------
 
     // -- Instruction page 1 instructions --------------------------------------
     
-    fn p1_ldr(&mut self) {
+    fn p1_ldr(&mut self, memory: &mut Vec<u8>) {
         let (_, _, x, y) = self.get_opcode_nibbles();
+
+        if self.registers[y] == 0xFFFF {
+            //self.registers
+        }
     }
     
     // -- Instruction page 1 instructions --------------------------------------
