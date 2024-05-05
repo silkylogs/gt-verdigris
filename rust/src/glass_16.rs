@@ -8,7 +8,7 @@ struct Vm {
 }
 
 impl Vm {
-    const VERSION: [u8; 8] = [0x47, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01];
+    const VERSION: [u16; 4] = [0x4710, 0x0001, 0x0000, 0x0001];
     const MASK_ZERO_EQUAL: u16 = 0b0000_0000_0000_0001;
     const MASK_GREATER_THAN: u16 = 0b0000_0000_0000_0010;
     const MASK_LESS_THAN: u16 = 0b0000_0000_0000_0100;
@@ -50,6 +50,10 @@ impl Vm {
         self.execute_instruction_and_flag_behaviour(memory);
     }
 
+    pub fn get_vm_regs_opcode_operand(&self) -> ([u16; 16], u16, u16) {
+        (self.registers, self.opcode_reg, self.operand_reg)
+    }
+
     fn should_fetch_operand(&self) -> bool {
         let page2 = self.opcode_reg & 0x00F0_u16;
         if page2 == 0x0000
@@ -70,6 +74,8 @@ impl Vm {
         return false;
     }
 
+    // -- Instruction page 0 instructions --------------------------------------
+
     fn p0_zero_trap(&mut self) {
         self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_ZERO_EQUAL;
         self.registers[0xF] &= !Vm::MASK_RESERVED_INSTRUCTION;
@@ -79,10 +85,17 @@ impl Vm {
         self.registers[0xF] |= Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION;
     }
 
+    fn get_opcode_nibbles(&self) -> (usize, usize, usize, usize) {
+        (
+            ((self.opcode_reg & 0xF000_u16) >> 12) as usize,
+            ((self.opcode_reg & 0x0F00_u16) >> 8) as usize,
+            ((self.opcode_reg & 0x00F0_u16) >> 4) as usize,
+            ((self.opcode_reg & 0x000F_u16)) as usize,
+        )
+    }
+
     fn p0_addr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         let res = self.registers[y] as u32 + self.registers[z] as u32;
         if res > 0xFFFF_u32 {
@@ -98,9 +111,7 @@ impl Vm {
     }
 
     fn p0_subr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
         
         let res = self.registers[y] as i32 - self.registers[z] as i32;
         if res < i16::MIN as i32 {
@@ -116,9 +127,7 @@ impl Vm {
     }
 
     fn p0_mulr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         let res = self.registers[x] as i32 * self.registers[y] as i32;
         if res == 0 { 
@@ -131,9 +140,7 @@ impl Vm {
     }
 
     fn p0_divr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         if self.registers[z] == 0 {
             self.registers[0xF] |= Vm::MASK_ZERO_DIV;
@@ -147,9 +154,7 @@ impl Vm {
     }
 
     fn p0_um2pr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         let mag = self.registers[z] & 0x7FFF_u16;
         self.registers[x] = if self.registers[z] as i16 > 0 {
@@ -175,9 +180,7 @@ impl Vm {
     }
     
     fn p0_sm2pr(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         let mag = self.registers[z] & 0x7FFF_u16;
         self.registers[x] = if self.registers[z] as i16 > 0 {
@@ -202,9 +205,7 @@ impl Vm {
     }
     
     fn p0_cmov(&mut self) {
-        let x = ((self.opcode_reg & 0x0F00_u16) >> 8) as usize;
-        let y = ((self.opcode_reg & 0x0F00_u16) >> 4) as usize;
-        let z = ((self.opcode_reg & 0x0F00_u16)) as usize;
+        let (_, x, y, z) = self.get_opcode_nibbles();
 
         if 1 == self.registers[0xF] << x {
             self.registers[y] = self.registers[z];
@@ -213,6 +214,22 @@ impl Vm {
         self.registers[0xF] &= !(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
     
+    // -- Instruction page 0 instructions --------------------------------------
+
+    // -- Instruction page 1 instructions --------------------------------------
+    
+    fn p1_ldr(&mut self) {
+        let (_, _, x, y) = self.get_opcode_nibbles();
+    }
+    
+    // -- Instruction page 1 instructions --------------------------------------
+
+    // -- Instruction page 2 instructions --------------------------------------
+    // -- Instruction page 2 instructions --------------------------------------
+
+    // -- Instruction page 3 instructions --------------------------------------
+    // -- Instruction page 3 instructions --------------------------------------
+
     fn execute_instruction_and_flag_behaviour(&mut self, memory: &mut Vec<u8>) {
         if self.opcode_reg == 0x0000_u16 {
             self.p0_zero_trap();
