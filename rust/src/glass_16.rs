@@ -270,6 +270,8 @@ impl Vm {
             Some(r) => *r = nib_lo,
             None => {}
         }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
     fn p1_movr(&mut self) {
@@ -374,6 +376,59 @@ impl Vm {
     // -- Instruction page 1 instructions --------------------------------------
 
     // -- Instruction page 2 instructions --------------------------------------
+    
+    fn p2_ldc(&mut self, memory: &mut Vec<u8>) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+
+        let nib_hi = *memory.get(self.operand_reg as usize).unwrap_or(&0_u8);
+        let nib_lo = *memory
+            .get(self.operand_reg.wrapping_add(1) as usize)
+            .unwrap_or(&0_u8);
+        if self.operand_reg == 0xFFFF {
+            self.flags_set_hi(Vm::MASK_OVERFLOW);
+            self.registers[x] = (nib_hi as u16) << 8u16 | nib_lo as u16;
+        } else {
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
+            self.registers[x] = (nib_hi as u16) << 8u16 | nib_lo as u16;
+        }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p2_stoc(&mut self, memory: &mut Vec<u8>) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+
+        let nib_hi = ((self.registers[x] & 0xFF00) >> 8) as u8;
+        let nib_lo = (self.registers[x] & 0x00FF) as u8;
+
+        if self.operand_reg == 0xFFFF {
+            self.flags_set_hi(Vm::MASK_OVERFLOW);
+        } else {
+            self.flags_set_lo(Vm::MASK_OVERFLOW);
+        }
+
+        match memory.get_mut(self.operand_reg as usize) {
+            Some(r) => *r = nib_hi,
+            None => {}
+        }
+        match memory.get_mut(self.operand_reg.wrapping_add(1) as usize) {
+            Some(r) => *r = nib_lo,
+            None => {}
+        }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p2_movc(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.registers[x] = self.operand_reg;
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p2_reserved_instruction(&mut self) {
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
     // -- Instruction page 2 instructions --------------------------------------
 
     // -- Instruction page 3 instructions --------------------------------------

@@ -322,18 +322,20 @@ Flag behaviour: - invalid_instruction: 1
 Instruction page 2:
 --------------------
 - ldc X const
-Full name: load constant to register
+Full name: load constant address to register
 Encoding: FF 0X cc cc
-Description: Copies the constant to the register X.
+Description: Copies the address in constant to the register X.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
+                - overflow: if const == 0xFFFF then 1 else 0  
 
 - stoc X const
 Full name: store register to address
 Encoding: FF 1X cc cc
 Description: Writes the contents of the register X to the constant address.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0                
+                - reserved_instruction: 0
+                - overflow: if const == 0xFFFF then 1 else 0  
 
 - movc X const
 Full name: move constant to register
