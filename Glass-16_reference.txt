@@ -77,10 +77,10 @@ For reading convenience, they are grouped in categories known as
 | Fx RR       | Page 1            |
 |_____________|___________________|
 | FF xR       | Page 2            |
-| FF xR cc cc |                   | 
+| FF xR cc cc |                   |
 |_____________|___________________|
 | FF Fx       | Page 3            |
-| FF Fx cc cc |                   | 
+| FF Fx cc cc |                   |
 \_____________|___________________/
 Key:
 - x: any hexadecimal literal between 1 to E inclusive
@@ -327,7 +327,7 @@ Encoding: FF 0X cc cc
 Description: Copies the address in constant to the register X.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                - overflow: if const == 0xFFFF then 1 else 0  
+                - overflow: if const == 0xFFFF then 1 else 0
 
 - stoc X const
 Full name: store register to address
@@ -335,7 +335,7 @@ Encoding: FF 1X cc cc
 Description: Writes the contents of the register X to the constant address.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                - overflow: if const == 0xFFFF then 1 else 0  
+                - overflow: if const == 0xFFFF then 1 else 0
 
 - movc X const
 Full name: move constant to register
@@ -343,7 +343,7 @@ Encoding: FF 2X cc cc
 Description: Copies the constant provided in the instruction to the register X.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                
+
 Note: Unconditional jump is simulated by setting X to 0xE, that is, using RE/RIP
       as the operand register.
 
@@ -356,7 +356,7 @@ Flag behaviour: - invalid_instruction: 0
                 - equal: if X-Y == 0 then 1 else 0
                 - greater_than: if ((X-Y) & 0x8000) == 0 then 1 else 0
                 - less_than: if ((X-Y) & 0x8000) != 0 then 1 else 0
-                
+
 - andc X const
 Full name: binary and constant
 Encoding: FF 4X cc cc
@@ -365,7 +365,7 @@ Description: Computes the binary AND operation of the contents of register X
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
                 - equal: if result == 0 then 1 else 0
-                
+
 
 - orc X const
 Full name: binary or constant
@@ -374,7 +374,7 @@ Description: Computes the binary OR operation of the contents of register X
              and the constant, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-              
+
 - xorc X const
 Full name: binary xor constant
 Encoding: FF 6X cc cc
@@ -383,8 +383,8 @@ Description: Computes the binary XOR operation of the contents of register X
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
                 - equal: if result == 0 then 1 else 0
-                
-- notr X 
+
+- notr X
 Full name: binary not register
 Encoding: FF 7X
 Description: Computes the binary NOT operation of the contents of register X,
@@ -414,7 +414,7 @@ Description: Writes the contents of registers R0 through RF in order
              at address in constant, writing 32 bytes in total.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                
+
 - dumpversion const
 Full name: Dump machine version
 Encoding FF F2 cc cc
@@ -429,7 +429,7 @@ Description: Writes the version identifier of this language to the address in
              0x4710_0001_0000_0001.
 Flag behaviour: - invalid_instruction: 0
                 - reserved_instruction: 0
-                
+
 - reserved_instruction
 Full name: reserved instruction
 Encoding: FF F3 through FF FE

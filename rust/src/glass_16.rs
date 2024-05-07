@@ -8,7 +8,7 @@ pub struct Vm {
 }
 
 impl Vm {
-    const VERSION: [u16; 4] = [0x4710, 0x0001, 0x0000, 0x0001];
+    const VERSION: [u8; 8] = [0x47, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01];
     const MASK_ZERO_EQUAL: u16 = 0b0000_0000_0000_0001;
     const MASK_GREATER_THAN: u16 = 0b0000_0000_0000_0010;
     const MASK_LESS_THAN: u16 = 0b0000_0000_0000_0100;
@@ -425,6 +425,63 @@ impl Vm {
         self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
 
+    fn p2_cmpc(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.flags_set_lo(
+            Vm::MASK_INVALID_INSTRUCTION
+                | Vm::MASK_RESERVED_INSTRUCTION
+                | Vm::MASK_GREATER_THAN
+                | Vm::MASK_LESS_THAN
+                | Vm::MASK_ZERO_EQUAL,
+        );
+
+        if self.registers[x] > self.operand_reg {
+            self.flags_set_hi(Vm::MASK_GREATER_THAN);
+        } else if self.registers[x] < self.operand_reg {
+            self.flags_set_hi(Vm::MASK_LESS_THAN);
+        } else {
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
+        }
+    }
+
+    fn p2_andc(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.registers[x] &= self.operand_reg;
+
+        if 0 == self.registers[x] {
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
+        } else {
+            self.flags_set_lo(Vm::MASK_ZERO_EQUAL);
+        }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+    
+    fn p2_orc(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.registers[x] |= self.operand_reg;
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p2_xorc(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.registers[x] ^= self.operand_reg;
+        
+        if 0 == self.registers[x] {
+            self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
+        } else {
+            self.flags_set_lo(Vm::MASK_ZERO_EQUAL);
+        }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p2_notr(&mut self) {
+        let (_, _, _, x) = self.get_opcode_nibbles();
+        self.registers[x] = !self.registers[x];
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
     fn p2_reserved_instruction(&mut self) {
         self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
@@ -432,6 +489,46 @@ impl Vm {
     // -- Instruction page 2 instructions --------------------------------------
 
     // -- Instruction page 3 instructions --------------------------------------
+
+    fn p3_nop(&mut self) { }
+
+    fn p3_dumpregs(&mut self, memory: &mut Vec<u8>) {
+        for (i, reg) in self.registers.iter().enumerate() {
+            match memory.get_mut(self.operand_reg.wrapping_add(i as u16) as usize) {
+                Some(r) => *r = {
+                    let is_hi = i%2 == 1;
+                    if is_hi {
+                        ((reg & 0xFF00) >> 8) as u8
+                    }
+                    else {
+                        (reg & 0xFF) as u8
+                    }
+                },
+                None => {}
+            }
+        }
+
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p3_dumpversion(&mut self, memory: &mut Vec<u8>) {
+        for (i, byte) in Vm::VERSION.iter().enumerate() {
+            match memory.get_mut(self.operand_reg.wrapping_add(i as u16) as usize) {
+                Some(r) => *r = *byte,
+                None => {}
+            }
+        }
+        self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p3_reserved_instruction(&mut self) {
+        self.flags_set_hi(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
+    fn p3_reserved_instruction_future(&mut self) {
+        self.flags_set_hi(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
+    }
+
     // -- Instruction page 3 instructions --------------------------------------
 
     fn execute_instruction_and_flag_behaviour(&mut self, memory: &mut Vec<u8>) {
@@ -492,36 +589,36 @@ impl Vm {
 
         let page2 = self.opcode_reg & 0x0010_u16;
         if page2 == 0x0000_u16 {
-            // ldc
+            self.p2_ldc(memory);
         } else if page2 == 0x0010_u16 {
-            // stoc
+            self.p2_stoc(memory);
         } else if page2 == 0x0020_u16 {
-            // movc
+            self.p2_movc();
         } else if page2 == 0x0030_u16 {
-            // cmpc
+            self.p2_cmpc();
         } else if page2 == 0x0040_u16 {
-            // andc
+            self.p2_andc();
         } else if page2 == 0x0050_u16 {
-            // orc
+            self.p2_orc();
         } else if page2 == 0x0060_u16 {
-            // xorc
+            self.p2_xorc();
         } else if page2 == 0x0070_u16 {
-            // notr
+            self.p2_notr();
         } else {
-            // reserved
+            self.p2_reserved_instruction();
         }
 
         let page3 = self.opcode_reg & 0x0001_u16;
         if page3 == 0x0000_u16 {
-            // nop
+            self.p3_nop();
         } else if page3 == 0x0001_u16 {
-            // dumpregs
+            self.p3_dumpregs(memory);
         } else if page3 == 0x0002_u16 {
-            // dumpversion
+            self.p3_dumpversion(memory);
         } else if page3 == 0x000F_u16 {
-            // reserved_future
+            self.p3_reserved_instruction_future();
         } else {
-            // reserved
+            self.p3_reserved_instruction();
         }
     }
 }
