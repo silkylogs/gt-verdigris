@@ -5,18 +5,31 @@ mod glass_16;
 use raylib::prelude::*;
 
 fn main() {
-    let mut memory = vec![0u8; 0x100];
+    #[rustfmt::skip]
+    let mut memory: Vec<u8> = vec![
+        0x2E, 0xFF, 0x00, 0x00
+    ];
     let mut vm = glass_16::Vm::new();
-    vm.step(&mut memory);
 
     let (mut rl, thread) = raylib::init().size(640, 480).title("GTV").vsync().build();
 
     while !rl.window_should_close() {
-        let mut d = rl.begin_drawing(&thread);
+        vm.step(&mut memory);
+        println!("{}", vm.formatted_registers());
 
-        //handle_input();
+        // let mut d = rl.begin_drawing(&thread);
+        // d.clear_background(Color::BLACK);
 
-        d.clear_background(Color::BLACK);
-        d.draw_text("Hell", 12, 12, 24, Color::WHITE);
+        // let width = 200;
+        // let height = 100;
+        // let off_x = 000;
+        // let off_y = 000;
+        // for i in 0..=width * height {
+        //     let x = i % width + off_x;
+        //     let y = i / width + off_y;
+        //     d.draw_pixel(x, y, Color::new(x as u8, y as u8, 0xFF, 0xFF));
+        // }
+
+        //d.draw_text("Hell", 12, 12, 24, Color::WHITE);
     }
 }

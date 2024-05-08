@@ -50,6 +50,10 @@ impl Vm {
         self.execute_instruction_and_flag_behaviour(memory);
     }
 
+    pub fn formatted_registers(&self) -> String {
+        todo!();
+    }
+
     // -- Utility --------------------------------------------------------------
 
     fn get_vm_regs_opcode_operand(&self) -> ([u16; 16], u16, u16) {
@@ -343,7 +347,7 @@ impl Vm {
     fn p1_xorr(&mut self) {
         let (_, _, x, y) = self.get_opcode_nibbles();
         self.registers[x] ^= self.registers[y];
-        
+
         if 0 == self.registers[x] {
             self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
         } else {
@@ -376,7 +380,7 @@ impl Vm {
     // -- Instruction page 1 instructions --------------------------------------
 
     // -- Instruction page 2 instructions --------------------------------------
-    
+
     fn p2_ldc(&mut self, memory: &mut Vec<u8>) {
         let (_, _, _, x) = self.get_opcode_nibbles();
 
@@ -456,7 +460,7 @@ impl Vm {
 
         self.flags_set_lo(Vm::MASK_INVALID_INSTRUCTION | Vm::MASK_RESERVED_INSTRUCTION);
     }
-    
+
     fn p2_orc(&mut self) {
         let (_, _, _, x) = self.get_opcode_nibbles();
         self.registers[x] |= self.operand_reg;
@@ -466,7 +470,7 @@ impl Vm {
     fn p2_xorc(&mut self) {
         let (_, _, _, x) = self.get_opcode_nibbles();
         self.registers[x] ^= self.operand_reg;
-        
+
         if 0 == self.registers[x] {
             self.flags_set_hi(Vm::MASK_ZERO_EQUAL);
         } else {
@@ -490,20 +494,21 @@ impl Vm {
 
     // -- Instruction page 3 instructions --------------------------------------
 
-    fn p3_nop(&mut self) { }
+    fn p3_nop(&mut self) {}
 
     fn p3_dumpregs(&mut self, memory: &mut Vec<u8>) {
         for (i, reg) in self.registers.iter().enumerate() {
             match memory.get_mut(self.operand_reg.wrapping_add(i as u16) as usize) {
-                Some(r) => *r = {
-                    let is_hi = i%2 == 1;
-                    if is_hi {
-                        ((reg & 0xFF00) >> 8) as u8
+                Some(r) => {
+                    *r = {
+                        let is_hi = i % 2 == 1;
+                        if is_hi {
+                            ((reg & 0xFF00) >> 8) as u8
+                        } else {
+                            (reg & 0xFF) as u8
+                        }
                     }
-                    else {
-                        (reg & 0xFF) as u8
-                    }
-                },
+                }
                 None => {}
             }
         }
