@@ -90,112 +90,112 @@ Key:
 
 --[ Glass-16 instruction list ]-------------------------------------------------
 Note: The other flags not mentioned in the "Flag behaviour" field remains
-      unchanged after execution of the instruction.
+	  unchanged after execution of the instruction.
 Instruction page 0:
 --------------------
 - zero_trap_instruction
 Full name: zero trap instruction
-Encoding 00 00
+Encoding: 00 00
 Description: This is a "trap bit" combination, intended to catch bugs.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 0
-                - zero: 1
+				- reserved_instruction: 0
+				- zero: 1
 
 - reserved_instruction
 Full name: reserved instruction
 Encoding: 0X YZ
 Description: These bit combinations, where nibbles X, Y, and Z are nonzero,
-             are currently reserved.
+			 are currently reserved.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 - addr X Y Z
 Full name: add register
 Encoding: 1X YZ
 Description: Adds registers Y and Z, then stores the result in X (X = Y + Z).
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if result as u32 > 0xFFFF then 1 else 0
-                - zero: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if result as u32 > 0xFFFF then 1 else 0
+				- zero: if result == 0 then 1 else 0
 
 - subr X Y Z
 Full name: subtract register
 Encoding: 2X YZ
 Description: Subtracts registers Z from Y, then stores the result in X.
-             (X = Y - Z).
+			 (X = Y - Z).
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - underflow: if underflow then 1 else 0
-                - zero: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- underflow: if underflow then 1 else 0
+				- zero: if result == 0 then 1 else 0
 
 - mulr X Y Z
 Full name: multiply register
 Encoding: 3X YZ
 Description: Signed multiplies registers X with Y,
-             storing the result in conjoined register Y:Z.
-             (Y:Z = X * Y).
+			 storing the result in conjoined register Y:Z.
+			 (Y:Z = X * Y).
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - zero: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- zero: if result == 0 then 1 else 0
 
 - divr X Y Z
 Full name: divide register
 Encoding: 4X YZ
 Description: Signed divides registers Y with Z, storing the result in X.
-             (X = Y / Z).
-             If Z is zero, X is set to the maximum or minimum signed
-             integer depending on whether Y was positive or negative
-             respectively to approximate the value of infinity, albeit crudely.
+			 (X = Y / Z).
+			 If Z is zero, X is set to the maximum or minimum signed
+			 integer depending on whether Y was positive or negative
+			 respectively to approximate the value of infinity, albeit crudely.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - zero_div: if Z == 0 then 1 else 0
+				- reserved_instruction: 0
+				- zero_div: if Z == 0 then 1 else 0
 
 - um2pr X Y Z
 Full name: unsigned multiply two to the power register
 Encoding: 5X YZ
 Description: Multiplies registers Y with 2^Z, then assigns the result to X.
-             Y interpreted as a twos complement signed binary number,
-             while X and Z are the same but unsigned.
-             Note that this is exactly equivalent to a logical shift, where
-             the shift's magnitude is determined by the constant's magnitude,
-             the shift's direction is determined by the constant's sign bit and
-             a positive value shifts left, else shifts right. For this reason
-             expect numerical accuracy loss upon performing division.
+			 Y interpreted as a twos complement signed binary number,
+			 while X and Z are the same but unsigned.
+			 Note that this is exactly equivalent to a logical shift, where
+			 the shift's magnitude is determined by the constant's magnitude,
+			 the shift's direction is determined by the constant's sign bit and
+			 a positive value shifts left, else shifts right. For this reason
+			 expect numerical accuracy loss upon performing division.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if result overflows then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if result overflows then 1 else 0
 
 - sm2pr X Y Z
 Full name: signed multiply two to the power register
 Encoding: 6X YZ
 Description: Multiplies registers Y with 2^Z, then assigns the result to X.
-             X, Y and Z are interpreted as signed twos complement numbers.
-             Note that this is exactly equivalent to a arithmetic shift, where
-             the shift's magnitude is determined by the constant's magnitude,
-             the shift's direction is determined by the constant's sign bit and
-             a positive value shifts left, else shifts right. For this reason
-             expect numerical accuracy loss upon performing division.
+			 X, Y and Z are interpreted as signed twos complement numbers.
+			 Note that this is exactly equivalent to a arithmetic shift, where
+			 the shift's magnitude is determined by the constant's magnitude,
+			 the shift's direction is determined by the constant's sign bit and
+			 a positive value shifts left, else shifts right. For this reason
+			 expect numerical accuracy loss upon performing division.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if result overflows then 1 else 0
-                - underflow: if result underflows then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if result overflows then 1 else 0
+				- underflow: if result underflows then 1 else 0
 
 - cmov X Y Z
 Full name: conditional move
 Encoding: 7X YZ
 Description: Conditionally copies registers Z to Y, using the nibble positioned
-             at X as the condition. (if (1 == RFLAGS[X]) Y = Z).
-             X acts as an big endian index to RFLAGS, and its range is
-             guaranteed to be [0, F]
+			 at X as the condition. (if (1 == RFLAGS[X]) Y = Z).
+			 X acts as an big endian index to RFLAGS, and its range is
+			 guaranteed to be [0, F]
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - reserved_instruction X Y Z
 Full name: reserved instruction
 Encoding: 8X YZ through EX YZ
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 Instruction page 1:
 --------------------
@@ -204,120 +204,120 @@ Full name: load register from pointer
 Encoding: F0 XY
 Description: Reads the contents of X from the memory address pointed to by Y.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if Y == 0xFFFF then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if Y == 0xFFFF then 1 else 0
 
 - stor X Y
 Full name: store register to pointer
 Encoding: F1 XY
 Description: Writes the contents of X to the memory address pointed to by Y.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if Y == 0xFFFF then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if Y == 0xFFFF then 1 else 0
 
 - movr X Y
 Full name: move register to register
 Encoding: F2 XY
 Description: Copies register contents from Y to X. (X = Y)
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - cmpr X Y
 Full name: compare registers
 Encoding F3 XY
 Description: Subtracts register Y from X, discarding the result.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if X-Y == 0 then 1 else 0
-                - greater_than: if ((X-Y) & 0x8000) == 0 then 1 else 0
-                - less_than: if ((X-Y) & 0x8000) != 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if X-Y == 0 then 1 else 0
+				- greater_than: if ((X-Y) & 0x8000) == 0 then 1 else 0
+				- less_than: if ((X-Y) & 0x8000) != 0 then 1 else 0
 
 - lshl X Y
 Full name: logical shift left
 Encoding: F4 XY
 Description: Logically shifts register X by Y bits to the left,
-             where Y is an unsigned nibble in range [0, F].
+			 where Y is an unsigned nibble in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if result overflows then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if result overflows then 1 else 0
 
 - lshr X Y
 Full name: logical shift right
 Encoding: F5 XY
 Description: Logically shifts register X by Y bits to the right,
-             where Y is an unsigned nibble in range [0, F].
+			 where Y is an unsigned nibble in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - underflow: if result underflows then 1 else 0
+				- reserved_instruction: 0
+				- underflow: if result underflows then 1 else 0
 
 - ashl X Y
 Full name: arithmetic shift left
 Encoding: F6 XY
 Description: Multiplies register X by 2^Y, (X *= 2^Y)
-             where Y is an unsigned nibble in range [0, F].
+			 where Y is an unsigned nibble in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if result overflows then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if result overflows then 1 else 0
 
 - ashr X Y
 Full name: arithmetic shift right
 Encoding: F7 XY
 Description: Divides register X by 2^Y, (X /= 2^Y)
-             where Y is an unsigned nibble in range [0, F].
+			 where Y is an unsigned nibble in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - underflow: if result underflows then 1 else 0
+				- reserved_instruction: 0
+				- underflow: if result underflows then 1 else 0
 
 - andr X Y
 Full name: binary and register
 Encoding: F8 XY
 Description: Computes the binary AND operation of the contents of registers
-             X and Y, then stores the result to register X.
+			 X and Y, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if result == 0 then 1 else 0
 
 - orr X Y
 Full name: binary or register
 Encoding: F9 XY
 Description: Computes the binary OR operation of the contents of registers
-             X and Y, then stores the result to register X.
+			 X and Y, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - xorr X Y
 Full name: binary xor register
 Encoding: FA XY
 Description: Computes the binary XOR operation of the contents of registers
-             X and Y, then stores the result to register X.
+			 X and Y, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if result == 0 then 1 else 0
 
 - chkbit X Y
 Full name: check bit
 Encoding: FB XY
 Description: Checks whether bit X is set in Y, where X is a nibble.
-             This is intended to be used to probe the flags register.
-             X is guaranteed to be in range [0, F].
+			 This is intended to be used to probe the flags register.
+			 X is guaranteed to be in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if RF[X] == 1 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if RF[X] == 1 then 1 else 0
 
 - setbit X Y
 Full name: set bit
 Encoding: FC XY
 Description: Sets bit X in register Y, where X is a nibble.
-             X is guaranteed to be in range [0, F].
+			 X is guaranteed to be in range [0, F].
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - reserved_instruction X Y
 Full name: reserved instruction
 Encoding: FD XY through FE XY
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 Instruction page 2:
 --------------------
@@ -326,78 +326,78 @@ Full name: load constant address to register
 Encoding: FF 0X cc cc
 Description: Copies the address in constant to the register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if const == 0xFFFF then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if const == 0xFFFF then 1 else 0
 
 - stoc X const
 Full name: store register to address
 Encoding: FF 1X cc cc
 Description: Writes the contents of the register X to the constant address.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - overflow: if const == 0xFFFF then 1 else 0
+				- reserved_instruction: 0
+				- overflow: if const == 0xFFFF then 1 else 0
 
 - movc X const
 Full name: move constant to register
 Encoding: FF 2X cc cc
 Description: Copies the constant provided in the instruction to the register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 Note: Unconditional jump is simulated by setting X to 0xE, that is, using RE/RIP
-      as the operand register.
+	  as the operand register.
 
 - cmpc X const
 Full name: compare register with constant
 Encoding: FF 3X cc cc
 Description: Subtracts register X from the constant, discarding the result.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if X-Y == 0 then 1 else 0
-                - greater_than: if ((X-Y) & 0x8000) == 0 then 1 else 0
-                - less_than: if ((X-Y) & 0x8000) != 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if X-Y == 0 then 1 else 0
+				- greater_than: if ((X-Y) & 0x8000) == 0 then 1 else 0
+				- less_than: if ((X-Y) & 0x8000) != 0 then 1 else 0
 
 - andc X const
 Full name: binary and constant
 Encoding: FF 4X cc cc
 Description: Computes the binary AND operation of the contents of register X
-             and the constant, then stores the result to register X.
+			 and the constant, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if result == 0 then 1 else 0
 
 
 - orc X const
 Full name: binary or constant
 Encoding: FF 5X cc cc
 Description: Computes the binary OR operation of the contents of register X
-             and the constant, then stores the result to register X.
+			 and the constant, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - xorc X const
 Full name: binary xor constant
 Encoding: FF 6X cc cc
 Description: Computes the binary XOR operation of the contents of register X
-             and the constant, then stores the result to register X.
+			 and the constant, then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
-                - equal: if result == 0 then 1 else 0
+				- reserved_instruction: 0
+				- equal: if result == 0 then 1 else 0
 
 - notr X
 Full name: binary not register
 Encoding: FF 7X
 Description: Computes the binary NOT operation of the contents of register X,
-             then stores the result to register X.
+			 then stores the result to register X.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - reserved_instruction X
 Full name: reserved instruction
 Encoding: FF 8X through FF EX
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 Instruction page 3:
 --------------------
@@ -411,59 +411,59 @@ Flags set:
 Full name: Dump register info
 Encoding: FF F1 cc cc
 Description: Writes the contents of registers R0 through RF in order
-             at address in constant, writing 32 bytes in total.
+			 at address in constant, writing 32 bytes in total.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - dumpversion const
 Full name: Dump machine version
 Encoding FF F2 cc cc
 Description: Writes the version identifier of this language to the address in
-             constant.
-             The format is 'xxxx MMMM mmmm pppp', where
-             - xxxx: "Magic number" ('G' 16 => 0x47 0x10)
-             - MMMM: Semver major version
-             - mmmm: Semver minor version
-             - pppp: Semver patch version
-             For this version, the resulting data to be written is exactly
-             0x4710_0001_0000_0001.
+			 constant.
+			 The format is 'xxxx MMMM mmmm pppp', where
+			 - xxxx: "Magic number" ('G' 16 => 0x47 0x10)
+			 - MMMM: Semver major version
+			 - mmmm: Semver minor version
+			 - pppp: Semver patch version
+			 For this version, the resulting data to be written is exactly
+			 0x4710_0001_0000_0001.
 Flag behaviour: - invalid_instruction: 0
-                - reserved_instruction: 0
+				- reserved_instruction: 0
 
 - reserved_instruction
 Full name: reserved instruction
 Encoding: FF F3 through FF FE
 Description: These bit combinations are currently reserved.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 - reserved_instruction_future
 Full name: reserved instruction from a future version
 Encoding: FF FF
 Description: The language is trying to execute an instruction from a future
-             version of said language.
+			 version of said language.
 Flag behaviour: - invalid_instruction: 1
-                - reserved_instruction: 1
+				- reserved_instruction: 1
 
 ==[ Instruction execution cycle ]===============================================
 - Fetch 2 bytes from RIP to opcode register, increment RIP by 2,
   conditionally set overflow flag
 - Determine instruction page
   - Instruction page 0
-    The assumption is that X in X_ __ is between 0x0 and 0xE inclusive.
-    If X == 0xF, continue; else the instruction is in page 0.
+	The assumption is that X in X_ __ is between 0x0 and 0xE inclusive.
+	If X == 0xF, continue; else the instruction is in page 0.
   - Instruction page 1
-    The assumption is that X in FX __ is between 0x0 and 0xE inclusive.
-    If X == 0xF, continue; else the instruction is in page 1.
+	The assumption is that X in FX __ is between 0x0 and 0xE inclusive.
+	If X == 0xF, continue; else the instruction is in page 1.
   - Instruction page 2
-    The assumption is that X in FF X_ is between 0x0 and 0xE inclusive.
-    If X == 0xF, continue; else the instruction is in page 2.
+	The assumption is that X in FF X_ is between 0x0 and 0xE inclusive.
+	If X == 0xF, continue; else the instruction is in page 2.
   - Instruction page 3
-    The assumption is that X in FF FX is between 0x0 and 0xF inclusive.
-    Hence, instruction is in page 3.
+	The assumption is that X in FF FX is between 0x0 and 0xF inclusive.
+	Hence, instruction is in page 3.
 - Determine whether to fetch constant
   - Check whether instruction takes in a constant
   - If true, fetch 2 bytes from RIP to operand register, increment RIP by 2,
-    conditionally set overflow flag
+	conditionally set overflow flag
 - Execute the fetched instruction, and its flag behaviour
 - Repeat

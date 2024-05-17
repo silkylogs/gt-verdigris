@@ -223,6 +223,7 @@ impl Vm {
     fn p0_cmov(&mut self) {
         let (_, x, y, z) = self.get_opcode_nibbles();
 
+        todo!("This check is plain WRONG.");
         if 1 == self.registers[0xF] << x {
             self.registers[y] = self.registers[z];
         }
