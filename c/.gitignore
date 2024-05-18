@@ -2,3 +2,6 @@
 *.exe
 *.obj
 third_party/**
+.vscode
+*.ilk
+*.pdb
