@@ -1,6 +1,9 @@
 //#include <stdio.h>
 #include <raylib.h>
 
+typedef unsigned int uint32;
+typedef unsigned char byte;
+
 /* -- Colors ------------------------------------------------------------------------------------ */
 
 #define GTV_COLOR_PALETTE_COLLECTION_COUNT (0xF)
@@ -26,7 +29,18 @@ typedef struct GTV_ColorPaletteCollection {
 #define GTV_FRAMEBUFFER_WIDTH (0xFF)
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
 #define GTV_FRAMEBUFFER_SIZE_BYTES (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
-unsigned char g_framebuffer[GTV_FRAMEBUFFER_SIZE_BYTES];
+
+byte g_framebuffer[GTV_FRAMEBUFFER_SIZE_BYTES];
+void framebuffer_set_nibble(byte *framebuffer, uint32 nibble_idx, byte nibble) {
+    uint32 byte_idx = nibble_idx / 2;
+    uint32 high_nibble_chosen = (nibble_idx % 2)? 1 : 0;
+
+    if (high_nibble_chosen) {
+        // todo
+    }
+}
+
+void framebuffer_get_nibble();
 
 void draw_framebuffer_to_raylib_window(unsigned char *fb) {
     for (int y = 0; y < GTV_FRAMEBUFFER_HEIGHT; y++) {
