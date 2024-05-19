@@ -1,74 +1,65 @@
 //#include <stdio.h>
 #include <raylib.h>
+#include "GTV_game.h"
 
-typedef unsigned int uint32;
-typedef unsigned char byte;
+/* -- Utility ------------------------------------------------------------------------------------*/
 
-/* -- Colors ------------------------------------------------------------------------------------ */
+Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
+    Color raylib_color;
+    
+    raylib_color.r = gtv_color.r;
+    raylib_color.g = gtv_color.g;
+    raylib_color.b = gtv_color.b;
+    raylib_color.a = 0xFF;
 
-#define GTV_COLOR_PALETTE_COLLECTION_COUNT (0xF)
-#define GTV_COLOR_PALETTE_SIZE (0xF)
-
-typedef struct GTV_Color {
-    unsigned char r, g, b;
-} GTV_Color;
-
-typedef struct GTV_ColorPalette {
-    Color colors[GTV_COLOR_PALETTE_SIZE];
-} GTV_ColorPalette;
-
-typedef struct GTV_ColorPaletteCollection {
-    GTV_ColorPalette palettes[GTV_COLOR_PALETTE_COLLECTION_COUNT];
-    int current;
-} GTV_ColorPaletteCollection;
-
-/* -- Colors ------------------------------------------------------------------------------------ */
-
-/* -- Framebuffer ------------------------------------------------------------------------------- */
-
-#define GTV_FRAMEBUFFER_WIDTH (0xFF)
-#define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
-#define GTV_FRAMEBUFFER_SIZE_BYTES (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
-
-byte g_framebuffer[GTV_FRAMEBUFFER_SIZE_BYTES];
-void framebuffer_set_nibble(byte *framebuffer, uint32 nibble_idx, byte nibble) {
-    uint32 byte_idx = nibble_idx / 2;
-    uint32 high_nibble_chosen = (nibble_idx % 2)? 1 : 0;
-
-    if (high_nibble_chosen) {
-        // todo
-    }
+    return raylib_color;
 }
 
-void framebuffer_get_nibble();
-
-void draw_framebuffer_to_raylib_window(unsigned char *fb) {
-    for (int y = 0; y < GTV_FRAMEBUFFER_HEIGHT; y++) {
-        for (int x = 0; x < GTV_FRAMEBUFFER_WIDTH; x++) {
-            // int double_pixel_idx = y*GTV_FRAMEBUFFER_WIDTH + x;
-            // byte double_pixel = g_framebuffer[double_pixel_idx * 2]
-            
-            // byte nib_hi_color = (double_pixel & 0xF0) >> 4;
-
-
-            Color col = { x, y, 2, 0xFF };
-            DrawRectangle(x, y, 1, 1, col);
-        }
-    }
-}
-
-/* -- Framebuffer ------------------------------------------------------------------------------- */
+/* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Main -------------------------------------------------------------------------------------- */
 
 int main(void) {
-    InitWindow(GTV_FRAMEBUFFER_WIDTH, GTV_FRAMEBUFFER_HEIGHT, "Test");
+    GTV_ColorPalette this_palette = { 0 };
+    for (int c = 0; c < sizeof this_palette.colors; c += 1) {
+        this_palette.colors[c + 0].r = c * 0x2;
+        this_palette.colors[c + 0].g = c * 0x4;
+        this_palette.colors[c + 0].b = c * 0x8;
+    }
+
+    GTV_GameState state = { 0 };
+    state.should_exit = 0;
+    for (int c = 0; c < sizeof state.framebuffer; c++) {
+        state.framebuffer[c] = c;
+    }
+
+    InitWindow(GTV_FRAMEBUFFER_WIDTH, GTV_FRAMEBUFFER_HEIGHT, "Color cycling demo");
 
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(MAGENTA);
-        draw_framebuffer_to_raylib_window(g_framebuffer);
+
+        for (int i = 0; i < sizeof state.framebuffer; i++) {
+            Color raylib_color;
+            GTV_Color gtv_color;
+
+            gtv_color = this_palette.colors[state.framebuffer[i]];
+            raylib_color = GTV_Color_to_raylib_color(gtv_color);
+
+            int y = i / GTV_FRAMEBUFFER_WIDTH;
+            int x = i % GTV_FRAMEBUFFER_WIDTH;
+            
+            DrawRectangle(x, y, 1, 1, raylib_color);
+        }
+        
         EndDrawing();
+
+
+        for (int c = 0; c < sizeof this_palette.colors; c += 1) {
+            this_palette.colors[c + 0].r += 1;
+            this_palette.colors[c + 0].g += 2;
+            this_palette.colors[c + 0].b += 3;
+        }
     }
 
     CloseWindow();
