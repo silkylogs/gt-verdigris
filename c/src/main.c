@@ -27,6 +27,9 @@ int main(void) {
     GTV_GameState *state = malloc(sizeof (GTV_GameState));
     GTV_GameState_init(state);
     while (!WindowShouldClose()) {
+        // if (IsKeyReleased(KEY_E))
+        //     ToggleFullscreen();
+
         GTV_GameState_step(state);
 
         BeginDrawing();

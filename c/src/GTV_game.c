@@ -54,31 +54,20 @@ int framebuffer_set_pixel_xy(byte *fb, int x, int y, byte pixel) {
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
-/* -- Game -------------------------------------------------------------------------------------- */
+/* -- Sprites ----------------------------------------------------------------------------------- */
 
-void GTV_GameState_init(GTV_GameState *state) {
-    state->should_exit = 0;
-    
-    for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
-        state->current_palette.colors[c].r = (byte)c;
-        state->current_palette.colors[c].g = (byte)c;
-        state->current_palette.colors[c].b = (byte)c;
-    }
-}
+typedef struct GTV_Sprite {
+    int width, height, x, y;
+    byte *data;
+} GTV_Sprite;
 
 // TODO sprite manager
-int sprite_w = 16,
-    sprite_h = 16,
-    sprite_x = 0,
-    sprite_y = 0,
-    vx = 2,
-    vy = 1;
-byte sprite[16 * 16] = {
+byte sprite_data[16 * 16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,
-    0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
-    0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+    0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
+    0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
+    0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
     0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
     0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,  0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
@@ -93,41 +82,77 @@ byte sprite[16 * 16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
-void GTV_GameState_step(GTV_GameState *state) {
-    // Color cycling test
-    // for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
-    //     state->current_palette.colors[c].r++;
-    //     state->current_palette.colors[c].g += 1;
-    //     state->current_palette.colors[c].b += 1;
-    // }
-    state->current_palette.colors[0x00].r += 1;
-    state->current_palette.colors[0x00].g += 1;
-    state->current_palette.colors[0x00].b += 1;
-    state->current_palette.colors[0xFF].r += 2;
-    state->current_palette.colors[0xFF].g += 3;
-    state->current_palette.colors[0xFF].b += 4;
-    
 
+/* -- Sprites ----------------------------------------------------------------------------------- */
+
+/* -- Game -------------------------------------------------------------------------------------- */
+
+void GTV_GameState_init(GTV_GameState *state) {
+    state->should_exit = 0;
+    
+    for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
+        state->current_palette.colors[c].r = (byte)c;
+        state->current_palette.colors[c].g = (byte)c;
+        state->current_palette.colors[c].b = (byte)c;
+    }
+}
+
+void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite) {
+    for (int y = 0; y < sprite.height; y++) {
+        for (int x = 0; x < sprite.width; x++) {
+            byte pixel = sprite.data[y * sprite.width + x];
+            framebuffer_set_pixel_xy(
+                fb,
+                x + sprite.x,
+                y + sprite.y,
+                pixel
+            );
+        }
+    }
+}
+
+// Bouncing sprite test
+int vx = 2,
+    vy = 1,
+    px = 0,
+    py = 0;
+void GTV_GameState_step(GTV_GameState *state) {
+    // Bouncing sprite test
+    GTV_Sprite smiley = {
+        .width = 16, .height = 16,
+        .x = 0, .y = 0,
+        .data = sprite_data
+    };
+    if (px + smiley.width > GTV_FRAMEBUFFER_WIDTH || px < 0) vx *= -1;
+    if (py + smiley.height == GTV_FRAMEBUFFER_HEIGHT || py < 0) vy *= -1;
+    px += vx;
+    py += vy;
+    smiley.x = px;
+    smiley.y = py;
+
+    // Color cycling test
+    state->current_palette.colors[0xFF].r = smiley.x;
+    state->current_palette.colors[0xFF].g = smiley.y;
+    state->current_palette.colors[0xFF].b = smiley.x + smiley.y;
+    
     framebuffer_clear(state->framebuffer, 0);
     for (int c = 0; c < GTV_FRAMEBUFFER_ELEM_COUNT; c++) {
         int inter = c / GTV_FRAMEBUFFER_WIDTH;
         state->framebuffer[c] = (byte)inter;
     }
-
-    // Bouncing sprite test
-
-    if (sprite_x + sprite_w > GTV_FRAMEBUFFER_WIDTH || sprite_x < 0) vx *= -1;
-    if (sprite_y + sprite_h == GTV_FRAMEBUFFER_HEIGHT || sprite_y < 0) vy *= -1;
-    sprite_x += vx;
-    sprite_y += vy;
-
-    // blit sprite
-    for (int y = 0; y < sprite_h; y++) {
-        for (int x = 0; x < sprite_w; x++) {
-            byte pixel = sprite[y * sprite_w + x];
-            framebuffer_set_pixel_xy(state->framebuffer, x + sprite_x, y + sprite_y, pixel);
-        }
-    }
+    
+    // Blit sprite
+    GTV_Sprite_blit_to_framebuffer(state->framebuffer, smiley);
+    // for (int y = 0; y < smiley.height; y++) {
+    //     for (int x = 0; x < smiley.width; x++) {
+    //         byte pixel = smiley.data[y * smiley.width + x];
+    //         framebuffer_set_pixel_xy(
+    //             state->framebuffer,
+    //             x+smiley.x, y+smiley.y,
+    //             pixel
+    //         );
+    //     }
+    // }
 }
 
 
