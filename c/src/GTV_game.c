@@ -61,6 +61,20 @@ typedef struct GTV_Sprite {
     byte *data;
 } GTV_Sprite;
 
+void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite) {
+    for (int y = 0; y < sprite.height; y++) {
+        for (int x = 0; x < sprite.width; x++) {
+            byte pixel = sprite.data[y * sprite.width + x];
+            framebuffer_set_pixel_xy(
+                fb,
+                x + sprite.x,
+                y + sprite.y,
+                pixel
+            );
+        }
+    }
+}
+
 // TODO sprite manager
 byte sprite_data[16 * 16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -82,7 +96,6 @@ byte sprite_data[16 * 16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
-
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -94,20 +107,6 @@ void GTV_GameState_init(GTV_GameState *state) {
         state->current_palette.colors[c].r = (byte)c;
         state->current_palette.colors[c].g = (byte)c;
         state->current_palette.colors[c].b = (byte)c;
-    }
-}
-
-void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite) {
-    for (int y = 0; y < sprite.height; y++) {
-        for (int x = 0; x < sprite.width; x++) {
-            byte pixel = sprite.data[y * sprite.width + x];
-            framebuffer_set_pixel_xy(
-                fb,
-                x + sprite.x,
-                y + sprite.y,
-                pixel
-            );
-        }
     }
 }
 
@@ -135,6 +134,7 @@ void GTV_GameState_step(GTV_GameState *state) {
     state->current_palette.colors[0xFF].g = smiley.y;
     state->current_palette.colors[0xFF].b = smiley.x + smiley.y;
     
+    // Set framebuffer
     framebuffer_clear(state->framebuffer, 0);
     for (int c = 0; c < GTV_FRAMEBUFFER_ELEM_COUNT; c++) {
         int inter = c / GTV_FRAMEBUFFER_WIDTH;
@@ -143,16 +143,6 @@ void GTV_GameState_step(GTV_GameState *state) {
     
     // Blit sprite
     GTV_Sprite_blit_to_framebuffer(state->framebuffer, smiley);
-    // for (int y = 0; y < smiley.height; y++) {
-    //     for (int x = 0; x < smiley.width; x++) {
-    //         byte pixel = smiley.data[y * smiley.width + x];
-    //         framebuffer_set_pixel_xy(
-    //             state->framebuffer,
-    //             x+smiley.x, y+smiley.y,
-    //             pixel
-    //         );
-    //     }
-    // }
 }
 
 
