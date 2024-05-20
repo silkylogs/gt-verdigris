@@ -28,7 +28,7 @@ typedef struct GTV_ColorPaletteCollection {
 
 #define GTV_FRAMEBUFFER_WIDTH (0x100)
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
-#define GTV_FRAMEBUFFER_SIZE_BYTES (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
+#define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
 GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int idx);
 
@@ -38,10 +38,11 @@ GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette
 
 typedef struct GTV_GameState {
     int should_exit;
-    byte framebuffer[GTV_FRAMEBUFFER_SIZE_BYTES];
+    byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
+    GTV_ColorPalette current_palette;
 } GTV_GameState;
 
-GTV_GameState GTV_GameState_new(void);
+void GTV_GameState_init(GTV_GameState *);
 void GTV_GameState_step(GTV_GameState *);
 
 /* -- Game -------------------------------------------------------------------------------------- */

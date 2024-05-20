@@ -1,5 +1,6 @@
 //#include <stdio.h>
 #include <raylib.h>
+#include <stdlib.h>
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
@@ -20,50 +21,28 @@ Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
 /* -- Main -------------------------------------------------------------------------------------- */
 
 int main(void) {
-    GTV_ColorPalette this_palette = { 0 };
-    for (int c = 0; c < sizeof this_palette.colors; c += 1) {
-        this_palette.colors[c + 0].r = c * 0x2;
-        this_palette.colors[c + 0].g = c * 0x4;
-        this_palette.colors[c + 0].b = c * 0x8;
-    }
-
-    GTV_GameState state = { 0 };
-    state.should_exit = 0;
-    for (int c = 0; c < sizeof state.framebuffer; c++) {
-        state.framebuffer[c] = c;
-    }
-
     InitWindow(GTV_FRAMEBUFFER_WIDTH, GTV_FRAMEBUFFER_HEIGHT, "Color cycling demo");
+    //SetExitKey(KEY_NULL);
 
+    GTV_GameState *state = malloc(sizeof (GTV_GameState));
+    GTV_GameState_init(state);
     while (!WindowShouldClose()) {
+        GTV_GameState_step(state);
+
         BeginDrawing();
         ClearBackground(MAGENTA);
-
-        for (int i = 0; i < sizeof state.framebuffer; i++) {
-            Color raylib_color;
-            GTV_Color gtv_color;
-
-            gtv_color = this_palette.colors[state.framebuffer[i]];
-            raylib_color = GTV_Color_to_raylib_color(gtv_color);
-
+        for (int i = 0; i < sizeof state->framebuffer; i++) {
+            GTV_Color gtv_color = state->current_palette.colors[state->framebuffer[i]];
+            Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;
-            
             DrawRectangle(x, y, 1, 1, raylib_color);
         }
-        
         EndDrawing();
-
-
-        for (int c = 0; c < sizeof this_palette.colors; c += 1) {
-            this_palette.colors[c + 0].r += 1;
-            this_palette.colors[c + 0].g += 2;
-            this_palette.colors[c + 0].b += 3;
-        }
     }
 
     CloseWindow();
-
+    free(state);
     return 0;
 }
 
