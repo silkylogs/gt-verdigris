@@ -3,6 +3,17 @@
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
+// TODO replace malloc with an external (arena) allocator
+// TODO prefix file-local functions with either "static" or a suitable define
+
+static int int_to_fp(int integer, int scaling_factor) {
+    return integer * scaling_factor;
+} 
+
+static int fp_to_int(int fixed_point, int scaling_factor) {
+    return fixed_point / scaling_factor;
+}
+
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Colors ------------------------------------------------------------------------------------ */
@@ -102,7 +113,9 @@ byte sprite_data[16 * 16] = {
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
+#define SCALING_FACTOR ((int)16)
 typedef struct GTV_Player {
+    // Positional values are 16.16 fixed point
     int vx, vy, px, py;
     GTV_Sprite sprite;
 } GTV_Player;
@@ -112,35 +125,71 @@ struct GTV_PrivateGameState {
 };
 
 void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    state->player.vx = 2;
-    state->player.vy = 1;
-    state->player.px = 0;
-    state->player.py = 0;
+    state->player.vx = 0;
+    state->player.vy = 0;
+    state->player.px = 123;
+    state->player.py = 150;
 
     state->player.sprite.width = 16;
     state->player.sprite.height = 16;
     state->player.sprite.data = sprite_data;
 }
 
-void GTV_PrivateGameState_update(GTV_PrivateGameState *state) {
-    // Bouncing sprite test
-    if (
-        state->player.px + state->player.sprite.width > GTV_FRAMEBUFFER_WIDTH ||
-        state->player.px < 0
-    ) {
-        state->player.vx *= -1;
+// -- Basic platformer test ------------------------
+void GTV_PrivateGameState_update(GTV_PrivateGameState *state, GTV_KeyboardInput kb_input) {
+    state->player.px = int_to_fp(state->player.px, SCALING_FACTOR);
+    state->player.py = int_to_fp(state->player.py, SCALING_FACTOR);
+
+    // Axial input
+    if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
+        state->player.vx = int_to_fp(1, SCALING_FACTOR);
+    } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
+        state->player.vx = int_to_fp(-1, SCALING_FACTOR);
+    } else {
+        state->player.vx = 0;
     }
-    if (
-        state->player.py + state->player.sprite.height == GTV_FRAMEBUFFER_HEIGHT ||
-        state->player.py < 0
-    ) {
-        state->player.vy *= -1;
+    if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN]) {
+        state->player.vy = int_to_fp(1, SCALING_FACTOR);
+    } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
+        state->player.vy = int_to_fp(-1, SCALING_FACTOR);
+    } else {
+        state->player.vy = 0;
     }
+
+    // Rudimentary collision detection and handling
+    if (state->player.px + int_to_fp(state->player.sprite.width, SCALING_FACTOR) > int_to_fp(GTV_FRAMEBUFFER_WIDTH, SCALING_FACTOR)) {
+        printf("Right side collision\n");
+        state->player.px = int_to_fp(GTV_FRAMEBUFFER_WIDTH, SCALING_FACTOR) - int_to_fp(state->player.sprite.width, SCALING_FACTOR);
+        state->player.vx = 0;
+    }
+    if (state->player.px < 0) {
+        printf("Left side collision\n");
+        state->player.px = 0;
+        state->player.vx = 0;
+    }
+    if (state->player.py + int_to_fp(state->player.sprite.height, SCALING_FACTOR) > int_to_fp(GTV_FRAMEBUFFER_HEIGHT, SCALING_FACTOR)) {
+        printf("Bottom side collision\n");
+        state->player.py = int_to_fp(GTV_FRAMEBUFFER_WIDTH, SCALING_FACTOR) - int_to_fp(state->player.sprite.height, SCALING_FACTOR);
+        state->player.vy = 0;
+    }
+    if (state->player.py < 0) {
+        printf("Top side collision\n");
+        state->player.py = 0;
+        state->player.vy = 0;
+    }
+
     state->player.px += state->player.vx;
     state->player.py += state->player.vy;
 
-    // TODO make basic platformer
+    // printf("Before conversion: player.x = 0x%X (%d)\n", state->player.px, state->player.px);
+    // printf("Before conversion: player.y = 0x%X (%d)\n", state->player.py, state->player.py);
 
+    // Conversion to integer
+    state->player.px = fp_to_int(state->player.px, SCALING_FACTOR);
+    state->player.py = fp_to_int(state->player.py, SCALING_FACTOR);
+
+    // printf("After conversion: player.x = 0x%X (%d)\n", state->player.px, state->player.px);
+    // printf("After conversion: player.y = 0x%X (%d)\n", state->player.py, state->player.py);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -161,19 +210,19 @@ void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
 }
 
 void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
-    GTV_PrivateGameState_update(interface->private);
+    GTV_PrivateGameState_update(interface->private, interface->keyboard_input);
 
     // Input test
-    if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
-        interface->current_palette.colors[0xFF].r = 0x00;
-        interface->current_palette.colors[0xFF].g = 0xFF;
-        interface->current_palette.colors[0xFF].b = 0x00;
-    }
-    else {
-        interface->current_palette.colors[0xFF].r = 0xFF;
-        interface->current_palette.colors[0xFF].g = 0x00;
-        interface->current_palette.colors[0xFF].b = 0x00;
-    }
+    // if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
+    //     interface->current_palette.colors[0xFF].r = 0x00;
+    //     interface->current_palette.colors[0xFF].g = 0xFF;
+    //     interface->current_palette.colors[0xFF].b = 0x00;
+    // }
+    // else {
+    //     interface->current_palette.colors[0xFF].r = 0xFF;
+    //     interface->current_palette.colors[0xFF].g = 0x00;
+    //     interface->current_palette.colors[0xFF].b = 0x00;
+    // }
     // Input test
 
     // Color cycling test
