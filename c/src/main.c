@@ -24,18 +24,18 @@ int main(void) {
     InitWindow(GTV_FRAMEBUFFER_WIDTH, GTV_FRAMEBUFFER_HEIGHT, "Color cycling demo");
     //SetExitKey(KEY_NULL);
 
-    GTV_GameState *state = malloc(sizeof (GTV_GameState));
-    GTV_GameState_init(state);
+    GTV_GameStateInterface *interface = malloc(sizeof (GTV_GameStateInterface));
+    GTV_GameStateInterface_init(interface);
     while (!WindowShouldClose()) {
         // if (IsKeyReleased(KEY_E))
         //     ToggleFullscreen();
 
-        GTV_GameState_step(state);
+        GTV_GameStateInterface_update(interface);
 
         BeginDrawing();
         ClearBackground(MAGENTA);
-        for (int i = 0; i < sizeof state->framebuffer; i++) {
-            GTV_Color gtv_color = state->current_palette.colors[state->framebuffer[i]];
+        for (int i = 0; i < sizeof interface->framebuffer; i++) {
+            GTV_Color gtv_color = interface->current_palette.colors[interface->framebuffer[i]];
             Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;
@@ -45,7 +45,8 @@ int main(void) {
     }
 
     CloseWindow();
-    free(state);
+    GTV_GameStateInterface_cleanup(interface);
+    free(interface);
     return 0;
 }
 

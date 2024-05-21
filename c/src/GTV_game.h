@@ -36,14 +36,19 @@ GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
-typedef struct GTV_GameState {
+typedef struct GTV_PrivateGameState GTV_PrivateGameState;
+
+typedef struct GTV_GameStateInterface {
     int should_exit;
     byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
-} GTV_GameState;
 
-void GTV_GameState_init(GTV_GameState *);
-void GTV_GameState_step(GTV_GameState *);
+    GTV_PrivateGameState *private;
+} GTV_GameStateInterface;
+
+void GTV_GameStateInterface_init(GTV_GameStateInterface *);
+void GTV_GameStateInterface_update(GTV_GameStateInterface *);
+void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *);
 
 /* -- Game -------------------------------------------------------------------------------------- */
 

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
@@ -100,50 +101,93 @@ byte sprite_data[16 * 16] = {
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
-void GTV_GameState_init(GTV_GameState *state) {
-    state->should_exit = 0;
-    
-    for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
-        state->current_palette.colors[c].r = (byte)c;
-        state->current_palette.colors[c].g = (byte)c;
-        state->current_palette.colors[c].b = (byte)c;
-    }
+typedef struct GTV_Player {
+    int vx, vy, px, py;
+    GTV_Sprite sprite;
+} GTV_Player;
+
+struct GTV_PrivateGameState {
+    GTV_Player player;
+};
+
+// Bouncing sprite test
+void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
+    state->player.vx = 2;
+    state->player.vy = 1;
+    state->player.px = 0;
+    state->player.py = 0;
+
+    state->player.sprite.width = 16;
+    state->player.sprite.height = 16;
+    state->player.sprite.x = 0;
+    state->player.sprite.y = 0;
+    state->player.sprite.data = sprite_data;
+    // GTV_Sprite smiley = {
+    //     .width = 16, .height = 16,
+    //     .x = 0, .y = 0,
+    //     .data = sprite_data
+    // };
 }
 
 // Bouncing sprite test
-int vx = 2,
-    vy = 1,
-    px = 0,
-    py = 0;
-void GTV_GameState_step(GTV_GameState *state) {
-    // Bouncing sprite test
-    GTV_Sprite smiley = {
-        .width = 16, .height = 16,
-        .x = 0, .y = 0,
-        .data = sprite_data
-    };
-    if (px + smiley.width > GTV_FRAMEBUFFER_WIDTH || px < 0) vx *= -1;
-    if (py + smiley.height == GTV_FRAMEBUFFER_HEIGHT || py < 0) vy *= -1;
-    px += vx;
-    py += vy;
-    smiley.x = px;
-    smiley.y = py;
-
-    // Color cycling test
-    state->current_palette.colors[0xFF].r = smiley.x;
-    state->current_palette.colors[0xFF].g = smiley.y;
-    state->current_palette.colors[0xFF].b = smiley.x + smiley.y;
-    
-    // Set framebuffer
-    framebuffer_clear(state->framebuffer, 0);
-    for (int c = 0; c < GTV_FRAMEBUFFER_ELEM_COUNT; c++) {
-        int inter = c / GTV_FRAMEBUFFER_WIDTH;
-        state->framebuffer[c] = (byte)inter;
+void GTV_PrivateGameState_update(GTV_PrivateGameState *state) {
+    if (
+        state->player.px + state->player.sprite.width > GTV_FRAMEBUFFER_WIDTH ||
+        state->player.px < 0
+    ) {
+        state->player.vx *= -1;
     }
-    
-    // Blit sprite
-    GTV_Sprite_blit_to_framebuffer(state->framebuffer, smiley);
+    if (
+        state->player.py + state->player.sprite.height == GTV_FRAMEBUFFER_HEIGHT ||
+        state->player.py < 0
+    ) {
+        state->player.vy *= -1;
+    }
+    state->player.px += state->player.vx;
+    state->player.py += state->player.vy;
+
+    state->player.sprite.x = state->player.px;
+    state->player.sprite.y = state->player.py;
 }
 
-
 /* -- Game -------------------------------------------------------------------------------------- */
+
+/* -- Game state interface ---------------------------------------------------------------------- */
+
+void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
+    interface->should_exit = 0;
+    
+    for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
+        interface->current_palette.colors[c].r = (byte)c;
+        interface->current_palette.colors[c].g = (byte)c;
+        interface->current_palette.colors[c].b = (byte)c;
+    }
+
+    interface->private = malloc(sizeof (GTV_PrivateGameState));
+    GTV_PrivateGameState_init(interface->private);
+}
+
+void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
+    GTV_PrivateGameState_update(interface->private);
+
+    // Color cycling test
+    interface->current_palette.colors[0xFF].r = interface->private->player.sprite.x;
+    interface->current_palette.colors[0xFF].g = interface->private->player.sprite.y;
+    interface->current_palette.colors[0xFF].b = interface->private->player.sprite.x +
+                                                interface->private->player.sprite.y;
+    
+    // Set framebuffer
+    framebuffer_clear(interface->framebuffer, 0);
+    for (int c = 0; c < GTV_FRAMEBUFFER_ELEM_COUNT; c++) {
+        int inter = c / GTV_FRAMEBUFFER_WIDTH;
+        interface->framebuffer[c] = (byte)inter;
+    }
+    
+    GTV_Sprite_blit_to_framebuffer(interface->framebuffer, interface->private->player.sprite);
+}
+
+void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
+    free(interface->private);
+}
+
+/* -- Game state interface ---------------------------------------------------------------------- */
