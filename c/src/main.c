@@ -18,6 +18,17 @@ Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 
+/* -- Input ------------------------------------------------------------------------------------- */
+
+void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
+    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP] =     IsKeyDown(KEY_UP);
+    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN] =   IsKeyDown(KEY_DOWN);
+    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT] =   IsKeyDown(KEY_LEFT);
+    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT] =  IsKeyDown(KEY_RIGHT);
+}
+
+/* -- Input ------------------------------------------------------------------------------------- */
+
 /* -- Main -------------------------------------------------------------------------------------- */
 
 int main(void) {
@@ -30,6 +41,7 @@ int main(void) {
         // if (IsKeyReleased(KEY_E))
         //     ToggleFullscreen();
 
+        GTV_KeyboardInput_populate(&interface->keyboard_input);
         GTV_GameStateInterface_update(interface);
 
         BeginDrawing();

@@ -34,6 +34,23 @@ GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
+/* -- Input ------------------------------------------------------------------------------------- */
+
+enum GTV_KeyboardInputArrowKey {
+    GTV_KEYBOARD_INPUT_ARROW_KEY_UP = 0,
+    GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN = 1,
+    GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT = 2,
+    GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT = 3,
+};
+
+typedef struct GTV_KeyboardInput {
+    byte arrow_keys[4];
+} GTV_KeyboardInput;
+
+void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
+
+/* -- Input ------------------------------------------------------------------------------------- */
+
 /* -- Game -------------------------------------------------------------------------------------- */
 
 typedef struct GTV_PrivateGameState GTV_PrivateGameState;
@@ -42,6 +59,7 @@ typedef struct GTV_GameStateInterface {
     int should_exit;
     byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
+    GTV_KeyboardInput keyboard_input;
 
     GTV_PrivateGameState *private;
 } GTV_GameStateInterface;

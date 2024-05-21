@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "GTV_game.h"
 
@@ -110,7 +111,6 @@ struct GTV_PrivateGameState {
     GTV_Player player;
 };
 
-// Bouncing sprite test
 void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
     state->player.vx = 2;
     state->player.vy = 1;
@@ -122,8 +122,8 @@ void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
     state->player.sprite.data = sprite_data;
 }
 
-// Bouncing sprite test
 void GTV_PrivateGameState_update(GTV_PrivateGameState *state) {
+    // Bouncing sprite test
     if (
         state->player.px + state->player.sprite.width > GTV_FRAMEBUFFER_WIDTH ||
         state->player.px < 0
@@ -138,6 +138,9 @@ void GTV_PrivateGameState_update(GTV_PrivateGameState *state) {
     }
     state->player.px += state->player.vx;
     state->player.py += state->player.vy;
+
+    // TODO make basic platformer
+
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -160,11 +163,24 @@ void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
 void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
     GTV_PrivateGameState_update(interface->private);
 
+    // Input test
+    if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
+        interface->current_palette.colors[0xFF].r = 0x00;
+        interface->current_palette.colors[0xFF].g = 0xFF;
+        interface->current_palette.colors[0xFF].b = 0x00;
+    }
+    else {
+        interface->current_palette.colors[0xFF].r = 0xFF;
+        interface->current_palette.colors[0xFF].g = 0x00;
+        interface->current_palette.colors[0xFF].b = 0x00;
+    }
+    // Input test
+
     // Color cycling test
-    interface->current_palette.colors[0xFF].r = interface->private->player.px;
-    interface->current_palette.colors[0xFF].g = interface->private->player.py;
-    interface->current_palette.colors[0xFF].b = interface->private->player.px +
-                                                interface->private->player.py;
+    // interface->current_palette.colors[0xFF].r = interface->private->player.px;
+    // interface->current_palette.colors[0xFF].g = interface->private->player.py;
+    // interface->current_palette.colors[0xFF].b = interface->private->player.px +
+    //                                             interface->private->player.py;
     
     // Set framebuffer
     framebuffer_clear(interface->framebuffer, 0);
