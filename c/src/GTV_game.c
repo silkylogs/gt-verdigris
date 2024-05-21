@@ -58,18 +58,18 @@ int framebuffer_set_pixel_xy(byte *fb, int x, int y, byte pixel) {
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
 typedef struct GTV_Sprite {
-    int width, height, x, y;
+    int width, height;
     byte *data;
 } GTV_Sprite;
 
-void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite) {
+void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int pos_x, int pos_y) {
     for (int y = 0; y < sprite.height; y++) {
         for (int x = 0; x < sprite.width; x++) {
             byte pixel = sprite.data[y * sprite.width + x];
             framebuffer_set_pixel_xy(
                 fb,
-                x + sprite.x,
-                y + sprite.y,
+                x + pos_x,
+                y + pos_y,
                 pixel
             );
         }
@@ -119,14 +119,7 @@ void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
 
     state->player.sprite.width = 16;
     state->player.sprite.height = 16;
-    state->player.sprite.x = 0;
-    state->player.sprite.y = 0;
     state->player.sprite.data = sprite_data;
-    // GTV_Sprite smiley = {
-    //     .width = 16, .height = 16,
-    //     .x = 0, .y = 0,
-    //     .data = sprite_data
-    // };
 }
 
 // Bouncing sprite test
@@ -145,9 +138,6 @@ void GTV_PrivateGameState_update(GTV_PrivateGameState *state) {
     }
     state->player.px += state->player.vx;
     state->player.py += state->player.vy;
-
-    state->player.sprite.x = state->player.px;
-    state->player.sprite.y = state->player.py;
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -171,10 +161,10 @@ void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
     GTV_PrivateGameState_update(interface->private);
 
     // Color cycling test
-    interface->current_palette.colors[0xFF].r = interface->private->player.sprite.x;
-    interface->current_palette.colors[0xFF].g = interface->private->player.sprite.y;
-    interface->current_palette.colors[0xFF].b = interface->private->player.sprite.x +
-                                                interface->private->player.sprite.y;
+    interface->current_palette.colors[0xFF].r = interface->private->player.px;
+    interface->current_palette.colors[0xFF].g = interface->private->player.py;
+    interface->current_palette.colors[0xFF].b = interface->private->player.px +
+                                                interface->private->player.py;
     
     // Set framebuffer
     framebuffer_clear(interface->framebuffer, 0);
@@ -183,7 +173,12 @@ void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
         interface->framebuffer[c] = (byte)inter;
     }
     
-    GTV_Sprite_blit_to_framebuffer(interface->framebuffer, interface->private->player.sprite);
+    GTV_Sprite_blit_to_framebuffer(
+        interface->framebuffer,
+        interface->private->player.sprite,
+        interface->private->player.px,
+        interface->private->player.py
+    );
 }
 
 void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
