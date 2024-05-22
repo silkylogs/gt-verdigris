@@ -9,12 +9,14 @@
 // TODO prefix file-local functions with either "static" or a suitable define
 // TODO replace int with int32 (and int with bool)
 
-static int int_to_fp(int integer, int scaling_factor) {
-    return integer * scaling_factor;
+#define SCALING_FACTOR ((int)10)
+
+static int int_to_fp(int integer) {
+    return integer * SCALING_FACTOR;
 } 
 
-static int fp_to_int(int fixed_point, int scaling_factor) {
-    return fixed_point / scaling_factor;
+static int fp_to_int(int fixed_point) {
+    return fixed_point / SCALING_FACTOR;
 }
 
 /* -- Utility ------------------------------------------------------------------------------------*/
@@ -132,7 +134,6 @@ byte sprite_data[16 * 16] = {
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
-#define SCALING_FACTOR ((int)16)
 typedef struct GTV_Player {
     // Positional values are 16.16 fixed point
     // TODO replace `gravy` with `grav_y`
@@ -149,11 +150,11 @@ void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
     GTV_Player *player = &state->player;
     player->vx = 0;
     player->vy = 0;
-    player->px = 240;
-    player->py = 0;
+    player->px = 200;
+    player->py = 240 - 5;
     player->gravy = 1; // Manually converted to FP
-    player->jmpy = int_to_fp(3, SCALING_FACTOR);
-    player->input_vx = int_to_fp(2, SCALING_FACTOR);
+    player->jmpy = int_to_fp(3);
+    player->input_vx = int_to_fp(2);
     player->grounded = false;
 
     GTV_Sprite *sprite = &state->player.sprite;
@@ -174,51 +175,60 @@ bool AABB_intersect(
         a_max_y >= b_min_y;
 }
 
-void GTV_PrivateGameState_update(GTV_PrivateGameState *state, GTV_KeyboardInput kb_input, byte *framebuffer) {
-    GTV_Player *player = &state->player;
-    GTV_Sprite *sprite = &state->player.sprite;
+void GTV_draw_all(GTV_GameStateInterface *interface);
 
-    GTV_Sprite_blit_to_framebuffer(
-        framebuffer,
-        player->sprite,
-        player->px,
-        player->py
-    );
+/*
+void GTV_update_gameplay(GTV_GameStateInterface *interface) {
+    GTV_Player *player = &interface->private->player;
+    GTV_Sprite *sprite = &interface->private->player.sprite;
+    GTV_KeyboardInput kb_input = interface->keyboard_input;
+    byte *framebuffer = interface->framebuffer;
 
-    player->px = int_to_fp(player->px, SCALING_FACTOR);
-    player->py = int_to_fp(player->py, SCALING_FACTOR);
 
-    // Axial input
+    GTV_Player next_potential_player_state = *player;
+    bool apply_next_potential_player_state = true;
+
+    // TODO instead of converting to fixed every frame find a way to keep it fixed all the time
+    //      and only convert to int for rendering
+    next_potential_player_state.px = int_to_fp(next_potential_player_state.px);
+    next_potential_player_state.py = int_to_fp(next_potential_player_state.py);
+
+
+    // NOTE intregrate collisions with input instead of having it as a seperate stage?
+    int player_max_x = next_potential_player_state.px + int_to_fp(sprite->width),
+        player_min_x = next_potential_player_state.px,
+        player_max_y = next_potential_player_state.py + int_to_fp(sprite->height),
+        player_min_y = next_potential_player_state.py;
+    
+
     if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
-        player->vx = player->input_vx;
+        next_potential_player_state.vx = next_potential_player_state.input_vx;
     } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
-        player->vx = -player->input_vx;
+        next_potential_player_state.vx = -next_potential_player_state.input_vx;
     } else {
-        player->vx = 0;
+        next_potential_player_state.vx = 0;
     }
     if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN]) {
-        // player->vy = int_to_fp(1, SCALING_FACTOR);
+        // TODO
     } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
-        // player->vy = int_to_fp(-1, SCALING_FACTOR);
-        if (player->grounded) {
-            player->vy = -player->jmpy;
-            player->grounded = false;
+        if (next_potential_player_state.grounded) {
+            next_potential_player_state.vy = -next_potential_player_state.jmpy;
+            next_potential_player_state.grounded = false;
         }
     } else {
-        // player->vy = 0;
+        // TODO
     }
-
-    int player_max_x = player->px + int_to_fp(sprite->width, SCALING_FACTOR),
-        player_min_x = player->px,
-        player_max_y = player->py + int_to_fp(sprite->height, SCALING_FACTOR),
-        player_min_y = player->py;
+    
+    // Gravity
+    if (next_potential_player_state.grounded) {} //player->vy = 0;
+    else { next_potential_player_state.vy += next_potential_player_state.gravy; }
 
     // -- AABB test ---------------------------------------------------------------
-    
-    int box_x = int_to_fp(128, SCALING_FACTOR),
-        box_y = int_to_fp(0, SCALING_FACTOR),
-        box_w = int_to_fp(10, SCALING_FACTOR),
-        box_h = int_to_fp(256, SCALING_FACTOR);
+
+    int box_x = int_to_fp(128),
+        box_y = int_to_fp(0),
+        box_w = int_to_fp(10),
+        box_h = int_to_fp(256);
     
     int box_max_x = box_x + box_w,
         box_min_x = box_x,
@@ -227,10 +237,10 @@ void GTV_PrivateGameState_update(GTV_PrivateGameState *state, GTV_KeyboardInput 
 
     framebuffer_draw_aabb(
         framebuffer, 0xFE,
-        fp_to_int(box_x, SCALING_FACTOR),
-        fp_to_int(box_y, SCALING_FACTOR),
-        fp_to_int(box_w, SCALING_FACTOR),
-        fp_to_int(box_h, SCALING_FACTOR)
+        fp_to_int(box_x),
+        fp_to_int(box_y),
+        fp_to_int(box_w),
+        fp_to_int(box_h)
     );
 
     if (AABB_intersect(
@@ -238,58 +248,67 @@ void GTV_PrivateGameState_update(GTV_PrivateGameState *state, GTV_KeyboardInput 
         box_min_x, box_min_y, box_max_x, box_max_y
     )) {
         printf("Intersection\n");
+        apply_next_potential_player_state = false;
         // TODO resolve collision
     }
 
     // -- AABB test ---------------------------------------------------------------
 
-    int boundary_right_lim = int_to_fp(GTV_FRAMEBUFFER_WIDTH, SCALING_FACTOR),
+    int boundary_right_lim = int_to_fp(GTV_FRAMEBUFFER_WIDTH),
         boundary_left_lim = 0,
-        boundary_down_lim = int_to_fp(GTV_FRAMEBUFFER_HEIGHT, SCALING_FACTOR),
+        boundary_down_lim = int_to_fp(GTV_FRAMEBUFFER_HEIGHT),
         boundary_up_lim = 0;
 
     // Boundary collision detection and handling
     if (player_max_x > boundary_right_lim) {
         // printf("Right side collision\n");
-        player->px = boundary_right_lim - int_to_fp(sprite->width, SCALING_FACTOR);
-        player->vx = 0;
+        next_potential_player_state.px = boundary_right_lim - int_to_fp(sprite->width);
+        next_potential_player_state.vx = 0;
+        apply_next_potential_player_state = false;
     }
     if (player_min_x < 0) {
         // printf("Left side collision\n");
-        player->px = 0;
-        player->vx = 0;
+        next_potential_player_state.px = 0;
+        next_potential_player_state.vx = 0;
+        apply_next_potential_player_state = false;
     }
     if (player_max_y > boundary_down_lim) {
         // printf("Bottom side collision\n");
-        player->py = boundary_down_lim - int_to_fp(sprite->height, SCALING_FACTOR);
-        player->vy = 0;
-        player->grounded = true;
+        next_potential_player_state.py = boundary_down_lim - int_to_fp(sprite->height);
+        next_potential_player_state.vy = 0;
+        next_potential_player_state.grounded = true;
+        apply_next_potential_player_state = false;
     } else {
-        player->grounded = false;
+        next_potential_player_state.grounded = false;
     }
     if (player_min_y < boundary_up_lim) {
         // printf("Top side collision\n");
-        player->py = 0;
-        player->vy = 0;
+        next_potential_player_state.py = 0;
+        next_potential_player_state.vy = 0;
+        apply_next_potential_player_state = false;
     }
 
-    // Gravity
-    // printf("Player grounded? %s\n", player->grounded? "true" : "false");
-    if (player->grounded) {} //player->vy = 0;
-    else { player->vy += player->gravy; }
 
-    player->px += player->vx;
-    player->py += player->vy;
-
-    // printf("Before conversion: player.x = 0x%X (%d)\n", state->player.px, state->player.px);
-    // printf("Before conversion: player.y = 0x%X (%d)\n", state->player.py, state->player.py);
+    next_potential_player_state.px += next_potential_player_state.vx;
+    next_potential_player_state.py += next_potential_player_state.vy;
 
     // Conversion to integer
-    player->px = fp_to_int(player->px, SCALING_FACTOR);
-    player->py = fp_to_int(player->py, SCALING_FACTOR);
+    next_potential_player_state.px = fp_to_int(next_potential_player_state.px);
+    next_potential_player_state.py = fp_to_int(next_potential_player_state.py);
 
-    // printf("After conversion: player.x = 0x%X (%d)\n", state->player.px, state->player.px);
-    // printf("After conversion: player.y = 0x%X (%d)\n", state->player.py, state->player.py);
+    if (apply_next_potential_player_state) {
+        *player = next_potential_player_state;
+    }
+
+    GTV_Sprite_blit_to_framebuffer(
+        framebuffer,
+        player->sprite,
+        player->px,
+        player->py
+    );
+}*/
+
+void GTV_update_gameplay(GTV_GameStateInterface *interface) {
 
 }
 
@@ -320,7 +339,8 @@ void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
     interface->current_palette.colors[0xFE].b = 0x00;
 
     framebuffer_clear(interface->framebuffer, 0);
-    GTV_PrivateGameState_update(interface->private, interface->keyboard_input, interface->framebuffer);
+    // GTV_PrivateGameState_update(interface->private, interface->keyboard_input, interface->framebuffer);
+    GTV_update_gameplay(interface);
 }
 
 void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
