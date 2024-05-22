@@ -5,6 +5,7 @@
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
+// TODO make a fixed point type before you make any sillier mistakes
 // TODO replace malloc with an external (arena) allocator
 // TODO prefix file-local functions with either "static" or a suitable define
 // TODO replace int with int32 (and int with bool)
@@ -18,18 +19,6 @@ static int int_to_fp(int integer) {
 static int fp_to_int(int fixed_point) {
     return fixed_point / SCALING_FACTOR;
 }
-
-bool AABB_intersect(
-    int a_min_x, int a_min_y, int a_max_x, int a_max_y,
-    int b_min_x, int b_min_y, int b_max_x, int b_max_y
-) {
-    return
-        a_min_x <= b_max_x &&
-        a_max_x >= b_min_x &&
-        a_min_y <= b_max_y &&
-        a_max_y >= b_min_y;
-}
-
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 
@@ -82,22 +71,6 @@ bool framebuffer_set_pixel_xy(byte *fb, int x, int y, byte pixel) {
     else return false;
 }
 
-bool framebuffer_draw_aabb(byte *fb, byte pixel, int x, int y, int w, int h) {
-    bool success = true;
-
-    for (int i = x; i <= x + w; i++) {
-        success &= framebuffer_set_pixel_xy(fb, i, y, pixel);   // Top
-        success &= framebuffer_set_pixel_xy(fb, i, y+h, pixel); // Bottom
-    }
-
-    for (int i = y; i <= y + h; i++) {
-        success &= framebuffer_set_pixel_xy(fb, x, i, pixel);   // Left
-        success &= framebuffer_set_pixel_xy(fb, x+w, i, pixel); // Right
-    }
-
-    return success;
-}
-
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
 /* -- Sprites ----------------------------------------------------------------------------------- */
@@ -146,164 +119,86 @@ byte sprite_data[16 * 16] = {
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
+typedef struct GTV_AABB {
+    int x, y, w, h;
+} GTV_AABB;
+
+bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
+    int a_min_x = a.x,
+        a_max_x = a.x + a.w,
+        a_min_y = a.y,
+        a_max_y = a.y + a.h,
+
+        b_min_x = b.x,
+        b_max_x = b.x + b.w,
+        b_min_y = b.y,
+        b_max_y = b.y + b.h;
+
+    return // TODO <= or <
+        a_min_x < b_max_x &&
+        a_max_x > b_min_x &&
+        a_min_y < b_max_y &&
+        a_max_y > b_min_y;
+}
+
+bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
+    bool success = true;
+    box.x = fp_to_int(box.x);
+    box.y = fp_to_int(box.y);
+    box.w = fp_to_int(box.w);
+    box.h = fp_to_int(box.h);
+
+    for (int x = (box.x); x <= (box.x + box.w); x++) {
+        success &= framebuffer_set_pixel_xy(fb, x, box.y,         color); // Top
+        success &= framebuffer_set_pixel_xy(fb, x, box.y + box.h, color); // Bottom
+    }
+
+    for (int y = box.y; y <= box.y + box.h; y++) {
+        success &= framebuffer_set_pixel_xy(fb, box.x,         y, color); // Left
+        success &= framebuffer_set_pixel_xy(fb, box.x + box.w, y, color); // Right
+    }
+
+    return success;
+}
+
+
 typedef struct GTV_Player {
     // Positional values are 16.16 fixed point
     // TODO replace `gravy` with `grav_y`
     int vx, vy, px, py, gravy, jmpy, input_vx;
     bool grounded;
     GTV_Sprite sprite;
+    GTV_AABB bounds;
 } GTV_Player;
 
-struct GTV_PrivateGameState {
+typedef struct GTV_PrivateGameState {
     GTV_Player player;
-};
-
-/*
-void GTV_update_gameplay(GTV_GameStateInterface *interface) {
-    GTV_Player *player = &interface->private->player;
-    GTV_Sprite *sprite = &interface->private->player.sprite;
-    GTV_KeyboardInput kb_input = interface->keyboard_input;
-    byte *framebuffer = interface->framebuffer;
-
-
-    GTV_Player next_potential_player_state = *player;
-    bool apply_next_potential_player_state = true;
-
-    // TODO instead of converting to fixed every frame find a way to keep it fixed all the time
-    //      and only convert to int for rendering
-    next_potential_player_state.px = int_to_fp(next_potential_player_state.px);
-    next_potential_player_state.py = int_to_fp(next_potential_player_state.py);
-
-
-    // NOTE intregrate collisions with input instead of having it as a seperate stage?
-    int player_max_x = next_potential_player_state.px + int_to_fp(sprite->width),
-        player_min_x = next_potential_player_state.px,
-        player_max_y = next_potential_player_state.py + int_to_fp(sprite->height),
-        player_min_y = next_potential_player_state.py;
-    
-
-    if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
-        next_potential_player_state.vx = next_potential_player_state.input_vx;
-    } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
-        next_potential_player_state.vx = -next_potential_player_state.input_vx;
-    } else {
-        next_potential_player_state.vx = 0;
-    }
-    if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN]) {
-        // TODO
-    } else if (kb_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
-        if (next_potential_player_state.grounded) {
-            next_potential_player_state.vy = -next_potential_player_state.jmpy;
-            next_potential_player_state.grounded = false;
-        }
-    } else {
-        // TODO
-    }
-    
-    // Gravity
-    if (next_potential_player_state.grounded) {} //player->vy = 0;
-    else { next_potential_player_state.vy += next_potential_player_state.gravy; }
-
-    // -- AABB test ---------------------------------------------------------------
-
-    int box_x = int_to_fp(128),
-        box_y = int_to_fp(0),
-        box_w = int_to_fp(10),
-        box_h = int_to_fp(256);
-    
-    int box_max_x = box_x + box_w,
-        box_min_x = box_x,
-        box_max_y = box_y + box_h,
-        box_min_y = box_y;
-
-    framebuffer_draw_aabb(
-        framebuffer, 0xFE,
-        fp_to_int(box_x),
-        fp_to_int(box_y),
-        fp_to_int(box_w),
-        fp_to_int(box_h)
-    );
-
-    if (AABB_intersect(
-        player_min_x, player_min_y, player_max_x, player_max_y,
-        box_min_x, box_min_y, box_max_x, box_max_y
-    )) {
-        printf("Intersection\n");
-        apply_next_potential_player_state = false;
-        // TODO resolve collision
-    }
-
-    // -- AABB test ---------------------------------------------------------------
-
-    int boundary_right_lim = int_to_fp(GTV_FRAMEBUFFER_WIDTH),
-        boundary_left_lim = 0,
-        boundary_down_lim = int_to_fp(GTV_FRAMEBUFFER_HEIGHT),
-        boundary_up_lim = 0;
-
-    // Boundary collision detection and handling
-    if (player_max_x > boundary_right_lim) {
-        // printf("Right side collision\n");
-        next_potential_player_state.px = boundary_right_lim - int_to_fp(sprite->width);
-        next_potential_player_state.vx = 0;
-        apply_next_potential_player_state = false;
-    }
-    if (player_min_x < 0) {
-        // printf("Left side collision\n");
-        next_potential_player_state.px = 0;
-        next_potential_player_state.vx = 0;
-        apply_next_potential_player_state = false;
-    }
-    if (player_max_y > boundary_down_lim) {
-        // printf("Bottom side collision\n");
-        next_potential_player_state.py = boundary_down_lim - int_to_fp(sprite->height);
-        next_potential_player_state.vy = 0;
-        next_potential_player_state.grounded = true;
-        apply_next_potential_player_state = false;
-    } else {
-        next_potential_player_state.grounded = false;
-    }
-    if (player_min_y < boundary_up_lim) {
-        // printf("Top side collision\n");
-        next_potential_player_state.py = 0;
-        next_potential_player_state.vy = 0;
-        apply_next_potential_player_state = false;
-    }
-
-
-    next_potential_player_state.px += next_potential_player_state.vx;
-    next_potential_player_state.py += next_potential_player_state.vy;
-
-    // Conversion to integer
-    next_potential_player_state.px = fp_to_int(next_potential_player_state.px);
-    next_potential_player_state.py = fp_to_int(next_potential_player_state.py);
-
-    if (apply_next_potential_player_state) {
-        *player = next_potential_player_state;
-    }
-
-    GTV_Sprite_blit_to_framebuffer(
-        framebuffer,
-        player->sprite,
-        player->px,
-        player->py
-    );
-}*/
+    GTV_AABB test_box;
+} GTV_PrivateGameState;
 
 void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    GTV_Player *player = &state->player;
-    player->vx = int_to_fp(0);
-    player->vy = int_to_fp(0);
-    player->px = int_to_fp(200);
-    player->py = int_to_fp(240 - 5);
-    player->gravy = (5); // Manually converted to FP
-    player->jmpy = int_to_fp(3);
-    player->input_vx = int_to_fp(2);
-    player->grounded = false;
+    state->player.vx = int_to_fp(0);
+    state->player.vy = int_to_fp(0);
+    state->player.px = int_to_fp(000);
+    state->player.py = int_to_fp(240 - 5);
+    state->player.gravy = (5); // Manually converted to FP
+    state->player.jmpy = int_to_fp(3);
+    state->player.input_vx = int_to_fp(2);
+    state->player.grounded = false;
 
-    GTV_Sprite *sprite = &state->player.sprite;
-    sprite->width = 16;
-    sprite->height = 16;
-    sprite->data = sprite_data;
+    state->player.sprite.width = 16;
+    state->player.sprite.height = 16;
+    state->player.sprite.data = sprite_data;
+
+    state->player.bounds.x = state->player.px;
+    state->player.bounds.y = state->player.py;
+    state->player.bounds.w = int_to_fp(state->player.sprite.width);
+    state->player.bounds.h = int_to_fp(state->player.sprite.height);
+
+    state->test_box.x = int_to_fp(128);
+    state->test_box.y = int_to_fp(0);
+    state->test_box.w = int_to_fp(10);
+    state->test_box.h = int_to_fp(256);
 }
 
 
@@ -322,7 +217,17 @@ void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     }
 
     player.px += player.vx;
-    player.py += player.vy;
+
+    player.bounds.x = player.px;
+    player.bounds.y = player.py;
+
+    if (
+        (player.px < 0) ||
+        (player.px + int_to_fp(player.sprite.width) >= int_to_fp(GTV_FRAMEBUFFER_WIDTH)) ||
+        (GTV_AABB_intersect(player.bounds, interface->private->test_box))
+    ) {
+        should_apply_future_state = false;
+    }
 
     if (should_apply_future_state) *player_prev_state = player;
 }
@@ -337,6 +242,9 @@ void GTV_draw_all(GTV_GameStateInterface *interface) {
         fp_to_int(player.px),
         fp_to_int(player.py)
     );
+
+    GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
+    GTV_AABB_draw(interface->private->test_box, interface->framebuffer, 0xFE);
 }
 
 
