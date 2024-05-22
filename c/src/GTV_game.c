@@ -19,6 +19,18 @@ static int fp_to_int(int fixed_point) {
     return fixed_point / SCALING_FACTOR;
 }
 
+bool AABB_intersect(
+    int a_min_x, int a_min_y, int a_max_x, int a_max_y,
+    int b_min_x, int b_min_y, int b_max_x, int b_max_y
+) {
+    return
+        a_min_x <= b_max_x &&
+        a_max_x >= b_min_x &&
+        a_min_y <= b_max_y &&
+        a_max_y >= b_min_y;
+}
+
+
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Colors ------------------------------------------------------------------------------------ */
@@ -145,37 +157,6 @@ typedef struct GTV_Player {
 struct GTV_PrivateGameState {
     GTV_Player player;
 };
-
-void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    GTV_Player *player = &state->player;
-    player->vx = 0;
-    player->vy = 0;
-    player->px = 200;
-    player->py = 240 - 5;
-    player->gravy = 1; // Manually converted to FP
-    player->jmpy = int_to_fp(3);
-    player->input_vx = int_to_fp(2);
-    player->grounded = false;
-
-    GTV_Sprite *sprite = &state->player.sprite;
-    sprite->width = 16;
-    sprite->height = 16;
-    sprite->data = sprite_data;
-}
-
-
-bool AABB_intersect(
-    int a_min_x, int a_min_y, int a_max_x, int a_max_y,
-    int b_min_x, int b_min_y, int b_max_x, int b_max_y
-) {
-    return
-        a_min_x <= b_max_x &&
-        a_max_x >= b_min_x &&
-        a_min_y <= b_max_y &&
-        a_max_y >= b_min_y;
-}
-
-void GTV_draw_all(GTV_GameStateInterface *interface);
 
 /*
 void GTV_update_gameplay(GTV_GameStateInterface *interface) {
@@ -308,9 +289,56 @@ void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     );
 }*/
 
-void GTV_update_gameplay(GTV_GameStateInterface *interface) {
+void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
+    GTV_Player *player = &state->player;
+    player->vx = int_to_fp(0);
+    player->vy = int_to_fp(0);
+    player->px = int_to_fp(200);
+    player->py = int_to_fp(240 - 5);
+    player->gravy = (5); // Manually converted to FP
+    player->jmpy = int_to_fp(3);
+    player->input_vx = int_to_fp(2);
+    player->grounded = false;
 
+    GTV_Sprite *sprite = &state->player.sprite;
+    sprite->width = 16;
+    sprite->height = 16;
+    sprite->data = sprite_data;
 }
+
+
+void GTV_update_gameplay(GTV_GameStateInterface *interface) {
+    GTV_KeyboardInput *input = &interface->keyboard_input;
+    GTV_Player *player_prev_state = &interface->private->player;
+    GTV_Player player = *player_prev_state;
+    bool should_apply_future_state = true;
+
+    if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
+        player.vx = player.input_vx;
+    } else if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
+        player.vx = -player.input_vx;
+    } else {
+        player.vx = 0;
+    }
+
+    player.px += player.vx;
+    player.py += player.vy;
+
+    if (should_apply_future_state) *player_prev_state = player;
+}
+
+
+void GTV_draw_all(GTV_GameStateInterface *interface) {
+    GTV_Player player = interface->private->player;
+
+    GTV_Sprite_blit_to_framebuffer(
+        interface->framebuffer,
+        player.sprite,
+        fp_to_int(player.px),
+        fp_to_int(player.py)
+    );
+}
+
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
@@ -339,8 +367,8 @@ void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
     interface->current_palette.colors[0xFE].b = 0x00;
 
     framebuffer_clear(interface->framebuffer, 0);
-    // GTV_PrivateGameState_update(interface->private, interface->keyboard_input, interface->framebuffer);
     GTV_update_gameplay(interface);
+    GTV_draw_all(interface);
 }
 
 void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
