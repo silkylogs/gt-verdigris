@@ -31,8 +31,21 @@ void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
 
 /* -- Main -------------------------------------------------------------------------------------- */
 
+typedef struct GTV_OsWindow {
+    int width, height;
+    char *title;
+} GTV_OsWindow;
+
+#define GTV_WINDOW_TITLE "Platformer demo"
+
 int main(void) {
-    InitWindow(GTV_FRAMEBUFFER_WIDTH, GTV_FRAMEBUFFER_HEIGHT, "Color cycling demo");
+    GTV_OsWindow os_window = {
+        .width = 512,
+        .height = 512,
+        .title = GTV_WINDOW_TITLE
+    };
+    
+    InitWindow(os_window.width, os_window.height, os_window.title);
     //SetExitKey(KEY_NULL);
 
     GTV_GameStateInterface *interface = malloc(sizeof (GTV_GameStateInterface));
@@ -51,7 +64,12 @@ int main(void) {
             Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;
-            DrawRectangle(x, y, 1, 1, raylib_color);
+            int pixel_scaling_factor = os_window.width / GTV_FRAMEBUFFER_WIDTH;
+            DrawRectangle(
+                x*pixel_scaling_factor, y*pixel_scaling_factor,
+                pixel_scaling_factor, pixel_scaling_factor,
+                raylib_color
+            );
         }
         EndDrawing();
     }

@@ -5,7 +5,7 @@ cl.exe src\GTV_game.c /MD /Zi /W4 /c /nologo ^
 /link /MACHINE:X64 /OUT:"GTV_game.obj" /DEBUG:FULL /PDB:"GTV_game.pdb"
 
 REM Build the main application, with relaxed warnings
-cl.exe src\main.c GTV_game.obj ^
+cl.exe src\platform_raylib.c GTV_game.obj ^
 /I"third_party\raylib-5.0_win64_msvc16\include" ^
 /MD /Zi /nologo ^
 /link /MACHINE:X64 /OUT:"main.exe" /DEBUG:FULL /PDB:"main.pdb" ^
