@@ -13,26 +13,6 @@ typedef int32_t int32;
 
 #define SCALING_FACTOR ((int)10)
 
-// TODO complete fixed point conversion
-typedef struct fix { int32 val; } fix;
-
-GTV_LOCAL fix int_to_fp(int32 integer) {
-    return (fix){ integer * SCALING_FACTOR };
-} 
-
-GTV_LOCAL int32 fp_to_int(fix fixed_point) {
-    return fixed_point.val / SCALING_FACTOR;
-}
-
-GTV_LOCAL fix fp_add(fix x, fix y);
-GTV_LOCAL fix fp_sub(fix x, fix y);
-GTV_LOCAL fix fp_mul(fix x, fix y);
-GTV_LOCAL fix fp_div(fix x, fix y);
-GTV_LOCAL fix fp_gt(fix x, fix y);
-GTV_LOCAL fix fp_lt(fix x, fix y);
-GTV_LOCAL fix fp_gte(fix x, fix y);
-GTV_LOCAL fix fp_lte(fix x, fix y);
-
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Colors ------------------------------------------------------------------------------------ */
@@ -135,11 +115,11 @@ byte sprite_data[16 * 16] = {
 /* -- Game -------------------------------------------------------------------------------------- */
 
 typedef struct GTV_AABB {
-    fix x, y, w, h;
+    float x, y, w, h;
 } GTV_AABB;
 
 GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
-    fix a_min_x = a.x,
+    float a_min_x = a.x,
         a_max_x = a.x + a.w,
         a_min_y = a.y,
         a_max_y = a.y + a.h,
@@ -158,19 +138,19 @@ GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
 
 GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
     bool success = true;
-    box.x = fp_to_int(box.x);
-    box.y = fp_to_int(box.y);
-    box.w = fp_to_int(box.w);
-    box.h = fp_to_int(box.h);
+    int box_x = box.x,
+        box_y = box.y,
+        box_w = box.w,
+        box_h = box.h;
 
-    for (int x = (box.x); x < (box.x + box.w); x++) {
-        success &= framebuffer_set_pixel_xy(fb, x, box.y,             color); // Top
-        success &= framebuffer_set_pixel_xy(fb, x, box.y + box.h - 1, color); // Bottom
+    for (int x = box_x; x < box_x + box_w; x++) {
+        success &= framebuffer_set_pixel_xy(fb, x, box_y,             color); // Top
+        success &= framebuffer_set_pixel_xy(fb, x, box_y + box_h - 1, color); // Bottom
     }
 
-    for (int y = box.y; y < box.y + box.h; y++) {
-        success &= framebuffer_set_pixel_xy(fb, box.x,             y, color); // Left
-        success &= framebuffer_set_pixel_xy(fb, box.x + box.w - 1, y, color); // Right
+    for (int y = box_y; y < box_y + box_h; y++) {
+        success &= framebuffer_set_pixel_xy(fb, box_x,             y, color); // Left
+        success &= framebuffer_set_pixel_xy(fb, box_x + box_w - 1, y, color); // Right
     }
 
     return success;
@@ -180,7 +160,9 @@ GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
 typedef struct GTV_Player {
     // Positional values are 16.16 fixed point
     // TODO replace `gravy` with `grav_y`
-    int vx, vy, px, py, gravy, jmpy, input_vx;
+    float   vx, vy,
+            px, py,
+            gravy, jmpy, input_vx;
     bool grounded;
     GTV_Sprite sprite;
     GTV_AABB bounds;
@@ -192,13 +174,13 @@ typedef struct GTV_PrivateGameState {
 } GTV_PrivateGameState;
 
 GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    state->player.vx = int_to_fp(0);
-    state->player.vy = int_to_fp(0);
-    state->player.px = int_to_fp(000);
-    state->player.py = int_to_fp(240 - 5);
-    state->player.gravy = (5); // Manually converted to FP
-    state->player.jmpy = int_to_fp(3);
-    state->player.input_vx = int_to_fp(2);
+    state->player.vx = 0;
+    state->player.vy = 0;
+    state->player.px = 000;
+    state->player.py = 240 - 5;
+    state->player.gravy = 5;
+    state->player.jmpy = 3;
+    state->player.input_vx = 2;
     state->player.grounded = false;
 
     state->player.sprite.width = 16;
@@ -207,13 +189,13 @@ GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
 
     state->player.bounds.x = state->player.px;
     state->player.bounds.y = state->player.py;
-    state->player.bounds.w = int_to_fp(state->player.sprite.width);
-    state->player.bounds.h = int_to_fp(state->player.sprite.height);
+    state->player.bounds.w = state->player.sprite.width;
+    state->player.bounds.h = state->player.sprite.height;
 
-    state->test_box.x = int_to_fp(128);
-    state->test_box.y = int_to_fp(0);
-    state->test_box.w = int_to_fp(10);
-    state->test_box.h = int_to_fp(256);
+    state->test_box.x = 128;
+    state->test_box.y = 0;
+    state->test_box.w = 10;
+    state->test_box.h = 256;
 }
 
 GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
@@ -243,7 +225,7 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     // TODO find a way to diffrentiate being grounded to touching a wall's sides
     if (
         (player.px < 0) ||
-        (player.px + int_to_fp(player.sprite.width) >= int_to_fp(GTV_FRAMEBUFFER_WIDTH)) ||
+        ((player.px + player.sprite.width) >= (GTV_FRAMEBUFFER_WIDTH)) ||
         (GTV_AABB_intersect(player.bounds, interface->private->test_box))
     ) {
         should_apply_future_state = false;
@@ -258,8 +240,8 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     GTV_Sprite_blit_to_framebuffer(
         interface->framebuffer,
         player.sprite,
-        fp_to_int(player.px),
-        fp_to_int(player.py)
+        player.px,
+        player.py
     );
 
     GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
