@@ -7,11 +7,7 @@
 /* -- Utility ------------------------------------------------------------------------------------*/
 // TODO replace malloc with an external (arena) allocator
 
-#define GTV_LOCAL static
-#define GTV_EXPORT extern
 typedef int32_t int32;
-
-#define SCALING_FACTOR ((int)10)
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 
@@ -174,12 +170,12 @@ typedef struct GTV_PrivateGameState {
 } GTV_PrivateGameState;
 
 GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    state->player.vx = 0;
-    state->player.vy = 0;
     state->player.px = 000;
-    state->player.py = 240 - 5;
+    state->player.py = /*(240 - 5)*/0;
+    state->player.vx = 0;
+    state->player.vy = 1;
     state->player.gravy = 5;
-    state->player.jmpy = 3;
+    state->player.jmpy = 1;
     state->player.input_vx = 2;
     state->player.grounded = false;
 
@@ -193,20 +189,18 @@ GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
     state->player.bounds.h = state->player.sprite.height;
 
     state->test_box.x = 128;
-    state->test_box.y = 0;
+    state->test_box.y = 128;
     state->test_box.w = 10;
     state->test_box.h = 256;
 }
 
-GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
-    GTV_KeyboardInput *input = &interface->keyboard_input;
-    GTV_Player *player_prev_state = &interface->private->player;
+// TODO third argument should be the AABB system, which means...
+// TODO make an AABB system
+GTV_LOCAL void
+GTV_Player_move_x(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_AABB test_box) {
     GTV_Player player = *player_prev_state;
-
-    // TODO since any further calculations about whether to apply future state
-    //      just after setting this variable to false, why not use a goto instead?
     bool should_apply_future_state = true;
-
+    
     if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
         player.vx = player.input_vx;
     } else if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
@@ -215,23 +209,61 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
         player.vx = 0;
     }
 
-    // TODO implement gravity and jumping
-
     player.px += player.vx;
-    player.py += player.vy;
     player.bounds.x = player.px;
-    player.bounds.y = player.py;
 
-    // TODO find a way to diffrentiate being grounded to touching a wall's sides
-    if (
-        (player.px < 0) ||
-        ((player.px + player.sprite.width) >= (GTV_FRAMEBUFFER_WIDTH)) ||
-        (GTV_AABB_intersect(player.bounds, interface->private->test_box))
-    ) {
+    if ((player.px < 0) ||
+        ((player.px + player.bounds.w) >= (GTV_FRAMEBUFFER_WIDTH)) ||
+        (GTV_AABB_intersect(player.bounds, test_box)))
+    {
         should_apply_future_state = false;
     }
 
     if (should_apply_future_state) *player_prev_state = player;
+}
+
+GTV_LOCAL void
+GTV_Player_move_y(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_AABB test_box) {
+    GTV_Player player = *player_prev_state;
+    bool should_apply_future_state = true;
+
+    if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN]) {
+        // TODO: increase vy slightly
+    } else if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
+        // jump
+        player.vy = -player.jmpy;
+    }
+
+    // gravity
+    player.py += player.vy;
+    player.bounds.y = player.py;
+
+    // TODO move position information from player to bounds
+    if ((player.bounds.y + player.bounds.h > GTV_FRAMEBUFFER_HEIGHT) ||
+        (player.bounds.y <= 0) ||
+        (GTV_AABB_intersect(player.bounds, test_box)))
+    {
+        should_apply_future_state = false;
+    }
+
+    if (should_apply_future_state) *player_prev_state = player;
+}
+
+GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
+    GTV_Player_move_x(
+        &interface->private->player,
+        &interface->keyboard_input,
+        interface->private->test_box
+    );
+
+    GTV_Player_move_y(
+        &interface->private->player,
+        &interface->keyboard_input,
+        interface->private->test_box
+    );
+
+    // TODO implement gravity and jumping
+    // TODO find a way to diffrentiate being grounded to touching a wall's sides
 }
 
 GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {

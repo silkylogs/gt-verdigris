@@ -2,6 +2,8 @@
 #define GTV_GAME_HEADER_DEFINED
 
 typedef unsigned char byte;
+#define GTV_LOCAL static
+#define GTV_EXPORT extern
 
 /* -- Colors ------------------------------------------------------------------------------------ */
 
@@ -30,7 +32,7 @@ typedef struct GTV_ColorPaletteCollection {
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
 #define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
-GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int idx);
+GTV_EXPORT GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int idx);
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
@@ -47,7 +49,7 @@ typedef struct GTV_KeyboardInput {
     byte arrow_keys[4];
 } GTV_KeyboardInput;
 
-void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
+GTV_EXPORT void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
 
 /* -- Input ------------------------------------------------------------------------------------- */
 
@@ -64,9 +66,9 @@ typedef struct GTV_GameStateInterface {
     GTV_PrivateGameState *private;
 } GTV_GameStateInterface;
 
-void GTV_GameStateInterface_init(GTV_GameStateInterface *);
-void GTV_GameStateInterface_update(GTV_GameStateInterface *);
-void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *);
+GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *);
+GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *);
+GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *);
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
