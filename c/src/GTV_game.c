@@ -13,8 +13,13 @@ typedef struct GTV_Color GTV_Color;
 typedef struct GTV_ColorPalette GTV_ColorPalette;
 typedef struct GTV_ColorPaletteCollection GTV_ColorPaletteCollection;
 
-GTV_LOCAL GTV_Color get_color_from_palette(GTV_ColorPalette palette, byte color) {
-    GTV_Color default_col = { 0 }; /* The void */
+// Debug colors
+GTV_Color
+    g_magenta = { 0xFF, 0x00, 0xFF },
+    g_black =   { 0x00, 0x00, 0x00 };
+
+GTV_LOCAL GTV_Color GTV_Color_get_from_palette(GTV_ColorPalette palette, byte color) {
+    GTV_Color default_col = g_black;
     if ((color >= 0) && (color < GTV_FRAMEBUFFER_ELEM_COUNT))
         return palette.colors[color];
     else return default_col;
@@ -24,21 +29,20 @@ GTV_LOCAL GTV_Color get_color_from_palette(GTV_ColorPalette palette, byte color)
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
-// TODO get a better naming convention for functions in this section
-
-GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int32 idx) {
-    GTV_Color default_col = { 0xFF, 0x00, 0xFF }; /* Vomit-worthy magenta */
+GTV_EXPORT GTV_Color
+GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx) {
+    GTV_Color default_col = g_magenta;
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT))
-        return get_color_from_palette(curr_palette, fb[idx]); /* TODO ??? */
+        return GTV_Color_get_from_palette(curr_palette, fb[idx]);
     else return default_col;
 }
 
-GTV_LOCAL void framebuffer_clear(byte *fb, byte pixel) {
+GTV_LOCAL void GTV_Framebuffer_clear(byte *fb, byte pixel) {
     for (int32 i = 0; i < GTV_FRAMEBUFFER_ELEM_COUNT; i++)
         fb[i] = pixel;
 }
 
-GTV_LOCAL bool framebuffer_set_pixel_idx(byte *fb, int32 idx, byte pixel) {
+GTV_LOCAL bool GTV_Framebuffer_set_pixel_idx(byte *fb, int32 idx, byte pixel) {
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT)) {
         fb[idx] = pixel;
         return true;
@@ -46,13 +50,13 @@ GTV_LOCAL bool framebuffer_set_pixel_idx(byte *fb, int32 idx, byte pixel) {
     else return false;
 }
 
-GTV_LOCAL bool framebuffer_set_pixel_xy(byte *fb, int32 x, int32 y, byte pixel) {
+GTV_LOCAL bool GTV_Framebuffer_set_pixel_xy(byte *fb, int32 x, int32 y, byte pixel) {
     if ((x < 0) && (x >= GTV_FRAMEBUFFER_WIDTH)) return false;
     if ((y < 0) && (y >= GTV_FRAMEBUFFER_HEIGHT)) return false;
 
     int32 idx = y * GTV_FRAMEBUFFER_WIDTH + x;
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT)) {
-        framebuffer_set_pixel_idx(fb, idx, pixel);
+        GTV_Framebuffer_set_pixel_idx(fb, idx, pixel);
         return true;
     }
     else return false;
@@ -67,16 +71,12 @@ typedef struct GTV_Sprite {
     byte *data;
 } GTV_Sprite;
 
-GTV_LOCAL void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int32 pos_x, int32 pos_y) {
+GTV_LOCAL void 
+GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int32 pos_x, int32 pos_y) {
     for (int32 y = 0; y < sprite.height; y++) {
         for (int32 x = 0; x < sprite.width; x++) {
             byte pixel = sprite.data[y * sprite.width + x];
-            framebuffer_set_pixel_xy(
-                fb,
-                x + pos_x,
-                y + pos_y,
-                pixel
-            );
+            GTV_Framebuffer_set_pixel_xy(fb, (x + pos_x), (y + pos_y), pixel);
         }
     }
 }
@@ -104,11 +104,16 @@ byte sprite_data[16 * 16] = {
 
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
-/* -- Game -------------------------------------------------------------------------------------- */
+/* -- AABB -------------------------------------------------------------------------------------- */
 
 typedef struct GTV_AABB {
     float x, y, w, h;
 } GTV_AABB;
+
+#define GTV_AABB_COLLECTION_COUNT ((int32)4)
+typedef struct GTV_AABB_Collection {
+    GTV_AABB elems[GTV_AABB_COLLECTION_COUNT];
+} GTV_AABB_Collection;
 
 GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
     float a_min_x = a.x,
@@ -128,6 +133,14 @@ GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
         a_max_y > b_min_y;
 }
 
+GTV_LOCAL bool
+GTV_AABB_player_intersects_boxes(GTV_AABB player, GTV_AABB_Collection boxes) {
+    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+        if (GTV_AABB_intersect(player, boxes.elems[i])) return true;
+    }
+    return false;
+}
+
 GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
     bool success = true;
     int32
@@ -137,18 +150,21 @@ GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
         box_h = (int32)box.h;
 
     for (int32 x = box_x; x < box_x + box_w; x++) {
-        success &= framebuffer_set_pixel_xy(fb, x, box_y,             color); // Top
-        success &= framebuffer_set_pixel_xy(fb, x, box_y + box_h - 1, color); // Bottom
+        success &= GTV_Framebuffer_set_pixel_xy(fb, x, box_y,             color); // Top
+        success &= GTV_Framebuffer_set_pixel_xy(fb, x, box_y + box_h - 1, color); // Bottom
     }
 
     for (int32 y = box_y; y < box_y + box_h; y++) {
-        success &= framebuffer_set_pixel_xy(fb, box_x,             y, color); // Left
-        success &= framebuffer_set_pixel_xy(fb, box_x + box_w - 1, y, color); // Right
+        success &= GTV_Framebuffer_set_pixel_xy(fb, box_x,             y, color); // Left
+        success &= GTV_Framebuffer_set_pixel_xy(fb, box_x + box_w - 1, y, color); // Right
     }
 
     return success;
 }
 
+/* -- AABB -------------------------------------------------------------------------------------- */
+
+/* -- Game -------------------------------------------------------------------------------------- */
 
 typedef struct GTV_Player {
     // TOOD replace `gravy` with `grav_y`
@@ -159,42 +175,60 @@ typedef struct GTV_Player {
 } GTV_Player;
 
 GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
-    player->vx = 0;
-    player->vy = 1;
-    player->gravy = 5;
-    player->jmpy = 1;
-    player->input_vx = 2;
+    player->vx = 0.0f;
+    player->vy = 1.0f;
+    player->gravy = 5.0f;
+    player->jmpy = 1.0f;
+    player->input_vx = 2.0f;
     player->grounded = false;
 
     player->sprite.width = 16;
     player->sprite.height = 16;
     player->sprite.data = sprite_data;
 
-    player->bounds.x = 0;
-    player->bounds.y = 0;
+    player->bounds.x = 0.0f;
+    player->bounds.y = 0.0f;
     player->bounds.w = (float)player->sprite.width;
     player->bounds.h = (float)player->sprite.height;
 }
 
-// TODO rename to "GTV_Scene" or something?
 typedef struct GTV_PrivateGameState {
     GTV_Player player;
-    GTV_AABB test_box;
+    GTV_AABB_Collection boxes;
 } GTV_PrivateGameState;
 
 GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
     GTV_Player_init(&state->player);
 
-    state->test_box.x = 128;
-    state->test_box.y = 128;
-    state->test_box.w = 10;
-    state->test_box.h = 256;
+    state->boxes.elems[0].x = 0.0f;
+    state->boxes.elems[0].y = 20.0f;
+    state->boxes.elems[0].w = 50.0f;
+    state->boxes.elems[0].h = 5.0f;
+
+    state->boxes.elems[1].x = 30.0f;
+    state->boxes.elems[1].y = 99.0f;
+    state->boxes.elems[1].w = 99.0f;
+    state->boxes.elems[1].h = 10.0f;
+
+    state->boxes.elems[2].x = 70.0f;
+    state->boxes.elems[2].y = 00.0f;
+    state->boxes.elems[2].w = 10.0f;
+    state->boxes.elems[2].h = 100.0f;
+
+    state->boxes.elems[3].x = 128.0f;
+    state->boxes.elems[3].y = 128.0f;
+    state->boxes.elems[3].w = 10.0f;
+    state->boxes.elems[3].h = 256.0f;
 }
 
 // TODO third argument should be the AABB system, which means...
 // TODO make an AABB system
 GTV_LOCAL void
-GTV_Player_move_x(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_AABB test_box) {
+GTV_Player_move_x(
+    GTV_Player *player_prev_state,
+    GTV_KeyboardInput *input,
+    GTV_AABB_Collection test_boxes
+) {
     GTV_Player player = *player_prev_state;
     bool should_apply_future_state = true;
     
@@ -210,7 +244,7 @@ GTV_Player_move_x(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_A
 
     if ((player.bounds.x < 0) ||
         ((player.bounds.x + player.bounds.w) >= (GTV_FRAMEBUFFER_WIDTH)) ||
-        (GTV_AABB_intersect(player.bounds, test_box)))
+        (GTV_AABB_player_intersects_boxes(player.bounds, test_boxes)))
     {
         should_apply_future_state = false;
     }
@@ -219,7 +253,11 @@ GTV_Player_move_x(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_A
 }
 
 GTV_LOCAL void
-GTV_Player_move_y(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_AABB test_box) {
+GTV_Player_move_y(
+    GTV_Player *player_prev_state,
+    GTV_KeyboardInput *input,
+    GTV_AABB_Collection test_boxes
+) {
     GTV_Player player = *player_prev_state;
     bool should_apply_future_state = true;
 
@@ -235,7 +273,7 @@ GTV_Player_move_y(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_A
 
     if ((player.bounds.y + player.bounds.h > GTV_FRAMEBUFFER_HEIGHT) ||
         (player.bounds.y <= 0) ||
-        (GTV_AABB_intersect(player.bounds, test_box)))
+        (GTV_AABB_player_intersects_boxes(player.bounds, test_boxes)))
     {
         should_apply_future_state = false;
     }
@@ -247,13 +285,13 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     GTV_Player_move_x(
         &interface->private->player,
         &interface->keyboard_input,
-        interface->private->test_box
+        interface->private->boxes
     );
 
     GTV_Player_move_y(
         &interface->private->player,
         &interface->keyboard_input,
-        interface->private->test_box
+        interface->private->boxes
     );
 
     // TODO implement gravity and jumping
@@ -271,7 +309,13 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     );
 
     GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
-    GTV_AABB_draw(interface->private->test_box, interface->framebuffer, 0xFE);
+    
+    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+        GTV_AABB_draw(
+            interface->private->boxes.elems[i],
+            interface->framebuffer, 0xFE
+        );
+    }
 }
 
 
@@ -301,7 +345,7 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
     interface->current_palette.colors[0xFE].g = 0x00;
     interface->current_palette.colors[0xFE].b = 0x00;
 
-    framebuffer_clear(interface->framebuffer, 0);
+    GTV_Framebuffer_clear(interface->framebuffer, 0);
     GTV_update_gameplay(interface);
     GTV_draw_all(interface);
 }

@@ -36,7 +36,8 @@ typedef struct GTV_ColorPaletteCollection {
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
 #define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
-GTV_EXPORT GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
+GTV_EXPORT GTV_Color
+GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
