@@ -1,7 +1,11 @@
 #ifndef GTV_GAME_HEADER_DEFINED
 #define GTV_GAME_HEADER_DEFINED
 
+#include <stdint.h>
+#include <stdbool.h>
 typedef unsigned char byte;
+typedef int32_t int32;
+
 #define GTV_LOCAL static
 #define GTV_EXPORT extern
 
@@ -20,7 +24,7 @@ typedef struct GTV_ColorPalette {
 
 typedef struct GTV_ColorPaletteCollection {
     GTV_ColorPalette palettes[GTV_COLOR_PALETTE_COLLECTION_COUNT];
-    int current;
+    int32 current;
 } GTV_ColorPaletteCollection;
 
 
@@ -32,7 +36,7 @@ typedef struct GTV_ColorPaletteCollection {
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
 #define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
-GTV_EXPORT GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int idx);
+GTV_EXPORT GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
@@ -58,7 +62,7 @@ GTV_EXPORT void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
 typedef struct GTV_PrivateGameState GTV_PrivateGameState;
 
 typedef struct GTV_GameStateInterface {
-    int should_exit;
+    bool should_exit;
     byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
     GTV_KeyboardInput keyboard_input;

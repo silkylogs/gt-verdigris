@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 // TODO replace malloc with an external (arena) allocator
-
-typedef int32_t int32;
-
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Colors ------------------------------------------------------------------------------------ */
@@ -30,7 +26,7 @@ GTV_LOCAL GTV_Color get_color_from_palette(GTV_ColorPalette palette, byte color)
 
 // TODO get a better naming convention for functions in this section
 
-GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int idx) {
+GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette, int32 idx) {
     GTV_Color default_col = { 0xFF, 0x00, 0xFF }; /* Vomit-worthy magenta */
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT))
         return get_color_from_palette(curr_palette, fb[idx]); /* TODO ??? */
@@ -38,11 +34,11 @@ GTV_Color GTV_get_color_from_framebuffer(byte *fb, GTV_ColorPalette curr_palette
 }
 
 GTV_LOCAL void framebuffer_clear(byte *fb, byte pixel) {
-    for (int i = 0; i < GTV_FRAMEBUFFER_ELEM_COUNT; i++)
+    for (int32 i = 0; i < GTV_FRAMEBUFFER_ELEM_COUNT; i++)
         fb[i] = pixel;
 }
 
-GTV_LOCAL bool framebuffer_set_pixel_idx(byte *fb, int idx, byte pixel) {
+GTV_LOCAL bool framebuffer_set_pixel_idx(byte *fb, int32 idx, byte pixel) {
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT)) {
         fb[idx] = pixel;
         return true;
@@ -50,11 +46,11 @@ GTV_LOCAL bool framebuffer_set_pixel_idx(byte *fb, int idx, byte pixel) {
     else return false;
 }
 
-GTV_LOCAL bool framebuffer_set_pixel_xy(byte *fb, int x, int y, byte pixel) {
+GTV_LOCAL bool framebuffer_set_pixel_xy(byte *fb, int32 x, int32 y, byte pixel) {
     if ((x < 0) && (x >= GTV_FRAMEBUFFER_WIDTH)) return false;
     if ((y < 0) && (y >= GTV_FRAMEBUFFER_HEIGHT)) return false;
 
-    int idx = y * GTV_FRAMEBUFFER_WIDTH + x;
+    int32 idx = y * GTV_FRAMEBUFFER_WIDTH + x;
     if ((idx >= 0) && (idx < GTV_FRAMEBUFFER_ELEM_COUNT)) {
         framebuffer_set_pixel_idx(fb, idx, pixel);
         return true;
@@ -67,13 +63,13 @@ GTV_LOCAL bool framebuffer_set_pixel_xy(byte *fb, int x, int y, byte pixel) {
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
 typedef struct GTV_Sprite {
-    int width, height;
+    int32 width, height;
     byte *data;
 } GTV_Sprite;
 
-GTV_LOCAL void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int pos_x, int pos_y) {
-    for (int y = 0; y < sprite.height; y++) {
-        for (int x = 0; x < sprite.width; x++) {
+GTV_LOCAL void GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int32 pos_x, int32 pos_y) {
+    for (int32 y = 0; y < sprite.height; y++) {
+        for (int32 x = 0; x < sprite.width; x++) {
             byte pixel = sprite.data[y * sprite.width + x];
             framebuffer_set_pixel_xy(
                 fb,
@@ -134,17 +130,18 @@ GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
 
 GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
     bool success = true;
-    int box_x = box.x,
-        box_y = box.y,
-        box_w = box.w,
-        box_h = box.h;
+    int32
+        box_x = (int32)box.x,
+        box_y = (int32)box.y,
+        box_w = (int32)box.w,
+        box_h = (int32)box.h;
 
-    for (int x = box_x; x < box_x + box_w; x++) {
+    for (int32 x = box_x; x < box_x + box_w; x++) {
         success &= framebuffer_set_pixel_xy(fb, x, box_y,             color); // Top
         success &= framebuffer_set_pixel_xy(fb, x, box_y + box_h - 1, color); // Bottom
     }
 
-    for (int y = box_y; y < box_y + box_h; y++) {
+    for (int32 y = box_y; y < box_y + box_h; y++) {
         success &= framebuffer_set_pixel_xy(fb, box_x,             y, color); // Left
         success &= framebuffer_set_pixel_xy(fb, box_x + box_w - 1, y, color); // Right
     }
@@ -175,8 +172,8 @@ GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
 
     player->bounds.x = 0;
     player->bounds.y = 0;
-    player->bounds.w = player->sprite.width;
-    player->bounds.h = player->sprite.height;
+    player->bounds.w = (float)player->sprite.width;
+    player->bounds.h = (float)player->sprite.height;
 }
 
 // TODO rename to "GTV_Scene" or something?
@@ -269,8 +266,8 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     GTV_Sprite_blit_to_framebuffer(
         interface->framebuffer,
         player.sprite,
-        player.bounds.x,
-        player.bounds.y
+        (int32)player.bounds.x,
+        (int32)player.bounds.y
     );
 
     GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
@@ -285,7 +282,7 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
 GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
     interface->should_exit = 0;
     
-    for (int c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
+    for (int32 c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
         interface->current_palette.colors[c].r = (byte)0;
         interface->current_palette.colors[c].g = (byte)0;
         interface->current_palette.colors[c].b = (byte)0;
