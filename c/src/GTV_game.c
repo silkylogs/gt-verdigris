@@ -154,39 +154,39 @@ GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
 
 
 typedef struct GTV_Player {
-    // Positional values are 16.16 fixed point
-    // TODO replace `gravy` with `grav_y`
-    float   vx, vy,
-            px, py,
-            gravy, jmpy, input_vx;
+    // TOOD replace `gravy` with `grav_y`
+    float vx, vy, gravy, jmpy, input_vx;
     bool grounded;
     GTV_Sprite sprite;
     GTV_AABB bounds;
 } GTV_Player;
 
+GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
+    player->vx = 0;
+    player->vy = 1;
+    player->gravy = 5;
+    player->jmpy = 1;
+    player->input_vx = 2;
+    player->grounded = false;
+
+    player->sprite.width = 16;
+    player->sprite.height = 16;
+    player->sprite.data = sprite_data;
+
+    player->bounds.x = 0;
+    player->bounds.y = 0;
+    player->bounds.w = player->sprite.width;
+    player->bounds.h = player->sprite.height;
+}
+
+// TODO rename to "GTV_Scene" or something?
 typedef struct GTV_PrivateGameState {
     GTV_Player player;
     GTV_AABB test_box;
 } GTV_PrivateGameState;
 
 GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    state->player.px = 000;
-    state->player.py = /*(240 - 5)*/0;
-    state->player.vx = 0;
-    state->player.vy = 1;
-    state->player.gravy = 5;
-    state->player.jmpy = 1;
-    state->player.input_vx = 2;
-    state->player.grounded = false;
-
-    state->player.sprite.width = 16;
-    state->player.sprite.height = 16;
-    state->player.sprite.data = sprite_data;
-
-    state->player.bounds.x = state->player.px;
-    state->player.bounds.y = state->player.py;
-    state->player.bounds.w = state->player.sprite.width;
-    state->player.bounds.h = state->player.sprite.height;
+    GTV_Player_init(&state->player);
 
     state->test_box.x = 128;
     state->test_box.y = 128;
@@ -209,11 +209,10 @@ GTV_Player_move_x(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_A
         player.vx = 0;
     }
 
-    player.px += player.vx;
-    player.bounds.x = player.px;
+    player.bounds.x += player.vx;
 
-    if ((player.px < 0) ||
-        ((player.px + player.bounds.w) >= (GTV_FRAMEBUFFER_WIDTH)) ||
+    if ((player.bounds.x < 0) ||
+        ((player.bounds.x + player.bounds.w) >= (GTV_FRAMEBUFFER_WIDTH)) ||
         (GTV_AABB_intersect(player.bounds, test_box)))
     {
         should_apply_future_state = false;
@@ -235,10 +234,8 @@ GTV_Player_move_y(GTV_Player *player_prev_state, GTV_KeyboardInput *input, GTV_A
     }
 
     // gravity
-    player.py += player.vy;
-    player.bounds.y = player.py;
+    player.bounds.y += player.vy;
 
-    // TODO move position information from player to bounds
     if ((player.bounds.y + player.bounds.h > GTV_FRAMEBUFFER_HEIGHT) ||
         (player.bounds.y <= 0) ||
         (GTV_AABB_intersect(player.bounds, test_box)))
@@ -272,8 +269,8 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     GTV_Sprite_blit_to_framebuffer(
         interface->framebuffer,
         player.sprite,
-        player.px,
-        player.py
+        player.bounds.x,
+        player.bounds.y
     );
 
     GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
