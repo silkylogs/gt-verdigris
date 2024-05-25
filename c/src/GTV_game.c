@@ -313,47 +313,43 @@ GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 p
 }
 
 GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
-    GTV_Player player = interface->private->player;
+    // GTV_Player player = interface->private->player;
 
-    GTV_Sprite_blit_to_framebuffer(
-        interface->framebuffer,
-        player.sprite,
-        (int32)player.bounds.x,
-        (int32)player.bounds.y
-    );
+    // GTV_Sprite_blit_to_framebuffer(
+    //     interface->framebuffer,
+    //     player.sprite,
+    //     (int32)player.bounds.x,
+    //     (int32)player.bounds.y
+    // );
 
-    GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
+    // GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
     
-    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
-        GTV_AABB_draw(
-            interface->private->boxes.elems[i],
-            interface->framebuffer, 0xFE
+    // for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+    //     GTV_AABB_draw(
+    //         interface->private->boxes.elems[i],
+    //         interface->framebuffer, 0xFE
+    //     );
+    // }
+
+    int32 x = 0, y = 0;
+    for (int32 i = 0; i < GTV_ATLAS_FONT_DIGITS_8x8_COUNT; i++) {
+        GTV_Sprite_draw_8x8_sprite(
+            interface->framebuffer,
+            g_font_atlas_digits_8x8[i],
+            x+(8*i), y,
+            0xFE
         );
     }
 
-    // Draw test: 
-    /*
-    xxxxxxx.
-    x.....x.
-    x.....x.
-    xxxxxxx.
-    x.....x.
-    x.....x.
-    xxxxxxx.
-    ........
-    */
-    int32 x = 150;
-    int32 y = 10;
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[0], x+0x00, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[1], x+0x08, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[2], x+0x10, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[3], x+0x18, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[4], x+0x20, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[5], x+0x28, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[6], x+0x30, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[7], x+0x38, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[8], x+0x40, y, 0xFF);
-    GTV_Sprite_draw_8x8_sprite(interface->framebuffer, g_font_atlas_digits_8x8[9], x+0x48, y, 0xFF);
+    y += 8;
+    for (int32 i = 0; i < GTV_ATLAS_FONT_CAPITAL_LETTERS_8x8_COUNT; i++) {
+        GTV_Sprite_draw_8x8_sprite(
+            interface->framebuffer,
+            g_font_atlas_capital_letters_8x8[i],
+            x+(8*i), y,
+            0xFD
+        );
+    }
 }
 
 
@@ -379,9 +375,13 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
     interface->current_palette.colors[0xFF].g = 0xFF;
     interface->current_palette.colors[0xFF].b = 0x00;
 
-    interface->current_palette.colors[0xFE].r = 0xFF;
+    interface->current_palette.colors[0xFE].r = 0x7F;
     interface->current_palette.colors[0xFE].g = 0x00;
     interface->current_palette.colors[0xFE].b = 0x00;
+
+    interface->current_palette.colors[0xFD].r = 0xF0;
+    interface->current_palette.colors[0xFD].g = 0x80;
+    interface->current_palette.colors[0xFD].b = 0x00;
 
     GTV_Framebuffer_clear(interface->framebuffer, 0);
     GTV_update_gameplay(interface);
