@@ -5,6 +5,7 @@
 #include <stdbool.h>
 typedef unsigned char byte;
 typedef int32_t int32;
+typedef uint64_t uint64;
 
 #define GTV_LOCAL static
 #define GTV_EXPORT extern
