@@ -186,7 +186,10 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
 
     GTV_Framebuffer_clear(interface->framebuffer, 0);
 
-    interface->private->is_editor_open = interface->keyboard_input.letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E];
+    // TODO just extend IsKeyPressed() to here
+    if (interface->keyboard_input.letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E]) {
+        interface->private->is_editor_open = !interface->private->is_editor_open;
+    };
     if (interface->private->is_editor_open) GTV_update_editor(interface);
     else GTV_update_gameplay(interface);
 
