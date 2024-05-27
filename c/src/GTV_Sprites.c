@@ -1,9 +1,6 @@
 // TODO sprite manager
 
-typedef struct GTV_Sprite {
-    int32 width, height;
-    byte *data;
-} GTV_Sprite;
+typedef struct GTV_Sprite GTV_Sprite;
 
 GTV_LOCAL void 
 GTV_Sprite_blit_to_framebuffer(byte *fb, GTV_Sprite sprite, int32 pos_x, int32 pos_y) {

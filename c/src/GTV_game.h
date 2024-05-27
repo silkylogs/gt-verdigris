@@ -42,6 +42,18 @@ GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
+/* -- Sprites ----------------------------------------------------------------------------------- */
+
+// TODO rename to GTV_PalettizedSprite
+typedef struct GTV_Sprite {
+    int32 width, height;
+    byte *data;
+} GTV_Sprite;
+
+GTV_EXPORT void GTV_Sprite_get_atlas();
+
+/* -- Sprites ----------------------------------------------------------------------------------- */
+
 /* -- Input ------------------------------------------------------------------------------------- */
 
 enum GTV_KeyboardInputArrowKey {
@@ -73,6 +85,7 @@ typedef struct GTV_GameStateInterface {
     byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
     GTV_KeyboardInput keyboard_input;
+    GTV_Sprite palettized_sprite_atlas;
 
     GTV_PrivateGameState *private;
 } GTV_GameStateInterface;
