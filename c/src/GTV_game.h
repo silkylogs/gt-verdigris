@@ -51,8 +51,13 @@ enum GTV_KeyboardInputArrowKey {
     GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT = 3,
 };
 
+enum GTV_KeyboardInputLetterKey {
+    GTV_KEYBOARD_INPUT_LETTER_KEY_E = 0,
+};
+
 typedef struct GTV_KeyboardInput {
     byte arrow_keys[4];
+    byte letter_keys[1];
 } GTV_KeyboardInput;
 
 GTV_EXPORT void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);

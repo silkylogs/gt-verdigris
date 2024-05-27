@@ -146,7 +146,7 @@ GTV_LOCAL bool GTV_AABB_draw(GTV_AABB box, byte *fb, byte color) {
 
 /* -- AABB -------------------------------------------------------------------------------------- */
 
-/* -- Game -------------------------------------------------------------------------------------- */
+/* -- Player ------------------------------------------------------------------------------------ */
 
 typedef struct GTV_Player {
     // TOOD replace `gravy` with `grav_y`
@@ -174,34 +174,6 @@ GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
     player->bounds.h = (float)player->sprite.height;
 }
 
-typedef struct GTV_PrivateGameState {
-    GTV_Player player;
-    GTV_AABB_Collection boxes;
-} GTV_PrivateGameState;
-
-GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    GTV_Player_init(&state->player);
-
-    state->boxes.elems[0].x = 0.0f;
-    state->boxes.elems[0].y = 20.0f;
-    state->boxes.elems[0].w = 50.0f;
-    state->boxes.elems[0].h = 5.0f;
-
-    state->boxes.elems[1].x = 30.0f;
-    state->boxes.elems[1].y = 99.0f;
-    state->boxes.elems[1].w = 99.0f;
-    state->boxes.elems[1].h = 10.0f;
-
-    state->boxes.elems[2].x = 70.0f;
-    state->boxes.elems[2].y = 00.0f;
-    state->boxes.elems[2].w = 10.0f;
-    state->boxes.elems[2].h = 100.0f;
-
-    state->boxes.elems[3].x = 128.0f;
-    state->boxes.elems[3].y = 128.0f;
-    state->boxes.elems[3].w = 10.0f;
-    state->boxes.elems[3].h = 256.0f;
-}
 
 // TODO third argument should be the AABB system, which means...
 // TODO make an AABB system
@@ -263,6 +235,100 @@ GTV_Player_move_y(
     if (should_apply_future_state) *player_prev_state = player;
 }
 
+/* -- Player ------------------------------------------------------------------------------------ */
+
+/* -- Sprite Editor ----------------------------------------------------------------------------- */
+
+typedef struct GTV_SpriteEditor GTV_SpriteEditor; // TODO
+typedef struct GTV_LevelEditor GTV_LevelEditor; // TODO
+
+byte g_spredit_background_color = 0x00;
+GTV_Sprite *g_spredit_curr_sprite;// = g_player_sprite;
+
+/* Layout
+    +---+
+    |1|2|
+    +-+-+
+    |3|4|
+    +---+
+
+    1: Sprite viewer
+    2: Color viewer
+    3: Info box
+    4: Tool selector
+*/
+
+/* Color picker
+    2x2 pixel, 3x3 repeating pattern, 3n+1 x 3n+1 total size
+    +--- ---
+    |cc. cc.
+    |cc. cc.
+    |... ...
+
+    |cc. cc.
+    |cc. cc.
+    |... ...
+    ---- ---
+
+    to fit 128x128 space,
+    3n+1 = 128
+    n = 127/3 = 42 rem 1
+*/
+
+/* Color viewer
+    Uses same repeating pattern as above
+    32 color viewer (97 x 4), 4 views
+
+    +-------------------+
+    |  last used: c     |
+    |  history: cccccc  |
+    |  viewing: c       |
+    |                   |
+    |                   |
+    |  +-------------+  |
+    | < ccccccccccccc > |
+    |      1/4 FF       |
+    +-------------------+
+*/
+
+/* -- Sprite Editor ----------------------------------------------------------------------------- */
+
+/* -- Game -------------------------------------------------------------------------------------- */
+
+typedef struct GTV_PrivateGameState {
+    GTV_Player player;
+    GTV_AABB_Collection boxes;
+
+    bool is_editor_open;
+    //GTV_LevelEditor level_editor;
+} GTV_PrivateGameState;
+
+GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
+    GTV_Player_init(&state->player);
+
+    state->boxes.elems[0].x = 0.0f;
+    state->boxes.elems[0].y = 20.0f;
+    state->boxes.elems[0].w = 50.0f;
+    state->boxes.elems[0].h = 5.0f;
+
+    state->boxes.elems[1].x = 30.0f;
+    state->boxes.elems[1].y = 99.0f;
+    state->boxes.elems[1].w = 99.0f;
+    state->boxes.elems[1].h = 10.0f;
+
+    state->boxes.elems[2].x = 70.0f;
+    state->boxes.elems[2].y = 00.0f;
+    state->boxes.elems[2].w = 10.0f;
+    state->boxes.elems[2].h = 100.0f;
+
+    state->boxes.elems[3].x = 128.0f;
+    state->boxes.elems[3].y = 128.0f;
+    state->boxes.elems[3].w = 10.0f;
+    state->boxes.elems[3].h = 256.0f;
+
+    state->is_editor_open = false;
+}
+
 GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     GTV_Player_move_x(
         &interface->private->player,
@@ -279,6 +345,11 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     // TODO implement gravity and jumping
     // TODO find a way to diffrentiate being grounded to touching a wall's sides
 }
+
+// TODO
+GTV_LOCAL void GTV_update_editor(GTV_GameStateInterface *interface) {}
+
+// -- Drawing ------------------------------------
 
 GTV_LOCAL bool
 GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 pos_y, byte color) {
@@ -312,26 +383,10 @@ GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 p
     return success;
 }
 
-GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
-    // GTV_Player player = interface->private->player;
-
-    // GTV_Sprite_blit_to_framebuffer(
-    //     interface->framebuffer,
-    //     player.sprite,
-    //     (int32)player.bounds.x,
-    //     (int32)player.bounds.y
-    // );
-
-    // GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
-    
-    // for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
-    //     GTV_AABB_draw(
-    //         interface->private->boxes.elems[i],
-    //         interface->framebuffer, 0xFE
-    //     );
-    // }
-
+// UI mock
+GTV_LOCAL void GTV_draw_editor(GTV_GameStateInterface *interface) {
     int32 x = 0, y = 0;
+
     for (int32 i = 0; i < GTV_ATLAS_FONT_DIGITS_8x8_COUNT; i++) {
         GTV_Sprite_draw_8x8_sprite(
             interface->framebuffer,
@@ -352,13 +407,37 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     }
 }
 
+GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
+    GTV_Player player = interface->private->player;
+
+    GTV_Sprite_blit_to_framebuffer(
+        interface->framebuffer,
+        player.sprite,
+        (int32)player.bounds.x,
+        (int32)player.bounds.y
+    );
+
+    GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
+    
+    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+        GTV_AABB_draw(
+            interface->private->boxes.elems[i],
+            interface->framebuffer, 0xFE
+        );
+    }
+}
+
+GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
+    if (interface->private->is_editor_open) GTV_draw_editor(interface);
+    else GTV_draw_gameplay(interface);
+}
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
 /* -- Game state interface ---------------------------------------------------------------------- */
 
 GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
-    interface->should_exit = 0;
+    interface->should_exit = false;
     
     for (int32 c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
         interface->current_palette.colors[c].r = (byte)0;
@@ -384,7 +463,11 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
     interface->current_palette.colors[0xFD].b = 0x00;
 
     GTV_Framebuffer_clear(interface->framebuffer, 0);
-    GTV_update_gameplay(interface);
+
+    interface->private->is_editor_open = interface->keyboard_input.letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E];
+    if (interface->private->is_editor_open) GTV_update_editor(interface);
+    else GTV_update_gameplay(interface);
+
     GTV_draw_all(interface);
 }
 
