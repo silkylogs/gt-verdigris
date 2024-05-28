@@ -78,9 +78,10 @@ bool gen_palettized_atlas(Image src_img, GTV_ColorPalette src_palette, GTV_Sprit
 
     for (int32 y = 0; y < src_img.height; y++){
         for (int32 x = 0; x < src_img.width; x++) {
-            
-            GTV_Color col = Raylib_color_to_GTV_Color(GetImageColor(src_img, x, y));
-            dst->data[y*dst->width+x] = GTV_Color_to_byte(col, src_palette);
+            Color raylib_color = GetImageColor(src_img, x, y);
+            GTV_Color col = Raylib_color_to_GTV_Color(raylib_color);
+            byte applied_color = GTV_Color_to_byte(col, src_palette);
+            dst->data[y*dst->width+x] = applied_color;
         }
     }
 
@@ -167,8 +168,8 @@ int main(void) {
 
     CloseWindow();
     GTV_GameStateInterface_cleanup(interface);
-
-    free(interface);
+    GTV_Arena_free_all(&arena);
+    free(backing_memory);
     return 0;
 }
 

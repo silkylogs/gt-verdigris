@@ -229,7 +229,7 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
 }
 
 GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
-    free(interface->private);
+    interface = interface; // shut the fuck up
 }
 
 /* -- Game state interface ---------------------------------------------------------------------- */
