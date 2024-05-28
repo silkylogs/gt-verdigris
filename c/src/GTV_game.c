@@ -8,7 +8,10 @@
 typedef struct GTV_Arena GTV_Arena;
 
 GTV_EXPORT bool GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size) {
-    if (!mem) return false;
+    if (!mem) {
+        printf("Provided memory is null\n");
+        return false;
+    }
 
     a->backing_memory = mem;
     a->allocated = 0;
@@ -19,7 +22,10 @@ GTV_EXPORT bool GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size) {
 
 GTV_EXPORT void *GTV_Arena_alloc(GTV_Arena *a, int32 size) {
     int32 remaining_capacity = a->capacity - a->allocated;
-    if (size > remaining_capacity || size <= 0) return NULL;
+    if (size > remaining_capacity || size <= 0) {
+        printf("Cannot provide %d bytes of memory\n", size);
+        return NULL;
+    }
     
     byte *mem = &a->backing_memory[a->allocated];
     a->allocated += size;
@@ -58,8 +64,8 @@ typedef struct GTV_PrivateGameState {
     GTV_AABB_Collection boxes;
 } GTV_PrivateGameState;
 
-GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state) {
-    GTV_Player_init(&state->player);
+GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state, GTV_Sprite player_sprite) {
+    GTV_Player_init(&state->player, player_sprite);
 
     state->boxes.elems[0].x = 0.0f;
     state->boxes.elems[0].y = 20.0f;
@@ -184,42 +190,56 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     );
     // TESTING
 
-    // yeah framebuffer blitting works dont worry about it
-    // interface->current_palette.colors[0xFF].g = 0xFF;
-    // GTV_Framebuffer_set_pixel_xy(interface->framebuffer, 5, 10, 0xFF);
-
-    // GTV_draw_gameplay(interface);
+    GTV_draw_gameplay(interface);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
 /* -- Game state interface ---------------------------------------------------------------------- */
 
-GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface, GTV_Arena *arena) {
-    /* {
-        for (int32 c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
-            interface->current_palette.colors[c].r = (byte)0;
-            interface->current_palette.colors[c].g = (byte)0;
-            interface->current_palette.colors[c].b = (byte)0;
+GTV_LOCAL GTV_Sprite generate_player_sprite(GTV_Sprite atlas, GTV_Arena *arena) {
+    GTV_Sprite sprite = {
+        .width = 16, .height = 16, .data = NULL
+    };
+    sprite.data = GTV_Arena_alloc(arena, sprite.width * sprite.height);
+
+    for (int32 sprite_y = 0; sprite_y < sprite.height; sprite_y++) {
+        for (int32 sprite_x = 0; sprite_x < sprite.width; sprite_x++) {
+            int32
+                atlas_x = sprite_x + 0,
+                atlas_y = sprite_y + 0;
+            int32
+                sprite_idx = sprite_y * sprite.width + sprite_x,
+                atlas_idx = atlas_y * atlas.width + atlas_x; 
+            
+            // FIXME TODO Why is the atlas empty?
+            printf(
+                "Copying atlas[%04d] (%02X) to sprite[%03d] (%02X)\n",
+                atlas_idx,
+                (int32)atlas.data[atlas_idx],
+                sprite_idx,
+                (int32)sprite.data[sprite_idx]
+            );
+            sprite.data[sprite_idx] = atlas.data[atlas_idx];
         }
-        interface->current_palette.colors[0xFF].r = 0x00;
-        interface->current_palette.colors[0xFF].g = 0xFF;
-        interface->current_palette.colors[0xFF].b = 0x00;
+    }
 
-        interface->current_palette.colors[0xFE].r = 0x7F;
-        interface->current_palette.colors[0xFE].g = 0x00;
-        interface->current_palette.colors[0xFE].b = 0x00;
+    return sprite;
+}
 
-        interface->current_palette.colors[0xFD].r = 0xF0;
-        interface->current_palette.colors[0xFD].g = 0x80;
-        interface->current_palette.colors[0xFD].b = 0x00;
-    } */
-
+GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface, GTV_Arena *arena) {
     interface->should_exit = false;
 
-    // interface->private = malloc(sizeof (GTV_PrivateGameState));
+    interface->palettized_sprite_atlas.width = 256;
+    interface->palettized_sprite_atlas.height = 256;
+    interface->palettized_sprite_atlas.data = GTV_Arena_alloc(
+        arena,
+        interface->palettized_sprite_atlas.width * interface->palettized_sprite_atlas.height
+    );
+
     interface->private = GTV_Arena_alloc(arena, sizeof (GTV_PrivateGameState));
-    GTV_PrivateGameState_init(interface->private);
+    GTV_Sprite player_sprite = generate_player_sprite(interface->palettized_sprite_atlas, arena);
+    GTV_PrivateGameState_init(interface->private, player_sprite);
 }
 
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {

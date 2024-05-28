@@ -30,8 +30,8 @@ byte GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
     for (int32 i = 0; i < GTV_COLOR_PALETTE_SIZE; i++) {
         if (
             (col.r == palette.colors[i].r) &&
-            (col.r == palette.colors[i].g) &&
-            (col.r == palette.colors[i].b)
+            (col.g == palette.colors[i].g) &&
+            (col.b == palette.colors[i].b)
         ) {
             return i;
         }
@@ -64,7 +64,8 @@ bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
 
     for (int32 y = 0; y < 16; y++) {
         for (int32 x = 0; x < 16; x++) {
-            GTV_Color col = Raylib_color_to_GTV_Color(GetImageColor(src, x, y));
+            Color image_pixel_color = GetImageColor(src, x, y);
+            GTV_Color col = Raylib_color_to_GTV_Color(image_pixel_color);
             dst->colors[y*16+x] = col;
         }
     }
@@ -108,41 +109,55 @@ int main(void) {
     //SetExitKey(KEY_NULL);
 
     int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
+    printf("Allocating %d bytes as backing memory.\n", backing_memory_len);
     byte *backing_memory = malloc(backing_memory_len);
     if (!backing_memory) {
         printf("backing memory acquisition failed\n");
         return 1;
     }
 
-    // GTV_GameStateInterface *interface = malloc(sizeof (GTV_GameStateInterface));
-    GTV_Arena arena;
-    GTV_Arena_init(&arena, backing_memory, backing_memory_len);
-    GTV_GameStateInterface *interface = GTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
-    if (!interface) {
-        printf("allocation failed %d\n", sizeof (GTV_GameStateInterface));
-        return 1;
-    }
-    GTV_GameStateInterface_init(interface, &arena);
-
     // TESTING
-    // (part of gamestateinterface_init)
-    interface->palettized_sprite_atlas.width = 256;
-    interface->palettized_sprite_atlas.height = 256;
-    interface->palettized_sprite_atlas.data = malloc(256*256);
-
+    GTV_ColorPalette game_palette;
+    GTV_Sprite game_atlas;
     Image atlas = LoadImage("assets/atlas.png");
     ImageFormat(&atlas, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
-    if (!atlas_to_palette(atlas, &interface->current_palette)) {
+    if (!atlas_to_palette(atlas, &game_palette)) {
         printf("atlas_to_palette failed\n");
         return 1;
     }
-    if (!gen_palettized_atlas(atlas, interface->current_palette, &interface->palettized_sprite_atlas)) {
+    if (!gen_palettized_atlas(atlas, game_palette, &game_atlas)) {
         printf("gen_palettized_atlas failed\n");
         return 1;
     }
     UnloadImage(atlas);
     // TESTING
 
+    GTV_Arena arena;
+    GTV_Arena_init(&arena, backing_memory, backing_memory_len);
+    GTV_GameStateInterface *interface = GTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
+    if (!interface) {
+        printf("Interface allocation failed\n");
+        return 1;
+    }
+    // TESTING
+    interface->current_palette = game_palette;
+    interface->palettized_sprite_atlas = game_atlas;
+    // TESTING
+    GTV_GameStateInterface_init(interface, &arena); // fix chicken and egg problem asap
+
+    // // Load atlas, generate palette
+    // Image atlas = LoadImage("assets/atlas.png");
+    // ImageFormat(&atlas, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
+    // if (!atlas_to_palette(atlas, &interface->current_palette)) {
+    //     printf("atlas_to_palette failed\n");
+    //     return 1;
+    // }
+    // if (!gen_palettized_atlas(atlas, interface->current_palette, &interface->palettized_sprite_atlas)) {
+    //     printf("gen_palettized_atlas failed\n");
+    //     return 1;
+    // }
+    // UnloadImage(atlas);
+    
     while (!WindowShouldClose()) {
         // if (IsKeyReleased(KEY_E)) ToggleFullscreen();
 

@@ -6,7 +6,7 @@ typedef struct GTV_Player {
     GTV_AABB bounds;
 } GTV_Player;
 
-GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
+GTV_LOCAL void GTV_Player_init(GTV_Player *player, GTV_Sprite player_sprite) {
     player->vx = 0.0f;
     player->vy = 1.0f;
     player->gravy = 5.0f;
@@ -14,9 +14,10 @@ GTV_LOCAL void GTV_Player_init(GTV_Player *player) {
     player->input_vx = 2.0f;
     player->grounded = false;
 
-    player->sprite.width = 16;
-    player->sprite.height = 16;
-    player->sprite.data = g_player_sprite;
+    // player->sprite.width = 16;
+    // player->sprite.height = 16;
+    // player->sprite.data = g_player_sprite;
+    player->sprite = player_sprite;
 
     player->bounds.x = 0.0f;
     player->bounds.y = 0.0f;
