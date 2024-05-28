@@ -7,17 +7,40 @@
 
 typedef struct GTV_Arena GTV_Arena;
 
-void GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size) {
+GTV_EXPORT bool GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size) {
+    if (!mem) return false;
+
     a->backing_memory = mem;
     a->allocated = 0;
     a->capacity = size;
+
+    return true;
 }
 
-void *GTV_Arena_alloc(GTV_Arena *a, int32 size) {
-    // TODO
+GTV_EXPORT void *GTV_Arena_alloc(GTV_Arena *a, int32 size) {
+    int32 remaining_capacity = a->capacity - a->allocated;
+    if (size > remaining_capacity || size <= 0) return NULL;
+    
+    byte *mem = &a->backing_memory[a->allocated];
+    a->allocated += size;
+    return mem;
 }
 
-void GTV_Arena_free_all(GTV_Arena *a);
+GTV_EXPORT void GTV_Arena_free_all(GTV_Arena *a) {
+    a->allocated = 0;
+}
+
+// Use this as a "checkpoint" of sorts
+GTV_LOCAL int32 GTV_Arena_get_current_allocated_bytes(GTV_Arena a) {
+    return a.allocated;
+}
+
+// Set the arena's internal state to the "checkpoint"
+GTV_LOCAL bool GTV_Arena_shrink(GTV_Arena *a, int32 shrinked_size) {
+    if (shrinked_size < 0 || shrinked_size > a->allocated) return false;
+    a->allocated = shrinked_size;
+    return true;
+}
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 
@@ -172,7 +195,7 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
 
 /* -- Game state interface ---------------------------------------------------------------------- */
 
-GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
+GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface, GTV_Arena *arena) {
     /* {
         for (int32 c = 0; c < GTV_COLOR_PALETTE_SIZE; c++) {
             interface->current_palette.colors[c].r = (byte)0;
@@ -194,7 +217,8 @@ GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface) {
 
     interface->should_exit = false;
 
-    interface->private = malloc(sizeof (GTV_PrivateGameState));
+    // interface->private = malloc(sizeof (GTV_PrivateGameState));
+    interface->private = GTV_Arena_alloc(arena, sizeof (GTV_PrivateGameState));
     GTV_PrivateGameState_init(interface->private);
 }
 

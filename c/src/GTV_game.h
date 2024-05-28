@@ -18,9 +18,9 @@ typedef struct GTV_Arena {
     int32 capacity;
 } GTV_Arena;
 
-void GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size);
-void *GTV_Arena_alloc(GTV_Arena *a, int32 size);
-void GTV_Arena_free_all(GTV_Arena *a);
+GTV_EXPORT bool GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size);
+GTV_EXPORT void *GTV_Arena_alloc(GTV_Arena *a, int32 size);
+GTV_EXPORT void GTV_Arena_free_all(GTV_Arena *a);
 
 /* -- Arena ------------------------------------------------------------------------------------- */
 
@@ -104,7 +104,7 @@ typedef struct GTV_GameStateInterface {
     GTV_PrivateGameState *private;
 } GTV_GameStateInterface;
 
-GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *);
+GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *, GTV_Arena *);
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *);
 GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *);
 

@@ -106,8 +106,22 @@ int main(void) {
     InitWindow(os_window.width, os_window.height, os_window.title);
     //SetExitKey(KEY_NULL);
 
-    GTV_GameStateInterface *interface = malloc(sizeof (GTV_GameStateInterface));
-    GTV_GameStateInterface_init(interface);
+    int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
+    byte *backing_memory = malloc(backing_memory_len);
+    if (!backing_memory) {
+        printf("backing memory acquisition failed\n");
+        return 1;
+    }
+
+    // GTV_GameStateInterface *interface = malloc(sizeof (GTV_GameStateInterface));
+    GTV_Arena arena;
+    GTV_Arena_init(&arena, backing_memory, backing_memory_len);
+    GTV_GameStateInterface *interface = GTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
+    if (!interface) {
+        printf("allocation failed %d\n", sizeof (GTV_GameStateInterface));
+        return 1;
+    }
+    GTV_GameStateInterface_init(interface, &arena);
 
     // TESTING
     // (part of gamestateinterface_init)
@@ -153,6 +167,7 @@ int main(void) {
 
     CloseWindow();
     GTV_GameStateInterface_cleanup(interface);
+
     free(interface);
     return 0;
 }
