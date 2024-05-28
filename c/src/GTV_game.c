@@ -4,7 +4,21 @@
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
-// TODO replace malloc with an external (arena) allocator
+
+typedef struct GTV_Arena GTV_Arena;
+
+void GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size) {
+    a->backing_memory = mem;
+    a->allocated = 0;
+    a->capacity = size;
+}
+
+void *GTV_Arena_alloc(GTV_Arena *a, int32 size) {
+    // TODO
+}
+
+void GTV_Arena_free_all(GTV_Arena *a);
+
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 #include "GTV_Colors.c"

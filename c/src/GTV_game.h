@@ -10,6 +10,20 @@ typedef uint64_t uint64;
 #define GTV_LOCAL static
 #define GTV_EXPORT extern
 
+/* -- Arena ------------------------------------------------------------------------------------- */
+
+typedef struct GTV_Arena {
+    byte *backing_memory;
+    int32 allocated;
+    int32 capacity;
+} GTV_Arena;
+
+void GTV_Arena_init(GTV_Arena *a, byte *mem, int32 size);
+void *GTV_Arena_alloc(GTV_Arena *a, int32 size);
+void GTV_Arena_free_all(GTV_Arena *a);
+
+/* -- Arena ------------------------------------------------------------------------------------- */
+
 /* -- Colors ------------------------------------------------------------------------------------ */
 
 #define GTV_COLOR_PALETTE_COLLECTION_COUNT (0x10)
