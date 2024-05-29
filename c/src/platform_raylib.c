@@ -40,6 +40,40 @@ byte GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
     return 0xFF; // TODO find a better color
 }
 
+bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
+    int32
+        palette_width = 16,
+        palette_height = 16;
+    if (src.width < palette_width || src.height < palette_height) {
+        return false;
+    }
+
+    for (int32 y = 0; y < palette_height; y++) {
+        for (int32 x = 0; x < palette_width; x++) {
+            Color image_pixel_color = GetImageColor(src, x, y);
+            GTV_Color col = Raylib_color_to_GTV_Color(image_pixel_color);
+            dst->colors[y*palette_width + x] = col;
+        }
+    }
+
+    return true;
+}
+
+bool palettize_atlas(Image src_img, GTV_ColorPalette src_palette, GTV_Sprite *dst) {
+    if ((src_img.width != dst->width) || (src_img.height != dst->height)) return false;
+
+    for (int32 y = 0; y < src_img.height; y++){
+        for (int32 x = 0; x < src_img.width; x++) {
+            Color raylib_color = GetImageColor(src_img, x, y);
+            GTV_Color col = Raylib_color_to_GTV_Color(raylib_color);
+            byte applied_color = GTV_Color_to_byte(col, src_palette);
+            dst->data[y*dst->width + x] = applied_color;
+        }
+    }
+
+    return true;
+}
+
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 /* -- Input ------------------------------------------------------------------------------------- */
@@ -55,108 +89,62 @@ void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
 
 /* -- Input ------------------------------------------------------------------------------------- */
 
-// TODO get atlas from filesystem
-// create palette from 16x16 square in atlas
-bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
-    if (src.width < 16 || src.height < 16) {
-        return false;
-    }
-
-    for (int32 y = 0; y < 16; y++) {
-        for (int32 x = 0; x < 16; x++) {
-            Color image_pixel_color = GetImageColor(src, x, y);
-            GTV_Color col = Raylib_color_to_GTV_Color(image_pixel_color);
-            dst->colors[y*16+x] = col;
-        }
-    }
-
-    return true;
-}
-
-// use GetImageColor to convert image from color array to index array (palettization)
-bool gen_palettized_atlas(Image src_img, GTV_ColorPalette src_palette, GTV_Sprite *dst) {
-    if ((src_img.width != dst->width) || (src_img.height != dst->height)) return false;
-
-    for (int32 y = 0; y < src_img.height; y++){
-        for (int32 x = 0; x < src_img.width; x++) {
-            Color raylib_color = GetImageColor(src_img, x, y);
-            GTV_Color col = Raylib_color_to_GTV_Color(raylib_color);
-            byte applied_color = GTV_Color_to_byte(col, src_palette);
-            dst->data[y*dst->width+x] = applied_color;
-        }
-    }
-
-    return true;
-}
 
 /* -- Main -------------------------------------------------------------------------------------- */
 
-typedef struct GTV_OsWindow {
-    int width, height;
-    char *title;
-} GTV_OsWindow;
-
-#define GTV_WINDOW_TITLE "Platformer demo"
-
 int main(void) {
+    // Self explanatory
     GTV_OsWindow os_window = {
         .width = 512,
         .height = 512,
         .title = GTV_WINDOW_TITLE
     };
-    
     InitWindow(os_window.width, os_window.height, os_window.title);
     //SetExitKey(KEY_NULL);
 
+    // Initialize memory systems
     int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
     printf("Allocating %d bytes as backing memory.\n", backing_memory_len);
     byte *backing_memory = malloc(backing_memory_len);
     if (!backing_memory) {
-        printf("backing memory acquisition failed\n");
+        printf("Backing memory acquisition failed\n");
+        return 1;
+    }
+    GTV_Arena arena;
+    if (!GTV_Arena_init(&arena, backing_memory, backing_memory_len)) {
+        printf("Arena initialization failed\n");
         return 1;
     }
 
-    // TESTING
-    GTV_ColorPalette game_palette;
-    GTV_Sprite game_atlas;
-    Image atlas = LoadImage("assets/atlas.png");
-    ImageFormat(&atlas, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
-    if (!atlas_to_palette(atlas, &game_palette)) {
+    // Load atlas, generate palette, palettize atlas
+    GTV_ColorPalette palette = {0};
+    Image atlas_from_file = LoadImage("assets/atlas.png");
+    ImageFormat(&atlas_from_file, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
+    if (!atlas_to_palette(atlas_from_file, &palette)) {
         printf("atlas_to_palette failed\n");
         return 1;
     }
-    if (!gen_palettized_atlas(atlas, game_palette, &game_atlas)) {
-        printf("gen_palettized_atlas failed\n");
+    GTV_Sprite palettized_atlas = {
+        .width = atlas_from_file.width,
+        .height = atlas_from_file.height,
+        .data = GTV_Arena_alloc(
+            &arena,
+            palettized_atlas.width * palettized_atlas.height
+        )
+    };
+    if (!palettize_atlas(atlas_from_file, palette, &palettized_atlas)) {
+        printf("palettize_atlas failed\n");
         return 1;
     }
-    UnloadImage(atlas);
-    // TESTING
+    UnloadImage(atlas_from_file);
 
-    GTV_Arena arena;
-    GTV_Arena_init(&arena, backing_memory, backing_memory_len);
+    // Self explanatory
     GTV_GameStateInterface *interface = GTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
     if (!interface) {
         printf("Interface allocation failed\n");
         return 1;
     }
-    // TESTING
-    interface->current_palette = game_palette;
-    interface->palettized_sprite_atlas = game_atlas;
-    // TESTING
-    GTV_GameStateInterface_init(interface, &arena); // fix chicken and egg problem asap
-
-    // // Load atlas, generate palette
-    // Image atlas = LoadImage("assets/atlas.png");
-    // ImageFormat(&atlas, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
-    // if (!atlas_to_palette(atlas, &interface->current_palette)) {
-    //     printf("atlas_to_palette failed\n");
-    //     return 1;
-    // }
-    // if (!gen_palettized_atlas(atlas, interface->current_palette, &interface->palettized_sprite_atlas)) {
-    //     printf("gen_palettized_atlas failed\n");
-    //     return 1;
-    // }
-    // UnloadImage(atlas);
+    GTV_GameStateInterface_init(interface, &arena, palette, palettized_atlas);
     
     while (!WindowShouldClose()) {
         // if (IsKeyReleased(KEY_E)) ToggleFullscreen();

@@ -10,6 +10,17 @@ typedef uint64_t uint64;
 #define GTV_LOCAL static
 #define GTV_EXPORT extern
 
+/* -- Utility ----------------------------------------------------------------------------------- */
+
+typedef struct GTV_OsWindow {
+    int width, height;
+    char *title;
+} GTV_OsWindow;
+
+#define GTV_WINDOW_TITLE "Platformer demo"
+
+/* -- Utility ----------------------------------------------------------------------------------- */
+
 /* -- Arena ------------------------------------------------------------------------------------- */
 
 typedef struct GTV_Arena {
@@ -104,7 +115,12 @@ typedef struct GTV_GameStateInterface {
     GTV_PrivateGameState *private;
 } GTV_GameStateInterface;
 
-GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *, GTV_Arena *);
+GTV_EXPORT void GTV_GameStateInterface_init(
+    GTV_GameStateInterface *interface,
+    GTV_Arena *arena,
+    GTV_ColorPalette palette,
+    GTV_Sprite palettized_atlas
+);
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *);
 GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *);
 

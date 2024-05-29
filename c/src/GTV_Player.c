@@ -14,9 +14,6 @@ GTV_LOCAL void GTV_Player_init(GTV_Player *player, GTV_Sprite player_sprite) {
     player->input_vx = 2.0f;
     player->grounded = false;
 
-    // player->sprite.width = 16;
-    // player->sprite.height = 16;
-    // player->sprite.data = g_player_sprite;
     player->sprite = player_sprite;
 
     player->bounds.x = 0.0f;

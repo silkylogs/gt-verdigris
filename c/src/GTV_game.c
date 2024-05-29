@@ -206,20 +206,19 @@ GTV_LOCAL GTV_Sprite generate_player_sprite(GTV_Sprite atlas, GTV_Arena *arena) 
     for (int32 sprite_y = 0; sprite_y < sprite.height; sprite_y++) {
         for (int32 sprite_x = 0; sprite_x < sprite.width; sprite_x++) {
             int32
-                atlas_x = sprite_x + 0,
+                atlas_x = sprite_x + 16,
                 atlas_y = sprite_y + 0;
             int32
                 sprite_idx = sprite_y * sprite.width + sprite_x,
                 atlas_idx = atlas_y * atlas.width + atlas_x; 
             
-            // FIXME TODO Why is the atlas empty?
-            printf(
-                "Copying atlas[%04d] (%02X) to sprite[%03d] (%02X)\n",
-                atlas_idx,
-                (int32)atlas.data[atlas_idx],
-                sprite_idx,
-                (int32)sprite.data[sprite_idx]
-            );
+            // printf(
+            //     "Copying atlas[%04d] (%02X) to sprite[%03d] (%02X)\n",
+            //     atlas_idx,
+            //     (int32)atlas.data[atlas_idx],
+            //     sprite_idx,
+            //     (int32)sprite.data[sprite_idx]
+            // );
             sprite.data[sprite_idx] = atlas.data[atlas_idx];
         }
     }
@@ -227,15 +226,15 @@ GTV_LOCAL GTV_Sprite generate_player_sprite(GTV_Sprite atlas, GTV_Arena *arena) 
     return sprite;
 }
 
-GTV_EXPORT void GTV_GameStateInterface_init(GTV_GameStateInterface *interface, GTV_Arena *arena) {
+GTV_EXPORT void GTV_GameStateInterface_init(
+    GTV_GameStateInterface *interface,
+    GTV_Arena *arena,
+    GTV_ColorPalette palette,
+    GTV_Sprite palettized_atlas
+) {
     interface->should_exit = false;
-
-    interface->palettized_sprite_atlas.width = 256;
-    interface->palettized_sprite_atlas.height = 256;
-    interface->palettized_sprite_atlas.data = GTV_Arena_alloc(
-        arena,
-        interface->palettized_sprite_atlas.width * interface->palettized_sprite_atlas.height
-    );
+    interface->current_palette = palette;
+    interface->palettized_sprite_atlas = palettized_atlas;
 
     interface->private = GTV_Arena_alloc(arena, sizeof (GTV_PrivateGameState));
     GTV_Sprite player_sprite = generate_player_sprite(interface->palettized_sprite_atlas, arena);
