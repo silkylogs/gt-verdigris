@@ -105,7 +105,9 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     // TODO find a way to diffrentiate being grounded to touching a wall's sides
 }
 
-// -- Drawing ------------------------------------
+/* -- Game -------------------------------------------------------------------------------------- */
+
+/* -- Drawing ----------------------------------------------------------------------------------- */
 
 GTV_LOCAL bool
 GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 pos_y, byte color) {
@@ -125,7 +127,7 @@ GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 p
 
     for (int32 y = 0; y < sizeof rows; y++) {
         for (int32 x = 0; x < bits_in_byte; x++) {
-            bool contains_pixel = (rows[y] >> (bits_in_byte - x)) & 0x1;
+            bool contains_pixel = (rows[y].container >> (bits_in_byte - x)) & 0x1;
             if (contains_pixel) {
                 success &= GTV_Framebuffer_set_pixel_xy(
                     framebuffer,
@@ -139,7 +141,7 @@ GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 p
     return success;
 }
 
-// Keeping this around as GTV_Sprite_draw_8x8_sprite usage tutorial
+// Keeping this around as text drawing tutorial
 // GTV_LOCAL void GTV_draw_editor(GTV_GameStateInterface *interface) {
 //     int32 x = 0, y = 0;
 //     for (int32 i = 0; i < GTV_ATLAS_FONT_DIGITS_8x8_COUNT; i++) {
@@ -171,12 +173,13 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
         (int32)player.bounds.y
     );
 
-    GTV_AABB_draw(player.bounds, interface->framebuffer, 0xFE);
+    byte bound_color = { 0xFE };
+    GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
     for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
         GTV_AABB_draw(
             interface->private->boxes.elems[i],
-            interface->framebuffer, 0xFE
+            interface->framebuffer, bound_color
         );
     }
 }
@@ -193,7 +196,7 @@ GTV_LOCAL void GTV_draw_all(GTV_GameStateInterface *interface) {
     GTV_draw_gameplay(interface);
 }
 
-/* -- Game -------------------------------------------------------------------------------------- */
+/* -- Drawing ----------------------------------------------------------------------------------- */
 
 /* -- Game state interface ---------------------------------------------------------------------- */
 
@@ -242,7 +245,8 @@ GTV_EXPORT void GTV_GameStateInterface_init(
 }
 
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
-    GTV_Framebuffer_clear(interface->framebuffer, 0);
+    byte clear_color = { 0 };
+    GTV_Framebuffer_clear(interface->framebuffer, clear_color);
     GTV_update_gameplay(interface);
     GTV_draw_all(interface);
 }

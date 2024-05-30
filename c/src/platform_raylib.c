@@ -1,16 +1,86 @@
-//#include <stdio.h>
-#include <raylib.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <raylib.h>
+
+/* -- Windows.h ----------------------------------------------------------------------------------*/
+
+void *LoadLibraryA(char *lpLibFileName);
+void *GetProcAddress(void *hModule, char *lpProcName);
+bool FreeLibrary(void *hLibModule);
+
+/* -- Windows.h ----------------------------------------------------------------------------------*/
+
 #include "GTV_game.h"
+
+/* -- Hot-reloading ------------------------------------------------------------------------------*/
+
+bool (*pGTV_Arena_init)(GTV_Arena*, byte*, int32);
+void *(*pGTV_Arena_alloc)(GTV_Arena*, int32);
+void (*pGTV_Arena_free_all)(GTV_Arena*);
+GTV_Color (*pGTV_Framebuffer_get_color)(byte*, GTV_ColorPalette, int32);
+void (*pGTV_KeyboardInput_populate)(GTV_KeyboardInput*);
+void (*pGTV_GameStateInterface_init)(GTV_GameStateInterface*, GTV_Arena*, GTV_ColorPalette, GTV_Sprite);
+void (*pGTV_GameStateInterface_update)(GTV_GameStateInterface*);
+void (*pGTV_GameStateInterface_cleanup)(GTV_GameStateInterface*);
+
+void *dll = NULL;
+bool GTV_HotReloader_load_all(void) {
+    if (dll != NULL) return false;
+
+    pGTV_Arena_init =                   LoadLibraryA("GTV_Arena_init");
+    pGTV_Arena_alloc =                  LoadLibraryA("GTV_Arena_alloc");
+    pGTV_Arena_free_all =               LoadLibraryA("GTV_Arena_free_all");
+    pGTV_Framebuffer_get_color =        LoadLibraryA("GTV_Framebuffer_get_color");
+    pGTV_KeyboardInput_populate =       LoadLibraryA("GTV_KeyboardInput_populate");
+    pGTV_GameStateInterface_init =      LoadLibraryA("GTV_GameStateInterface_init");
+    pGTV_GameStateInterface_update =    LoadLibraryA("GTV_GameStateInterface_update");
+    pGTV_GameStateInterface_cleanup =   LoadLibraryA("GTV_GameStateInterface_cleanup");
+
+    return
+        pGTV_Arena_init
+        && pGTV_Arena_alloc
+        && pGTV_Arena_free_all
+        && pGTV_Framebuffer_get_color 
+        && pGTV_KeyboardInput_populate
+        && pGTV_GameStateInterface_init
+        && pGTV_GameStateInterface_update 
+        && pGTV_GameStateInterface_cleanup;
+}
+
+bool GTV_HotReloader_free_all(void) {
+    if (dll == NULL) return false;
+
+    bool ok
+         = FreeLibrary(pGTV_Arena_init)
+        && FreeLibrary(pGTV_Arena_alloc)
+        && FreeLibrary(pGTV_Arena_free_all)
+        && FreeLibrary(pGTV_Framebuffer_get_color)
+        && FreeLibrary(pGTV_KeyboardInput_populate)
+        && FreeLibrary(pGTV_GameStateInterface_init)
+        && FreeLibrary(pGTV_GameStateInterface_update)
+        && FreeLibrary(pGTV_GameStateInterface_cleanup);
+
+    if (ok) dll = NULL;
+    return ok;
+}
+
+bool GTV_HotReloader_reload(void) {
+    bool ok = true;
+    ok &= GTV_HotReloader_free_all();
+    ok &= GTV_HotReloader_load_all();
+    return ok;
+}
+
+/* -- Hot-reloading ------------------------------------------------------------------------------*/
 
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
     Color raylib_color;
     
-    raylib_color.r = gtv_color.r;
-    raylib_color.g = gtv_color.g;
-    raylib_color.b = gtv_color.b;
+    raylib_color.r = gtv_color.r.container;
+    raylib_color.g = gtv_color.g.container;
+    raylib_color.b = gtv_color.b.container;
     raylib_color.a = 0xFF;
 
     return raylib_color;
@@ -19,9 +89,9 @@ Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
 GTV_Color Raylib_color_to_GTV_Color(Color raylib_color) {
     GTV_Color gtv_color;
 
-    gtv_color.r = raylib_color.r;
-    gtv_color.g = raylib_color.g;
-    gtv_color.b = raylib_color.b;
+    gtv_color.r.container = raylib_color.r;
+    gtv_color.g.container = raylib_color.g;
+    gtv_color.b.container = raylib_color.b;
 
     return gtv_color;
 }
@@ -29,15 +99,15 @@ GTV_Color Raylib_color_to_GTV_Color(Color raylib_color) {
 byte GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
     for (int32 i = 0; i < GTV_COLOR_PALETTE_SIZE; i++) {
         if (
-            (col.r == palette.colors[i].r) &&
-            (col.g == palette.colors[i].g) &&
-            (col.b == palette.colors[i].b)
+            (col.r.container == palette.colors[i].r.container) &&
+            (col.g.container == palette.colors[i].g.container) &&
+            (col.b.container == palette.colors[i].b.container)
         ) {
-            return i;
+            return (byte){i};
         }
     }
 
-    return 0xFF; // TODO find a better color
+    return (byte){0xFF}; // TODO find a better color
 }
 
 bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
@@ -155,7 +225,8 @@ int main(void) {
         BeginDrawing();
         ClearBackground(MAGENTA);
         for (int i = 0; i < sizeof interface->framebuffer; i++) {
-            GTV_Color gtv_color = interface->current_palette.colors[interface->framebuffer[i]];
+            byte palette_index = interface->framebuffer[i];
+            GTV_Color gtv_color = interface->current_palette.colors[palette_index.container];
             Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;

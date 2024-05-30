@@ -60,20 +60,30 @@ GTV_Player_move_y(
     GTV_Player player = *player_prev_state;
     bool should_apply_future_state = true;
 
+    // player.grounded = GTV_AABB_player_is_grounded(player.bounds, test_boxes);
+    // printf("player.grounded = %s\n", player.grounded ? "true" : "false");
+    // printf("player.vy = %f\n", player.vy);
+
     if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN]) {
         // TODO: increase vy slightly
     } else if (input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP]) {
         // jump
-        player.vy = -player.jmpy;
+        if (player.grounded) player.vy = -player.jmpy;
     }
 
     // gravity
+    if (!player.grounded) {
+        player.vy = player.gravy;
+    } else {
+        player.vy = 0;
+    }
     player.bounds.y += player.vy;
 
     if ((player.bounds.y + player.bounds.h > GTV_FRAMEBUFFER_HEIGHT) ||
         (player.bounds.y <= 0) ||
         (GTV_AABB_player_intersects_boxes(player.bounds, test_boxes)))
     {
+        player.grounded = true;
         should_apply_future_state = false;
     }
 

@@ -8,7 +8,8 @@ typedef struct GTV_AABB_Collection {
 } GTV_AABB_Collection;
 
 GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {
-    float a_min_x = a.x,
+    float
+        a_min_x = a.x,
         a_max_x = a.x + a.w,
         a_min_y = a.y,
         a_max_y = a.y + a.h,
@@ -29,6 +30,22 @@ GTV_LOCAL bool
 GTV_AABB_player_intersects_boxes(GTV_AABB player, GTV_AABB_Collection boxes) {
     for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
         if (GTV_AABB_intersect(player, boxes.elems[i])) return true;
+    }
+    return false;
+}
+
+GTV_LOCAL bool
+GTV_AABB_player_is_grounded(GTV_AABB player, GTV_AABB_Collection boxes) {
+    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+        if (GTV_AABB_intersect(player, boxes.elems[i])) {
+            float
+                player_min_y = player.y,
+                player_max_y = player.y + player.h,
+                box_min_y = boxes.elems[i].y,
+                box_max_y = boxes.elems[i].y + boxes.elems[i].h;
+
+            if ((player_max_y >= box_min_y) && (player_min_y <= box_max_y)) return true;
+        };
     }
     return false;
 }

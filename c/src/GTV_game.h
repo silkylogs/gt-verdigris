@@ -3,17 +3,19 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-typedef unsigned char byte;
-typedef int32_t int32;
-typedef uint64_t uint64;
 
-#define GTV_LOCAL static
-#define GTV_EXPORT extern
+#define GTV_LOCAL static            // Defined in the dll, called solely by the dll
+#define GTV_EXPORT extern           // Defined in the dll, called by both dll and platform layer
+#define GTV_PLATFORM_LAYER extern   // Defined in the platform layer, called by both
 
 /* -- Utility ----------------------------------------------------------------------------------- */
 
+typedef struct byte { uint8_t container; } byte;
+typedef int32_t int32;
+typedef uint64_t uint64;
+
 typedef struct GTV_OsWindow {
-    int width, height;
+    int32 width, height;
     char *title;
 } GTV_OsWindow;
 
@@ -62,6 +64,11 @@ typedef struct GTV_ColorPaletteCollection {
 #define GTV_FRAMEBUFFER_HEIGHT (GTV_FRAMEBUFFER_WIDTH)
 #define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
+typedef struct GTV_Framebuffer {
+    byte *data;
+    int32 size;
+} GTV_Framebuffer;
+
 GTV_EXPORT GTV_Color
 GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
 
@@ -75,7 +82,7 @@ typedef struct GTV_Sprite {
     byte *data;
 } GTV_Sprite;
 
-GTV_EXPORT void GTV_Sprite_get_atlas();
+//GTV_EXPORT void GTV_Sprite_get_atlas();
 
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
@@ -93,11 +100,11 @@ enum GTV_KeyboardInputLetterKey {
 };
 
 typedef struct GTV_KeyboardInput {
-    byte arrow_keys[4];
-    byte letter_keys[1];
+    bool arrow_keys[4];
+    bool letter_keys[1];
 } GTV_KeyboardInput;
 
-GTV_EXPORT void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
+GTV_PLATFORM_LAYER void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
 
 /* -- Input ------------------------------------------------------------------------------------- */
 

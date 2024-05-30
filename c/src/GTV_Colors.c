@@ -11,8 +11,8 @@ GTV_Color
 
 GTV_LOCAL GTV_Color GTV_Color_get_from_palette(GTV_ColorPalette palette, byte color) {
     GTV_Color default_col = g_black;
-    if ((color >= 0) && (color < GTV_FRAMEBUFFER_ELEM_COUNT))
-        return palette.colors[color];
+    if ((color.container >= 0) && (color.container < GTV_FRAMEBUFFER_ELEM_COUNT))
+        return palette.colors[color.container];
     else return default_col;
 }
 
