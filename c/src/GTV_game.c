@@ -214,10 +214,7 @@ GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface
 
 /* -- Game state interface ---------------------------------------------------------------------- */
 
-char message[] = "Hello there!";
-
-__declspec(dllexport) char* GTV_game_update(void) {
-    return message;
+__declspec(dllexport) void GTV_game_tick(GTV_Arena *arena) {
 }
 
 int DllMain(void *inst, int reason, void *reserved) {

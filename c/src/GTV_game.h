@@ -90,8 +90,6 @@ typedef struct GTV_KeyboardInput {
     bool letter_keys[1];
 } GTV_KeyboardInput;
 
-GTV_PLATFORM_LAYER void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input);
-
 /* -- Input ------------------------------------------------------------------------------------- */
 
 /* -- Game -------------------------------------------------------------------------------------- */

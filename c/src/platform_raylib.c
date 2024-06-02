@@ -15,78 +15,29 @@ void Sleep(int);
 #include "GTV_Arena.h"
 #include "GTV_game.h"
 
-/*
 // -- Hot-reloading --------------------------------------------------------------------------------
 
-void (*pGTV_GameStateInterface_update)(GTV_GameStateInterface*);
-
-void *dll = NULL;
-bool GTV_HotReloader_load_all(void) {
-    if (dll != NULL) return false;
-    dll = LoadLibraryA("GTV_game.dll");
-    if (!dll) {
-        printf("Failed to load game dll\n");
-        return false;
-    }
-
-    pGTV_Arena_init =                   GetProcAddress(dll, "GTV_Arena_init");
-    pGTV_Arena_alloc =                  GetProcAddress(dll, "GTV_Arena_alloc");
-    pGTV_Arena_free_all =               GetProcAddress(dll, "GTV_Arena_free_all");
-    pGTV_Framebuffer_get_color =        GetProcAddress(dll, "GTV_Framebuffer_get_color");
-    pGTV_GameStateInterface_init =      GetProcAddress(dll, "GTV_GameStateInterface_init");
-    pGTV_GameStateInterface_update =    GetProcAddress(dll, "GTV_GameStateInterface_update");
-    pGTV_GameStateInterface_cleanup =   GetProcAddress(dll, "GTV_GameStateInterface_cleanup");
-
-    bool all_loaded =
-        pGTV_Arena_init
-        && pGTV_Arena_alloc
-        && pGTV_Arena_free_all
-        && pGTV_Framebuffer_get_color 
-        && pGTV_GameStateInterface_init
-        && pGTV_GameStateInterface_update 
-        && pGTV_GameStateInterface_cleanup;
-
-    if (!all_loaded) printf("Failed to load all functions\n");
-    return all_loaded;
+void reload_dll(void **dll) {
+    if (*dll != NULL) { FreeLibrary(*dll); }
+    CopyFileA("GTV_game.dll", "_GTV_game.dll", false);
+    *dll = LoadLibraryA("_GTV_game.dll");
 }
 
-bool GTV_HotReloader_free_all(void) {
-    if (dll == NULL) return false;
-
-    bool ok = FreeLibrary(dll);
-    if (ok) {
-        pGTV_Arena_init = NULL;
-        pGTV_Arena_alloc = NULL;
-        pGTV_Arena_free_all = NULL;
-        pGTV_Framebuffer_get_color = NULL;
-        pGTV_GameStateInterface_init = NULL;
-        pGTV_GameStateInterface_update = NULL;
-        pGTV_GameStateInterface_cleanup = NULL;
-        dll = NULL;
-    } else {
-        printf("Free lib function returned null\n");
-    }
-
-    return ok;
+void *load_proc_from_dll(void *dll, char *proc_name) {
+    return GetProcAddress(dll, proc_name);
 }
 
-bool GTV_HotReloader_reload(void) {
-    bool ok = true;
-    ok &= GTV_HotReloader_free_all();
-    ok &= GTV_HotReloader_load_all();
-    return ok;
-}
+// -- Hot-reloading --------------------------------------------------------------------------------
 
-// -- Hot-reloading ------------------------------------------------------------------------------
 
 // -- Utility ------------------------------------------------------------------------------------
 
 Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
     Color raylib_color;
     
-    raylib_color.r = gtv_color.r.container;
-    raylib_color.g = gtv_color.g.container;
-    raylib_color.b = gtv_color.b.container;
+    raylib_color.r = gtv_color.r;
+    raylib_color.g = gtv_color.g;
+    raylib_color.b = gtv_color.b;
     raylib_color.a = 0xFF;
 
     return raylib_color;
@@ -95,9 +46,9 @@ Color GTV_Color_to_raylib_color(GTV_Color gtv_color) {
 GTV_Color Raylib_color_to_GTV_Color(Color raylib_color) {
     GTV_Color gtv_color;
 
-    gtv_color.r.container = raylib_color.r;
-    gtv_color.g.container = raylib_color.g;
-    gtv_color.b.container = raylib_color.b;
+    gtv_color.r = raylib_color.r;
+    gtv_color.g = raylib_color.g;
+    gtv_color.b = raylib_color.b;
 
     return gtv_color;
 }
@@ -105,9 +56,9 @@ GTV_Color Raylib_color_to_GTV_Color(Color raylib_color) {
 byte GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
     for (int32 i = 0; i < GTV_COLOR_PALETTE_SIZE; i++) {
         if (
-            (col.r.container == palette.colors[i].r.container) &&
-            (col.g.container == palette.colors[i].g.container) &&
-            (col.b.container == palette.colors[i].b.container)
+            (col.r == palette.colors[i].r) &&
+            (col.g == palette.colors[i].g) &&
+            (col.b == palette.colors[i].b)
         ) {
             return (byte){i};
         }
@@ -168,6 +119,7 @@ void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
 
 // -- Main -------------------------------------------------------------------------------------- 
 
+/*
 int main(void) {
     if (!GTV_HotReloader_load_all()) {
         printf("Library loading failed\n");
@@ -237,7 +189,7 @@ int main(void) {
         ClearBackground(MAGENTA);
         for (int i = 0; i < sizeof interface->framebuffer; i++) {
             byte palette_index = interface->framebuffer[i];
-            GTV_Color gtv_color = interface->current_palette.colors[palette_index.container];
+            GTV_Color gtv_color = interface->current_palette.colors[palette_index];
             Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;
@@ -257,20 +209,10 @@ int main(void) {
     free(backing_memory);
     GTV_HotReloader_free_all();
     return 0;
-}
+}*/
 
 // -- Main --------------------------------------------------------------------------------------
-*/
 
-void reload_dll(void **dll) {
-    if (*dll != NULL) { FreeLibrary(*dll); }
-    CopyFileA("GTV_game.dll", "_GTV_game.dll", false);
-    *dll = LoadLibraryA("_GTV_game.dll");
-}
-
-void *load_proc_from_dll(void *dll, char *proc_name) {
-    return GetProcAddress(dll, proc_name);
-}
 
 int main() {
     void *dll = 0;
@@ -296,32 +238,65 @@ int main() {
         return 1;
     }
 
+    // Load atlas, generate palette, palettize atlas
+    GTV_ColorPalette palette = {0};
+    Image atlas_from_file = LoadImage("assets/atlas.png");
+    ImageFormat(&atlas_from_file, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
+    if (!atlas_to_palette(atlas_from_file, &palette)) {
+        printf("atlas_to_palette failed\n");
+        return 1;
+    }
+    GTV_Sprite palettized_atlas = {
+        .width = atlas_from_file.width,
+        .height = atlas_from_file.height,
+        .data = GTV_Arena_alloc(
+            &arena,
+            palettized_atlas.width * palettized_atlas.height
+        )
+    };
+    if (!palettize_atlas(atlas_from_file, palette, &palettized_atlas)) {
+        printf("palettize_atlas failed\n");
+        return 1;
+    }
+    UnloadImage(atlas_from_file);
+
+    // GameStateInterface init
+    GTV_GameStateInterface *interface = GTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
+    if (!interface) {
+        printf("Interface allocation failed\n");
+        return 1;
+    }
+    // GTV_GameStateInterface_init(interface, &arena, palette, palettized_atlas);
+
     while (!WindowShouldClose()) {
+        GTV_KeyboardInput_populate(&interface->keyboard_input);
+
         reload_dll(&dll);
-        char *(*p_update_func)(void) = GetProcAddress(dll, "GTV_game_update");
-        char *str = p_update_func();
+        void (*p_tick_func)(GTV_Arena *) = GetProcAddress(dll, "GTV_game_tick");
+        p_tick_func(&arena);
+        // p_tick_func(interface, &arena, palette, palettized_atlas);
 
         BeginDrawing();
         ClearBackground(MAGENTA);
         for (int i = 0; i < GTV_FRAMEBUFFER_ELEM_COUNT; i++) {
-            // byte palette_index = interface->framebuffer[i];
-            // GTV_Color gtv_color = interface->current_palette.colors[palette_index.container];
-            // Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
+            byte palette_index = interface->framebuffer[i];
+            GTV_Color gtv_color = interface->current_palette.colors[palette_index];
+            Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;
             int x = i % GTV_FRAMEBUFFER_WIDTH;
             int pixel_scaling_factor = os_window.width / GTV_FRAMEBUFFER_WIDTH;
             DrawRectangle(
                 x*pixel_scaling_factor, y*pixel_scaling_factor,
                 pixel_scaling_factor, pixel_scaling_factor,
-                (Color) { x, y, 0x20, 0xFF }
-                // raylib_color
+                raylib_color
+                // (Color) { x, y, 0x20, 0xFF }
             );
         }
         EndDrawing();
-
-
-        // Sleep(1000);
     }
+    CloseWindow();
+    GTV_Arena_free_all(&arena);
+    free(backing_memory);
     return 0;
 }
 
