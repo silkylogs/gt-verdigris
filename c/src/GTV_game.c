@@ -84,7 +84,7 @@ GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 p
 
     for (int32 y = 0; y < sizeof rows; y++) {
         for (int32 x = 0; x < bits_in_byte; x++) {
-            bool contains_pixel = (rows[y].container >> (bits_in_byte - x)) & 0x1;
+            bool contains_pixel = (rows[y] >> (bits_in_byte - x)) & 0x1;
             if (contains_pixel) {
                 success &= GTV_Framebuffer_set_pixel_xy(
                     framebuffer,

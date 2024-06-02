@@ -10,7 +10,7 @@
 
 /* -- Utility ----------------------------------------------------------------------------------- */
 
-typedef struct byte { uint8_t container; } byte;
+typedef unsigned char byte;
 typedef int32_t int32;
 typedef uint64_t uint64;
 
