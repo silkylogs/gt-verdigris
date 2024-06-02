@@ -1,9 +1,18 @@
-*.swp
+# Intermediate files
 *.exe
-*.obj
-third_party/**
-.vscode
+*.dll
+*.exp
 *.ilk
+*.lib
+*.obj
 *.pdb
+
+# Text editor litter
+*.swp
 *.sln
+.vscode
 .vs
+*~
+
+# The third party subdirectory
+third_party/**

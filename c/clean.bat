@@ -1,0 +1,1 @@
+del *.exe *.dll *.exp *.ilk *.lib *.obj *.pdb
