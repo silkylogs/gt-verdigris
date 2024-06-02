@@ -272,9 +272,14 @@ int main() {
         GTV_KeyboardInput_populate(&interface->keyboard_input);
 
         reload_dll(&dll);
-        void (*p_tick_func)(GTV_Arena *) = GetProcAddress(dll, "GTV_game_tick");
-        p_tick_func(&arena);
-        // p_tick_func(interface, &arena, palette, palettized_atlas);
+        void (*p_tick_func)(
+            GTV_GameStateInterface *,
+            GTV_Arena *,
+            GTV_ColorPalette,
+            GTV_Sprite
+        ) = GetProcAddress(dll, "GTV_game_tick");
+        // p_tick_func(&arena);
+        p_tick_func(interface, &arena, palette, palettized_atlas);
 
         BeginDrawing();
         ClearBackground(MAGENTA);
@@ -289,7 +294,6 @@ int main() {
                 x*pixel_scaling_factor, y*pixel_scaling_factor,
                 pixel_scaling_factor, pixel_scaling_factor,
                 raylib_color
-                // (Color) { x, y, 0x20, 0xFF }
             );
         }
         EndDrawing();

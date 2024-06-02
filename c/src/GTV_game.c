@@ -212,9 +212,29 @@ GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface
     interface = interface; // shut the fuck up
 }
 
-/* -- Game state interface ---------------------------------------------------------------------- */
+// -- Game state interface -------------------------------------------------------------------------
 
-__declspec(dllexport) void GTV_game_tick(GTV_Arena *arena) {
+__declspec(dllexport)
+void GTV_game_tick(
+    GTV_GameStateInterface *interface,
+    GTV_Arena *arena,
+    GTV_ColorPalette palette,
+    GTV_Sprite palettized_atlas
+) {
+    // Initialization
+    // TODO
+    if (!interface->initialized) {
+        GTV_GameState_init(interface, arena, palette, palettized_atlas);
+        interface->initialized = true;
+    }
+
+    GTV_GameStateInterface_update(interface);
+
+    // Cleanup
+    // TODO
+    if (interface->exit_requested) {
+        GTV_GameStateInterface_cleanup(interface);
+    }
 }
 
 int DllMain(void *inst, int reason, void *reserved) {

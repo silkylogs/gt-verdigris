@@ -36,10 +36,10 @@ typedef struct GTV_ColorPalette {
     GTV_Color colors[GTV_COLOR_PALETTE_SIZE];
 } GTV_ColorPalette;
 
-typedef struct GTV_ColorPaletteCollection {
-    GTV_ColorPalette palettes[GTV_COLOR_PALETTE_COLLECTION_COUNT];
-    int32 current;
-} GTV_ColorPaletteCollection;
+// typedef struct GTV_ColorPaletteCollection {
+//     GTV_ColorPalette palettes[GTV_COLOR_PALETTE_COLLECTION_COUNT];
+//     int32 current;
+// } GTV_ColorPaletteCollection;
 
 
 /* -- Colors ------------------------------------------------------------------------------------ */
