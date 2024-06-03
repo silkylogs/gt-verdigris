@@ -2,9 +2,10 @@ typedef struct GTV_AABB {
     float x, y, w, h;
 } GTV_AABB;
 
-#define GTV_AABB_COLLECTION_COUNT ((int32)4)
+#define GTV_AABB_COLLECTION_COUNT ((int32)32)
 typedef struct GTV_AABB_Collection {
     GTV_AABB elems[GTV_AABB_COLLECTION_COUNT];
+    bool active[GTV_AABB_COLLECTION_COUNT];
 } GTV_AABB_Collection;
 
 GTV_LOCAL bool GTV_AABB_intersect(GTV_AABB a, GTV_AABB b) {

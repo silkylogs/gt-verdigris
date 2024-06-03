@@ -66,60 +66,6 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
 
 /* -- Drawing ----------------------------------------------------------------------------------- */
 
-GTV_LOCAL bool
-GTV_Sprite_draw_8x8_sprite(byte *framebuffer, uint64 digit, int32 pos_x, int32 pos_y, byte color) {
-    byte rows[8] = {
-        (digit >> 0x38) & 0xFF,
-        (digit >> 0x30) & 0xFF,
-        (digit >> 0x28) & 0xFF,
-        (digit >> 0x20) & 0xFF,
-
-        (digit >> 0x18) & 0xFF,
-        (digit >> 0x10) & 0xFF,
-        (digit >> 0x08) & 0xFF,
-        (digit >> 0x00) & 0xFF,
-    };
-    bool success = true;
-    int32 bits_in_byte = 8;
-
-    for (int32 y = 0; y < sizeof rows; y++) {
-        for (int32 x = 0; x < bits_in_byte; x++) {
-            bool contains_pixel = (rows[y] >> (bits_in_byte - x)) & 0x1;
-            if (contains_pixel) {
-                success &= GTV_Framebuffer_set_pixel_xy(
-                    framebuffer,
-                    (x + pos_x), (y + pos_y),
-                    color
-                );
-            }
-        }
-    }
-
-    return success;
-}
-
-// Keeping this around as text drawing tutorial
-// GTV_LOCAL void GTV_draw_editor(GTV_GameStateInterface *interface) {
-//     int32 x = 0, y = 0;
-//     for (int32 i = 0; i < GTV_ATLAS_FONT_DIGITS_8x8_COUNT; i++) {
-//         GTV_Sprite_draw_8x8_sprite(
-//             interface->framebuffer,
-//             g_font_atlas_digits_8x8[i],
-//             x+(8*i), y,
-//             0xFE
-//         );
-//     }
-//     y += 8;
-//     for (int32 i = 0; i < GTV_ATLAS_FONT_CAPITAL_LETTERS_8x8_COUNT; i++) {
-//         GTV_Sprite_draw_8x8_sprite(
-//             interface->framebuffer,
-//             g_font_atlas_capital_letters_8x8[i],
-//             x+(8*i), y,
-//             0xFD
-//         );
-//     }
-// }
-
 GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
     GTV_Player player = interface->private->player;
 
@@ -130,7 +76,7 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
         (int32)player.bounds.y
     );
 
-    byte bound_color = { 0xFE };
+    byte bound_color = { 0x13 };
     GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
     for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
@@ -172,13 +118,6 @@ GTV_LOCAL GTV_Sprite generate_player_sprite(GTV_Sprite atlas, GTV_Arena *arena) 
                 sprite_idx = sprite_y * sprite.width + sprite_x,
                 atlas_idx = atlas_y * atlas.width + atlas_x; 
             
-            // printf(
-            //     "Copying atlas[%04d] (%02X) to sprite[%03d] (%02X)\n",
-            //     atlas_idx,
-            //     (int32)atlas.data[atlas_idx],
-            //     sprite_idx,
-            //     (int32)sprite.data[sprite_idx]
-            // );
             sprite.data[sprite_idx] = atlas.data[atlas_idx];
         }
     }
@@ -237,7 +176,7 @@ void GTV_game_tick(
     }
 }
 
-int DllMain(void *inst, int reason, void *reserved) {
+bool DllMain(void *inst, int reason, void *reserved) {
     (void)inst; (void)reason; (void)reserved;
-    return 1;
+    return true;
 }
