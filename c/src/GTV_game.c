@@ -192,7 +192,6 @@ GTV_EXPORT void GTV_GameStateInterface_init(
     GTV_ColorPalette palette,
     GTV_Sprite palettized_atlas
 ) {
-    interface->should_exit = false;
     interface->current_palette = palette;
     interface->palettized_sprite_atlas = palettized_atlas;
 
@@ -204,12 +203,17 @@ GTV_EXPORT void GTV_GameStateInterface_init(
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
     byte clear_color = { 0 };
     GTV_Framebuffer_clear(interface->framebuffer, clear_color);
+
     GTV_update_gameplay(interface);
+    if (interface->keyboard_input.special_keys[GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC]) {
+        interface->exit_requested = true;
+    }
+
     GTV_draw_all(interface);
 }
 
 GTV_EXPORT void GTV_GameStateInterface_cleanup(GTV_GameStateInterface *interface) {
-    interface = interface; // shut the fuck up
+    (void)interface; // shut the fuck up
 }
 
 // -- Game state interface -------------------------------------------------------------------------
@@ -221,17 +225,13 @@ void GTV_game_tick(
     GTV_ColorPalette palette,
     GTV_Sprite palettized_atlas
 ) {
-    // Initialization
-    // TODO
     if (!interface->initialized) {
-        GTV_GameState_init(interface, arena, palette, palettized_atlas);
+        GTV_GameStateInterface_init(interface, arena, palette, palettized_atlas);
         interface->initialized = true;
     }
 
     GTV_GameStateInterface_update(interface);
 
-    // Cleanup
-    // TODO
     if (interface->exit_requested) {
         GTV_GameStateInterface_cleanup(interface);
     }

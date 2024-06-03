@@ -112,107 +112,14 @@ void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
     kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT] =  IsKeyDown(KEY_RIGHT);
     
     kb_input->letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E] =    IsKeyDown(KEY_E);
+
+    kb_input->special_keys[GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC] = IsKeyDown(KEY_ESCAPE);
 }
 
-// -- Input ------------------------------------------------------------------------------------- 
+// -- Input ----------------------------------------------------------------------------------------
 
 
-// -- Main -------------------------------------------------------------------------------------- 
-
-/*
-int main(void) {
-    if (!GTV_HotReloader_load_all()) {
-        printf("Library loading failed\n");
-        return 1;
-    }
-
-    // Self explanatory
-    GTV_OsWindow os_window = {
-        .width = 512,
-        .height = 512,
-        .title = GTV_WINDOW_TITLE
-    };
-    InitWindow(os_window.width, os_window.height, os_window.title);
-    //SetExitKey(KEY_NULL);
-
-    // Initialize memory systems
-    int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
-    printf("Allocating %d bytes as backing memory.\n", backing_memory_len);
-    byte *backing_memory = malloc(backing_memory_len);
-    if (!backing_memory) {
-        printf("Backing memory acquisition failed\n");
-        return 1;
-    }
-    GTV_Arena arena;
-    if (!pGTV_Arena_init(&arena, backing_memory, backing_memory_len)) {
-        printf("Arena initialization failed\n");
-        return 1;
-    }
-
-    // Load atlas, generate palette, palettize atlas
-    GTV_ColorPalette palette = {0};
-    Image atlas_from_file = LoadImage("assets/atlas.png");
-    ImageFormat(&atlas_from_file, PIXELFORMAT_UNCOMPRESSED_R8G8B8);
-    if (!atlas_to_palette(atlas_from_file, &palette)) {
-        printf("atlas_to_palette failed\n");
-        return 1;
-    }
-    GTV_Sprite palettized_atlas = {
-        .width = atlas_from_file.width,
-        .height = atlas_from_file.height,
-        .data = pGTV_Arena_alloc(
-            &arena,
-            palettized_atlas.width * palettized_atlas.height
-        )
-    };
-    if (!palettize_atlas(atlas_from_file, palette, &palettized_atlas)) {
-        printf("palettize_atlas failed\n");
-        return 1;
-    }
-    UnloadImage(atlas_from_file);
-
-    // Self explanatory
-    GTV_GameStateInterface *interface = pGTV_Arena_alloc(&arena, sizeof (GTV_GameStateInterface));
-    if (!interface) {
-        printf("Interface allocation failed\n");
-        return 1;
-    }
-    pGTV_GameStateInterface_init(interface, &arena, palette, palettized_atlas);
-    
-    while (!WindowShouldClose()) {
-        // if (IsKeyReleased(KEY_E)) ToggleFullscreen();
-
-        GTV_KeyboardInput_populate(&interface->keyboard_input);
-        pGTV_GameStateInterface_update(interface);
-
-        BeginDrawing();
-        ClearBackground(MAGENTA);
-        for (int i = 0; i < sizeof interface->framebuffer; i++) {
-            byte palette_index = interface->framebuffer[i];
-            GTV_Color gtv_color = interface->current_palette.colors[palette_index];
-            Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
-            int y = i / GTV_FRAMEBUFFER_WIDTH;
-            int x = i % GTV_FRAMEBUFFER_WIDTH;
-            int pixel_scaling_factor = os_window.width / GTV_FRAMEBUFFER_WIDTH;
-            DrawRectangle(
-                x*pixel_scaling_factor, y*pixel_scaling_factor,
-                pixel_scaling_factor, pixel_scaling_factor,
-                raylib_color
-            );
-        }
-        EndDrawing();
-    }
-
-    CloseWindow();
-    pGTV_GameStateInterface_cleanup(interface);
-    pGTV_Arena_free_all(&arena);
-    free(backing_memory);
-    GTV_HotReloader_free_all();
-    return 0;
-}*/
-
-// -- Main --------------------------------------------------------------------------------------
-
+// -- Main -----------------------------------------------------------------------------------------
 
 int main() {
     void *dll = 0;
@@ -223,6 +130,7 @@ int main() {
         .title = GTV_WINDOW_TITLE
     };
     InitWindow(os_window.width, os_window.height, os_window.title);
+    SetExitKey(KEY_NULL);
 
     // Initialize memory systems
     int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
@@ -266,9 +174,10 @@ int main() {
         printf("Interface allocation failed\n");
         return 1;
     }
-    // GTV_GameStateInterface_init(interface, &arena, palette, palettized_atlas);
+    interface->initialized = false;
+    interface->exit_requested = false;
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && !interface->exit_requested) {
         GTV_KeyboardInput_populate(&interface->keyboard_input);
 
         reload_dll(&dll);
@@ -278,7 +187,6 @@ int main() {
             GTV_ColorPalette,
             GTV_Sprite
         ) = GetProcAddress(dll, "GTV_game_tick");
-        // p_tick_func(&arena);
         p_tick_func(interface, &arena, palette, palettized_atlas);
 
         BeginDrawing();
@@ -304,4 +212,5 @@ int main() {
     return 0;
 }
 
+// -- Main -----------------------------------------------------------------------------------------
 

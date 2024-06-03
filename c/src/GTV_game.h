@@ -68,8 +68,6 @@ typedef struct GTV_Sprite {
     byte *data;
 } GTV_Sprite;
 
-//GTV_EXPORT void GTV_Sprite_get_atlas();
-
 /* -- Sprites ----------------------------------------------------------------------------------- */
 
 /* -- Input ------------------------------------------------------------------------------------- */
@@ -85,9 +83,14 @@ enum GTV_KeyboardInputLetterKey {
     GTV_KEYBOARD_INPUT_LETTER_KEY_E = 0,
 };
 
+enum GTV_KeyboardInputSpecialKey {
+    GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC,
+};
+
 typedef struct GTV_KeyboardInput {
     bool arrow_keys[4];
     bool letter_keys[1];
+    bool special_keys[1];
 } GTV_KeyboardInput;
 
 /* -- Input ------------------------------------------------------------------------------------- */
@@ -97,7 +100,8 @@ typedef struct GTV_KeyboardInput {
 typedef struct GTV_PrivateGameState GTV_PrivateGameState;
 
 typedef struct GTV_GameStateInterface {
-    bool should_exit;
+    bool initialized;
+    bool exit_requested;
     byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
     GTV_KeyboardInput keyboard_input;
