@@ -46,17 +46,16 @@ GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state, GTV_Sprite
 }
 
 GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
-    GTV_Player_move_x(
-        &interface->private->player,
-        &interface->keyboard_input,
-        interface->private->boxes
-    );
+    if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
+        GTV_Player_move_x(&interface->private->player, 1.0f, interface->private->boxes);
+    } else if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
+        GTV_Player_move_x(&interface->private->player, -1.0f, interface->private->boxes);
+    } else {
+        (void)0;
+    }
+    
 
-    GTV_Player_move_y(
-        &interface->private->player,
-        &interface->keyboard_input,
-        interface->private->boxes
-    );
+    GTV_Player_move_y(&interface->private->player, 1.0f, interface->private->boxes);
 
     // TODO implement gravity and jumping
     // TODO find a way to diffrentiate being grounded to touching a wall's sides
@@ -76,7 +75,7 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
         (int32)player.bounds.y
     );
 
-    byte bound_color = { 0x13 };
+    byte bound_color = { 0x31 };
     GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
     for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {

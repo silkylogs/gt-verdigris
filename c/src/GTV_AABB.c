@@ -45,7 +45,7 @@ GTV_AABB_player_is_grounded(GTV_AABB player, GTV_AABB_Collection boxes) {
                 box_min_y = boxes.elems[i].y,
                 box_max_y = boxes.elems[i].y + boxes.elems[i].h;
 
-            if ((player_max_y >= box_min_y) && (player_min_y <= box_max_y)) return true;
+            if ((player_max_y > box_min_y) && (player_min_y < box_max_y)) return true;
         };
     }
     return false;
