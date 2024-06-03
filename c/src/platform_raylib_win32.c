@@ -106,14 +106,39 @@ bool palettize_atlas(Image src_img, GTV_ColorPalette src_palette, GTV_Sprite *ds
 // -- Input ------------------------------------------------------------------------------------- 
 
 void GTV_KeyboardInput_populate(GTV_KeyboardInput *kb_input) {
-    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP] =     IsKeyDown(KEY_UP);
-    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN] =   IsKeyDown(KEY_DOWN);
-    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT] =   IsKeyDown(KEY_LEFT);
-    kb_input->arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT] =  IsKeyDown(KEY_RIGHT);
-    
-    kb_input->letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E] =    IsKeyDown(KEY_E);
+    kb_input->keys[GTV_KEYBOARD_KEY_UP]     = IsKeyDown(KEY_UP);
+    kb_input->keys[GTV_KEYBOARD_KEY_DOWN]   = IsKeyDown(KEY_DOWN);
+    kb_input->keys[GTV_KEYBOARD_KEY_LEFT]   = IsKeyDown(KEY_LEFT);
+    kb_input->keys[GTV_KEYBOARD_KEY_RIGHT]  = IsKeyDown(KEY_RIGHT);
 
-    kb_input->special_keys[GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC] = IsKeyDown(KEY_ESCAPE);
+    kb_input->keys[GTV_KEYBOARD_KEY_A]      = IsKeyDown(KEY_A);
+    kb_input->keys[GTV_KEYBOARD_KEY_B]      = IsKeyDown(KEY_B);
+    kb_input->keys[GTV_KEYBOARD_KEY_C]      = IsKeyDown(KEY_C);
+    kb_input->keys[GTV_KEYBOARD_KEY_D]      = IsKeyDown(KEY_D);
+    kb_input->keys[GTV_KEYBOARD_KEY_E]      = IsKeyDown(KEY_E);
+    kb_input->keys[GTV_KEYBOARD_KEY_F]      = IsKeyDown(KEY_F);
+    kb_input->keys[GTV_KEYBOARD_KEY_G]      = IsKeyDown(KEY_G);
+    kb_input->keys[GTV_KEYBOARD_KEY_H]      = IsKeyDown(KEY_H);
+    kb_input->keys[GTV_KEYBOARD_KEY_I]      = IsKeyDown(KEY_I);
+    kb_input->keys[GTV_KEYBOARD_KEY_J]      = IsKeyDown(KEY_J);
+    kb_input->keys[GTV_KEYBOARD_KEY_K]      = IsKeyDown(KEY_K);
+    kb_input->keys[GTV_KEYBOARD_KEY_L]      = IsKeyDown(KEY_L);
+    kb_input->keys[GTV_KEYBOARD_KEY_M]      = IsKeyDown(KEY_M);
+    kb_input->keys[GTV_KEYBOARD_KEY_N]      = IsKeyDown(KEY_N);
+    kb_input->keys[GTV_KEYBOARD_KEY_O]      = IsKeyDown(KEY_O);
+    kb_input->keys[GTV_KEYBOARD_KEY_P]      = IsKeyDown(KEY_P);
+    kb_input->keys[GTV_KEYBOARD_KEY_Q]      = IsKeyDown(KEY_Q);
+    kb_input->keys[GTV_KEYBOARD_KEY_R]      = IsKeyDown(KEY_R);
+    kb_input->keys[GTV_KEYBOARD_KEY_S]      = IsKeyDown(KEY_S);
+    kb_input->keys[GTV_KEYBOARD_KEY_T]      = IsKeyDown(KEY_T);
+    kb_input->keys[GTV_KEYBOARD_KEY_U]      = IsKeyDown(KEY_U);
+    kb_input->keys[GTV_KEYBOARD_KEY_V]      = IsKeyDown(KEY_V);
+    kb_input->keys[GTV_KEYBOARD_KEY_W]      = IsKeyDown(KEY_W);
+    kb_input->keys[GTV_KEYBOARD_KEY_X]      = IsKeyDown(KEY_X);
+    kb_input->keys[GTV_KEYBOARD_KEY_Y]      = IsKeyDown(KEY_Y);
+    kb_input->keys[GTV_KEYBOARD_KEY_Z]      = IsKeyDown(KEY_Z);
+
+    kb_input->keys[GTV_KEYBOARD_KEY_ESC]    = IsKeyDown(KEY_ESCAPE);
 }
 
 // -- Input ----------------------------------------------------------------------------------------

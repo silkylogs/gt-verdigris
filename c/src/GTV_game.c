@@ -56,14 +56,14 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     GTV_Player *player = &interface->private->player;
 
     // Reset
-    if (interface->keyboard_input.letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E]) {
+    if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_R]) {
         GTV_Player_init(player, player->sprite);
     }
 
     player->vx = GTV_clamp(player->vx, -player->vx_max, player->vx_max);
-    if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
+    if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_RIGHT]) {
         GTV_Player_move_x(player, player->vx, interface->private->boxes);
-    } else if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
+    } else if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_LEFT]) {
         GTV_Player_move_x(player, -player->vx, interface->private->boxes);
     } else {
         (void)0;
@@ -71,7 +71,7 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     
     player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
     if (
-        interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP] &&
+        interface->keyboard_input.keys[GTV_KEYBOARD_KEY_UP] &&
         player->grounded
     ) {
         player->vy = -player->jmpy;
@@ -168,7 +168,7 @@ GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface)
     GTV_Framebuffer_clear(interface->framebuffer, clear_color);
 
     GTV_update_gameplay(interface);
-    if (interface->keyboard_input.special_keys[GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC]) {
+    if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_ESC]) {
         interface->exit_requested = true;
     }
 

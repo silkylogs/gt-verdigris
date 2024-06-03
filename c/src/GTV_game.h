@@ -72,25 +72,47 @@ typedef struct GTV_Sprite {
 
 /* -- Input ------------------------------------------------------------------------------------- */
 
-enum GTV_KeyboardInputArrowKey {
-    GTV_KEYBOARD_INPUT_ARROW_KEY_UP = 0,
-    GTV_KEYBOARD_INPUT_ARROW_KEY_DOWN = 1,
-    GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT = 2,
-    GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT = 3,
-};
+enum GTV_KeyboardInputKey {
+    GTV_KEYBOARD_KEY_UP,
+    GTV_KEYBOARD_KEY_DOWN,
+    GTV_KEYBOARD_KEY_LEFT,
+    GTV_KEYBOARD_KEY_RIGHT,
 
-enum GTV_KeyboardInputLetterKey {
-    GTV_KEYBOARD_INPUT_LETTER_KEY_E = 0,
-};
+    GTV_KEYBOARD_KEY_A,
+    GTV_KEYBOARD_KEY_B,
+    GTV_KEYBOARD_KEY_C,
+    GTV_KEYBOARD_KEY_D,
+    GTV_KEYBOARD_KEY_E,
+    GTV_KEYBOARD_KEY_F,
+    GTV_KEYBOARD_KEY_G,
+    GTV_KEYBOARD_KEY_H,
+    GTV_KEYBOARD_KEY_I,
+    GTV_KEYBOARD_KEY_J,
+    GTV_KEYBOARD_KEY_K,
+    GTV_KEYBOARD_KEY_L,
+    GTV_KEYBOARD_KEY_M,
+    GTV_KEYBOARD_KEY_N,
+    GTV_KEYBOARD_KEY_O,
+    GTV_KEYBOARD_KEY_P,
+    GTV_KEYBOARD_KEY_Q,
+    GTV_KEYBOARD_KEY_R,
+    GTV_KEYBOARD_KEY_S,
+    GTV_KEYBOARD_KEY_T,
+    GTV_KEYBOARD_KEY_U,
+    GTV_KEYBOARD_KEY_V,
+    GTV_KEYBOARD_KEY_W,
+    GTV_KEYBOARD_KEY_X,
+    GTV_KEYBOARD_KEY_Y,
+    GTV_KEYBOARD_KEY_Z,
+    
+    GTV_KEYBOARD_KEY_ESC,
 
-enum GTV_KeyboardInputSpecialKey {
-    GTV_KEYBOARD_INPUT_SPECIAL_KEY_ESC,
+    // Note: This should always be the last variant of this enum.
+    GTV_KEYBOARD_INPUT_KEY_ENUM_LENGTH,
 };
 
 typedef struct GTV_KeyboardInput {
-    bool arrow_keys[4];
-    bool letter_keys[1];
-    bool special_keys[1];
+    bool keys[GTV_KEYBOARD_INPUT_KEY_ENUM_LENGTH];
 } GTV_KeyboardInput;
 
 /* -- Input ------------------------------------------------------------------------------------- */
