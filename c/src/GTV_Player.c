@@ -1,17 +1,21 @@
 typedef struct GTV_Player {
     // TOOD replace `gravy` with `grav_y`
-    float x_remainder, y_remainder, vx, vy, gravy, jmpy, input_vx;
+    float
+        x_remainder, y_remainder,
+        vx, vy, vx_max, vy_max,
+        gravy, jmpy;
     bool grounded;
     GTV_Sprite sprite;
     GTV_AABB bounds;
 } GTV_Player;
 
 GTV_LOCAL void GTV_Player_init(GTV_Player *player, GTV_Sprite player_sprite) {
-    player->vx = 0.0f;
+    player->vx = 1.0f;
     player->vy = 1.0f;
-    player->gravy = 5.0f;
-    player->jmpy = 1.0f;
-    player->input_vx = 2.0f;
+    player->vy_max = 2.0f;
+    player->vx_max = 2.0f;
+    player->gravy = 0.1f;
+    player->jmpy = 4.5f;
     player->grounded = false;
 
     player->sprite = player_sprite;
@@ -31,26 +35,25 @@ GTV_LOCAL int GTV_sign(int num) {
 
 GTV_LOCAL void
 GTV_Player_move_x(
-    GTV_Player *player_prev_state,
+    GTV_Player *player,
     float amount,
     GTV_AABB_Collection test_boxes
 ) {
-    player_prev_state->x_remainder += amount;
-    int move = (int)player_prev_state->x_remainder;
+    player->x_remainder += amount;
+    int move = (int)player->x_remainder;
     if (move != 0) {
-        player_prev_state->x_remainder -= move;
+        player->x_remainder -= move;
         int sign = GTV_sign(move);
         while (move != 0) {
-            GTV_AABB next_pos = player_prev_state->bounds;
+            GTV_AABB next_pos = player->bounds;
             next_pos.x += sign;
             next_pos.y += 0;
             if (!GTV_AABB_player_intersects_boxes(next_pos, test_boxes)) {
                 // No solid besides player
-                player_prev_state->bounds.x += sign;
+                player->bounds.x += sign;
                 move -= sign;
             } else {
                 // Solid present, do something
-                printf("Wall has been hit sideways\n");
                 break;
             }
         }
@@ -80,7 +83,9 @@ GTV_Player_move_y(
                 player_prev_state->grounded = false;
             } else {
                 // Solid present, do something
-                player_prev_state->grounded = true;
+                if (sign > 0) {
+                    player_prev_state->grounded = true;
+                }
                 break;
             }
         }

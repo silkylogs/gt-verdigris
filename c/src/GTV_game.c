@@ -45,20 +45,45 @@ GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state, GTV_Sprite
     state->boxes.elems[3].h = 256.0f;
 }
 
+float GTV_clamp(float x, float min, float max) {
+    if (x <= min) return min;
+    else if (x >= max) return max;
+    else return x;
+}
+
+
 GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
+    GTV_Player *player = &interface->private->player;
+
+    // Reset
+    if (interface->keyboard_input.letter_keys[GTV_KEYBOARD_INPUT_LETTER_KEY_E]) {
+        GTV_Player_init(player, player->sprite);
+    }
+
+    player->vx = GTV_clamp(player->vx, -player->vx_max, player->vx_max);
     if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_RIGHT]) {
-        GTV_Player_move_x(&interface->private->player, 1.0f, interface->private->boxes);
+        GTV_Player_move_x(player, player->vx, interface->private->boxes);
     } else if (interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_LEFT]) {
-        GTV_Player_move_x(&interface->private->player, -1.0f, interface->private->boxes);
+        GTV_Player_move_x(player, -player->vx, interface->private->boxes);
     } else {
         (void)0;
     }
     
+    player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
+    if (
+        interface->keyboard_input.arrow_keys[GTV_KEYBOARD_INPUT_ARROW_KEY_UP] &&
+        player->grounded
+    ) {
+        player->vy = -player->jmpy;
+    }
 
-    GTV_Player_move_y(&interface->private->player, 1.0f, interface->private->boxes);
-
-    // TODO implement gravity and jumping
-    // TODO find a way to diffrentiate being grounded to touching a wall's sides
+    if (!player->grounded) {
+        player->vy += player->gravy;
+    } else {
+        // player->vy = 0;
+    }
+    GTV_Player_move_y(player, player->vy, interface->private->boxes);
+    // printf("vy = %f; grounded = %d\n", player->vy, player->grounded);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
