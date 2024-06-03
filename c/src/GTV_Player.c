@@ -10,18 +10,18 @@ typedef struct GTV_Player {
 } GTV_Player;
 
 GTV_LOCAL void GTV_Player_init(GTV_Player *player, GTV_Sprite player_sprite) {
-    player->vx = 1.0f;
-    player->vy = 1.0f;
-    player->vy_max = 2.0f;
-    player->vx_max = 2.0f;
-    player->gravy = 0.1f;
-    player->jmpy = 4.5f;
-    player->grounded = false;
+    player->vx      = 1.0f;
+    player->vy      = 0.0f;
+    player->vx_max  = 2.0f;
+    player->vy_max  = 50.0f;
+    player->gravy   = 0.1f;
+    player->jmpy    = 1.5f * 2;
 
+    player->grounded = false;
     player->sprite = player_sprite;
 
-    player->bounds.x = 0.0f;
-    player->bounds.y = 0.0f;
+    player->bounds.x = 50.0f;
+    player->bounds.y = 75.0f;
     player->bounds.w = (float)player->sprite.width;
     player->bounds.h = (float)player->sprite.height;
 }

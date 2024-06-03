@@ -10,12 +10,8 @@
 
 /* -- Utility ----------------------------------------------------------------------------------- */
 
-typedef unsigned char byte;
-typedef int32_t int32;
-typedef uint64_t uint64;
-
 typedef struct GTV_OsWindow {
-    int32 width, height;
+    int32_t width, height;
     char *title;
 } GTV_OsWindow;
 
@@ -29,7 +25,7 @@ typedef struct GTV_OsWindow {
 #define GTV_COLOR_PALETTE_SIZE (0x100)
 
 typedef struct GTV_Color {
-    byte r, g, b, padding;
+    uint8_t r, g, b, padding;
 } GTV_Color;
 
 typedef struct GTV_ColorPalette {
@@ -38,7 +34,7 @@ typedef struct GTV_ColorPalette {
 
 // typedef struct GTV_ColorPaletteCollection {
 //     GTV_ColorPalette palettes[GTV_COLOR_PALETTE_COLLECTION_COUNT];
-//     int32 current;
+//     int32_t current;
 // } GTV_ColorPaletteCollection;
 
 
@@ -51,12 +47,12 @@ typedef struct GTV_ColorPalette {
 #define GTV_FRAMEBUFFER_ELEM_COUNT (GTV_FRAMEBUFFER_WIDTH * GTV_FRAMEBUFFER_HEIGHT)
 
 typedef struct GTV_Framebuffer {
-    byte *data;
-    int32 size;
+    uint8_t *data;
+    int32_t size;
 } GTV_Framebuffer;
 
 GTV_EXPORT GTV_Color
-GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
+GTV_Framebuffer_get_color(uint8_t *fb, GTV_ColorPalette curr_palette, int32_t idx);
 
 /* -- Framebuffer ------------------------------------------------------------------------------- */
 
@@ -64,8 +60,8 @@ GTV_Framebuffer_get_color(byte *fb, GTV_ColorPalette curr_palette, int32 idx);
 
 // TODO rename to GTV_PalettizedSprite
 typedef struct GTV_Sprite {
-    int32 width, height;
-    byte *data;
+    int32_t width, height;
+    uint8_t *data;
 } GTV_Sprite;
 
 /* -- Sprites ----------------------------------------------------------------------------------- */
@@ -124,7 +120,7 @@ typedef struct GTV_PrivateGameState GTV_PrivateGameState;
 typedef struct GTV_GameStateInterface {
     bool initialized;
     bool exit_requested;
-    byte framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
+    uint8_t framebuffer[GTV_FRAMEBUFFER_ELEM_COUNT];
     GTV_ColorPalette current_palette;
     GTV_KeyboardInput keyboard_input;
     GTV_Sprite palettized_sprite_atlas;

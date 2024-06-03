@@ -53,30 +53,30 @@ GTV_Color Raylib_color_to_GTV_Color(Color raylib_color) {
     return gtv_color;
 }
 
-byte GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
-    for (int32 i = 0; i < GTV_COLOR_PALETTE_SIZE; i++) {
+uint8_t GTV_Color_to_byte(GTV_Color col, GTV_ColorPalette palette) {
+    for (int32_t i = 0; i < GTV_COLOR_PALETTE_SIZE; i++) {
         if (
             (col.r == palette.colors[i].r) &&
             (col.g == palette.colors[i].g) &&
             (col.b == palette.colors[i].b)
         ) {
-            return (byte){i};
+            return (uint8_t){i};
         }
     }
 
-    return (byte){0xFF}; // TODO find a better color
+    return (uint8_t){0xFF}; // TODO find a better color
 }
 
 bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
-    int32
+    int32_t
         palette_width = 16,
         palette_height = 16;
     if (src.width < palette_width || src.height < palette_height) {
         return false;
     }
 
-    for (int32 y = 0; y < palette_height; y++) {
-        for (int32 x = 0; x < palette_width; x++) {
+    for (int32_t y = 0; y < palette_height; y++) {
+        for (int32_t x = 0; x < palette_width; x++) {
             Color image_pixel_color = GetImageColor(src, x, y);
             GTV_Color col = Raylib_color_to_GTV_Color(image_pixel_color);
             dst->colors[y*palette_width + x] = col;
@@ -89,11 +89,11 @@ bool atlas_to_palette(Image src, GTV_ColorPalette *dst) {
 bool palettize_atlas(Image src_img, GTV_ColorPalette src_palette, GTV_Sprite *dst) {
     if ((src_img.width != dst->width) || (src_img.height != dst->height)) return false;
 
-    for (int32 y = 0; y < src_img.height; y++){
-        for (int32 x = 0; x < src_img.width; x++) {
+    for (int32_t y = 0; y < src_img.height; y++){
+        for (int32_t x = 0; x < src_img.width; x++) {
             Color raylib_color = GetImageColor(src_img, x, y);
             GTV_Color col = Raylib_color_to_GTV_Color(raylib_color);
-            byte applied_color = GTV_Color_to_byte(col, src_palette);
+            uint8_t applied_color = GTV_Color_to_byte(col, src_palette);
             dst->data[y*dst->width + x] = applied_color;
         }
     }
@@ -158,9 +158,9 @@ int main() {
     SetExitKey(KEY_NULL);
 
     // Initialize memory systems
-    int32 backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
+    int32_t backing_memory_len = 4 * sizeof (GTV_GameStateInterface);
     printf("Allocating %d bytes as backing memory.\n", backing_memory_len);
-    byte *backing_memory = malloc(backing_memory_len);
+    uint8_t *backing_memory = malloc(backing_memory_len);
     if (!backing_memory) {
         printf("Backing memory acquisition failed\n");
         return 1;
@@ -217,7 +217,7 @@ int main() {
         BeginDrawing();
         ClearBackground(MAGENTA);
         for (int i = 0; i < GTV_FRAMEBUFFER_ELEM_COUNT; i++) {
-            byte palette_index = interface->framebuffer[i];
+            uint8_t palette_index = interface->framebuffer[i];
             GTV_Color gtv_color = interface->current_palette.colors[palette_index];
             Color raylib_color = GTV_Color_to_raylib_color(gtv_color);
             int y = i / GTV_FRAMEBUFFER_WIDTH;

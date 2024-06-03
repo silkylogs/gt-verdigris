@@ -69,21 +69,20 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
         (void)0;
     }
     
-    player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
     if (
         interface->keyboard_input.keys[GTV_KEYBOARD_KEY_UP] &&
         player->grounded
     ) {
         player->vy = -player->jmpy;
     }
-
     if (!player->grounded) {
         player->vy += player->gravy;
     } else {
         // player->vy = 0;
     }
+    // player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
     GTV_Player_move_y(player, player->vy, interface->private->boxes);
-    // printf("vy = %f; grounded = %d\n", player->vy, player->grounded);
+    printf("vy = %f; grounded = %d\n", player->vy, player->grounded);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -96,14 +95,14 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
     GTV_Sprite_blit_to_framebuffer(
         interface->framebuffer,
         player.sprite,
-        (int32)player.bounds.x,
-        (int32)player.bounds.y
+        (int32_t)player.bounds.x,
+        (int32_t)player.bounds.y
     );
 
-    byte bound_color = { 0x31 };
+    uint8_t bound_color = { 0x31 };
     GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
-    for (int32 i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
+    for (int32_t i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
         GTV_AABB_draw(
             interface->private->boxes.elems[i],
             interface->framebuffer, bound_color
@@ -133,12 +132,12 @@ GTV_LOCAL GTV_Sprite generate_player_sprite(GTV_Sprite atlas, GTV_Arena *arena) 
     };
     sprite.data = GTV_Arena_alloc(arena, sprite.width * sprite.height);
 
-    for (int32 sprite_y = 0; sprite_y < sprite.height; sprite_y++) {
-        for (int32 sprite_x = 0; sprite_x < sprite.width; sprite_x++) {
-            int32
+    for (int32_t sprite_y = 0; sprite_y < sprite.height; sprite_y++) {
+        for (int32_t sprite_x = 0; sprite_x < sprite.width; sprite_x++) {
+            int32_t
                 atlas_x = sprite_x + 16,
                 atlas_y = sprite_y + 0;
-            int32
+            int32_t
                 sprite_idx = sprite_y * sprite.width + sprite_x,
                 atlas_idx = atlas_y * atlas.width + atlas_x; 
             
@@ -164,7 +163,7 @@ GTV_EXPORT void GTV_GameStateInterface_init(
 }
 
 GTV_EXPORT void GTV_GameStateInterface_update(GTV_GameStateInterface *interface) {
-    byte clear_color = { 0 };
+    uint8_t clear_color = { 0 };
     GTV_Framebuffer_clear(interface->framebuffer, clear_color);
 
     GTV_update_gameplay(interface);

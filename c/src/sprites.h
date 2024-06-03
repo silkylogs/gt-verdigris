@@ -1,4 +1,4 @@
-byte g_player_sprite[16 * 16] = {
+uint8_t g_player_sprite[16 * 16] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
@@ -19,7 +19,7 @@ byte g_player_sprite[16 * 16] = {
 };
 
 #define GTV_ATLAS_FONT_DIGITS_8x8_COUNT (10)
-const uint64 g_font_atlas_digits_8x8[GTV_ATLAS_FONT_DIGITS_8x8_COUNT] = {
+const uint64_t g_font_atlas_digits_8x8[GTV_ATLAS_FONT_DIGITS_8x8_COUNT] = {
     0xFE8282828282FE00, // 0
     0x0202020202020200,
     0xFE0202FE8080FE00,
@@ -33,7 +33,7 @@ const uint64 g_font_atlas_digits_8x8[GTV_ATLAS_FONT_DIGITS_8x8_COUNT] = {
 };
 
 #define GTV_ATLAS_FONT_CAPITAL_LETTERS_8x8_COUNT (26)
-const uint64 g_font_atlas_capital_letters_8x8[GTV_ATLAS_FONT_CAPITAL_LETTERS_8x8_COUNT] = {
+const uint64_t g_font_atlas_capital_letters_8x8[GTV_ATLAS_FONT_CAPITAL_LETTERS_8x8_COUNT] = {
     0x7C8282FE82828200, // A
     0xFC8282FC8282FC00, // B
     0x7E80808080807E00, // C
