@@ -18,9 +18,15 @@ void Sleep(int);
 // -- Hot-reloading --------------------------------------------------------------------------------
 
 void reload_dll(void **dll) {
-    if (*dll != NULL) { FreeLibrary(*dll); }
-    CopyFileA("GTV_game.dll", "_GTV_game.dll", false);
-    *dll = LoadLibraryA("_GTV_game.dll");
+    system("echo [Reloader] Initiating DLL recompilation");
+    if (0 == system("build_application.bat")) {
+        system("echo [Reloader]: DLL recompilation successful");
+        if (*dll != NULL) { FreeLibrary(*dll); }
+        CopyFileA("GTV_game.dll", "_GTV_game.dll", false);
+        *dll = LoadLibraryA("_GTV_game.dll");
+    } else {
+        system("echo [Reloader] DLL recompilation failed");
+    }
 }
 
 void *load_proc_from_dll(void *dll, char *proc_name) {
@@ -202,16 +208,20 @@ int main() {
     interface->initialized = false;
     interface->exit_requested = false;
 
+    reload_dll(&dll);
+    void (*p_tick_func)(
+        GTV_GameStateInterface *,
+        GTV_Arena *,
+        GTV_ColorPalette,
+        GTV_Sprite
+    ) = GetProcAddress(dll, "GTV_game_tick");
     while (!WindowShouldClose() && !interface->exit_requested) {
         GTV_KeyboardInput_populate(&interface->keyboard_input);
 
-        reload_dll(&dll);
-        void (*p_tick_func)(
-            GTV_GameStateInterface *,
-            GTV_Arena *,
-            GTV_ColorPalette,
-            GTV_Sprite
-        ) = GetProcAddress(dll, "GTV_game_tick");
+        if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_W]) {
+            reload_dll(&dll);
+            p_tick_func = GetProcAddress(dll, "GTV_game_tick");
+        }
         p_tick_func(interface, &arena, palette, palettized_atlas);
 
         BeginDrawing();
