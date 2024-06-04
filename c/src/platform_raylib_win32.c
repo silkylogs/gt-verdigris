@@ -17,15 +17,17 @@ void Sleep(int);
 
 // -- Hot-reloading --------------------------------------------------------------------------------
 
-void reload_dll(void **dll) {
+bool reload_dll(void **dll) {
     system("echo [Reloader] Initiating DLL recompilation");
     if (0 == system("build_application.bat")) {
-        system("echo [Reloader]: DLL recompilation successful");
+        system("echo [Reloader] DLL recompilation successful");
         if (*dll != NULL) { FreeLibrary(*dll); }
         CopyFileA("GTV_game.dll", "_GTV_game.dll", false);
         *dll = LoadLibraryA("_GTV_game.dll");
+        return true;
     } else {
         system("echo [Reloader] DLL recompilation failed");
+        return false;
     }
 }
 

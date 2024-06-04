@@ -46,9 +46,13 @@ GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state, GTV_Sprite
 }
 
 float GTV_clamp(float x, float min, float max) {
-    if (x <= min) return min;
-    else if (x >= max) return max;
-    else return x;
+    float retval;
+    // printf("x=%f ", x);
+    if (x < min) retval = min;
+    else if (x > max) retval = max;
+    else retval = x;
+    // printf("retval=%f\n", retval);
+    return retval;
 }
 
 
@@ -80,9 +84,9 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     } else {
         // player->vy = 0;
     }
-    // player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
+    player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
     GTV_Player_move_y(player, player->vy, interface->private->boxes);
-    printf("vy = %f; grounded = %d\n", player->vy, player->grounded);
+    printf("y=%f vy=%f\n", player->bounds.y, player->vy);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
