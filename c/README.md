@@ -39,6 +39,7 @@ Note: As of now this is a makeshift testing build
             - [ ] Non color cycling demo
             - [ ] Color cycled backgrounds/tiles
         - [ ] Main character (Try not to steal from the source game even if the dev is nice)
+            - [ ] Decide on whether to use frames or color cycling to animate this
     - [ ] Shipping
         - [ ] Win32
             - [ ] Build the shipped game statically
