@@ -35,6 +35,8 @@ GTV_LOCAL int GTV_sign(int num) {
 /* -- Game -------------------------------------------------------------------------------------- */
 
 typedef struct GTV_Level {
+    char *name;
+    uint32_t id;
     GTV_Player player;
     GTV_AABB_Collection solids;
     GTV_Sprite level_atlas;
@@ -124,7 +126,7 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
         (int32_t)player.bounds.y
     );
 
-    uint8_t bound_color = { 0x32 };
+    uint8_t bound_color = { 0x31 };
     GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
     for (int32_t i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
