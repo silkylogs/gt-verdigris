@@ -5,6 +5,24 @@
 #include "GTV_game.h"
 
 /* -- Utility ------------------------------------------------------------------------------------*/
+
+GTV_LOCAL float GTV_clamp(float x, float min, float max) {
+    float retval;
+    // printf("x=%f ", x);
+    if (x < min) retval = min;
+    else if (x > max) retval = max;
+    else retval = x;
+    // printf("retval=%f\n", retval);
+    return retval;
+}
+
+// A port of C#'s Math.Sign function
+GTV_LOCAL int GTV_sign(int num) {
+    if (num > 0) return 1;
+    else if (num < 0) return -1;
+    else return 0;
+}
+
 /* -- Utility ------------------------------------------------------------------------------------*/
 
 #include "GTV_Colors.c"
@@ -16,48 +34,50 @@
 
 /* -- Game -------------------------------------------------------------------------------------- */
 
-typedef struct GTV_PrivateGameState {
+typedef struct GTV_Level {
     GTV_Player player;
-    GTV_AABB_Collection boxes;
+    GTV_AABB_Collection solids;
+    GTV_Sprite level_atlas;
+} GTV_Level;
+
+typedef struct GTV_PrivateGameState {
+    GTV_Level test_level;
 } GTV_PrivateGameState;
 
+GTV_LOCAL void GTV_test_level_init(GTV_Level *lvl) {
+    GTV_Player_set_position(&lvl->player, 50.0f, 75.0f);
+
+    // Load level data from appropriate manager
+    lvl->solids.elems[0].x = 0.0f;
+    lvl->solids.elems[0].y = 20.0f;
+    lvl->solids.elems[0].w = 50.0f;
+    lvl->solids.elems[0].h = 5.0f;
+
+    lvl->solids.elems[1].x = 30.0f;
+    lvl->solids.elems[1].y = 99.0f;
+    lvl->solids.elems[1].w = 99.0f;
+    lvl->solids.elems[1].h = 10.0f;
+
+    lvl->solids.elems[2].x = 70.0f;
+    lvl->solids.elems[2].y = 00.0f;
+    lvl->solids.elems[2].w = 10.0f;
+    lvl->solids.elems[2].h = 100.0f;
+
+    lvl->solids.elems[3].x = 128.0f;
+    lvl->solids.elems[3].y = 128.0f;
+    lvl->solids.elems[3].w = 10.0f;
+    lvl->solids.elems[3].h = 256.0f;
+}
+
 GTV_LOCAL void GTV_PrivateGameState_init(GTV_PrivateGameState *state, GTV_Sprite player_sprite) {
-    GTV_Player_init(&state->player, player_sprite);
-
-    state->boxes.elems[0].x = 0.0f;
-    state->boxes.elems[0].y = 20.0f;
-    state->boxes.elems[0].w = 50.0f;
-    state->boxes.elems[0].h = 5.0f;
-
-    state->boxes.elems[1].x = 30.0f;
-    state->boxes.elems[1].y = 99.0f;
-    state->boxes.elems[1].w = 99.0f;
-    state->boxes.elems[1].h = 10.0f;
-
-    state->boxes.elems[2].x = 70.0f;
-    state->boxes.elems[2].y = 00.0f;
-    state->boxes.elems[2].w = 10.0f;
-    state->boxes.elems[2].h = 100.0f;
-
-    state->boxes.elems[3].x = 128.0f;
-    state->boxes.elems[3].y = 128.0f;
-    state->boxes.elems[3].w = 10.0f;
-    state->boxes.elems[3].h = 256.0f;
+    GTV_Player_init(&state->test_level.player, player_sprite);
+    GTV_test_level_init(&state->test_level);
 }
-
-float GTV_clamp(float x, float min, float max) {
-    float retval;
-    // printf("x=%f ", x);
-    if (x < min) retval = min;
-    else if (x > max) retval = max;
-    else retval = x;
-    // printf("retval=%f\n", retval);
-    return retval;
-}
-
 
 GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
-    GTV_Player *player = &interface->private->player;
+    GTV_Player *player = &interface->private->test_level.player;
+    bool *keys = interface->keyboard_input.keys;
+    GTV_AABB_Collection solids = interface->private->test_level.solids;
 
     // Reset
     if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_R]) {
@@ -65,16 +85,16 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
     }
 
     player->vx = GTV_clamp(player->vx, -player->vx_max, player->vx_max);
-    if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_RIGHT]) {
-        GTV_Player_move_x(player, player->vx, interface->private->boxes);
-    } else if (interface->keyboard_input.keys[GTV_KEYBOARD_KEY_LEFT]) {
-        GTV_Player_move_x(player, -player->vx, interface->private->boxes);
+    if (keys[GTV_KEYBOARD_KEY_RIGHT]) {
+        GTV_Player_move_x(player, player->vx, solids);
+    } else if (keys[GTV_KEYBOARD_KEY_LEFT]) {
+        GTV_Player_move_x(player, -player->vx, solids);
     } else {
         (void)0;
     }
     
     if (
-        interface->keyboard_input.keys[GTV_KEYBOARD_KEY_UP] &&
+        keys[GTV_KEYBOARD_KEY_UP] &&
         player->grounded
     ) {
         player->vy = -player->jmpy;
@@ -85,8 +105,8 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
         // player->vy = 0;
     }
     player->vy = GTV_clamp(player->vy, -player->vy_max, player->vy_max);
-    GTV_Player_move_y(player, player->vy, interface->private->boxes);
-    printf("y=%f vy=%f\n", player->bounds.y, player->vy);
+    GTV_Player_move_y(player, player->vy, solids);
+    // printf("y=%f vy=%f\n", player->bounds.y, player->vy);
 }
 
 /* -- Game -------------------------------------------------------------------------------------- */
@@ -94,7 +114,8 @@ GTV_LOCAL void GTV_update_gameplay(GTV_GameStateInterface *interface) {
 /* -- Drawing ----------------------------------------------------------------------------------- */
 
 GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
-    GTV_Player player = interface->private->player;
+    GTV_Player player = interface->private->test_level.player;
+    GTV_AABB_Collection solids = interface->private->test_level.solids;
 
     GTV_Sprite_blit_to_framebuffer(
         interface->framebuffer,
@@ -103,12 +124,12 @@ GTV_LOCAL void GTV_draw_gameplay(GTV_GameStateInterface *interface) {
         (int32_t)player.bounds.y
     );
 
-    uint8_t bound_color = { 0x31 };
+    uint8_t bound_color = { 0x32 };
     GTV_AABB_draw(player.bounds, interface->framebuffer, bound_color);
     
     for (int32_t i = 0; i < GTV_AABB_COLLECTION_COUNT; i++) {
         GTV_AABB_draw(
-            interface->private->boxes.elems[i],
+            solids.elems[i],
             interface->framebuffer, bound_color
         );
     }

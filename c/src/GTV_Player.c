@@ -26,11 +26,10 @@ GTV_LOCAL void GTV_Player_init(GTV_Player *player, GTV_Sprite player_sprite) {
     player->bounds.h = (float)player->sprite.height;
 }
 
-// A port of C#'s Math.Sign function
-GTV_LOCAL int GTV_sign(int num) {
-    if (num > 0) return 1;
-    else if (num < 0) return -1;
-    else return 0;
+// TODO write other setters for stuff like speed, wind, applied forces, etc
+GTV_LOCAL void GTV_Player_set_position(GTV_Player *player, float x, float y) {
+    player->bounds.x = x;
+    player->bounds.y = y;
 }
 
 GTV_LOCAL void

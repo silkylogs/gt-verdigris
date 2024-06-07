@@ -22,26 +22,27 @@ Note: As of now this is a makeshift testing build
 # TODO
 In an ever changing order of things to do:
 - [ ] Recreate the 1.0 demo
-    - [X] Build system
-        - [X] Make cradle build script not dependent on native tools cmd prompt
-            - [X] Find and call vcvarsall.bat OR
-            - [ ] ~~Provide hardcoded paths to windows headers/libs~~
-    - [ ] Implement the concept of a map
+    - [ ] Implement the concept of a level
+        - [X] Fit data into structs
         - [ ] Editable platforms
         - [ ] Platform editor
         - [ ] Level serializer (for saving/loading)
-    - [ ] Hot reload
-        - [x] Basic hot reload
-        - [ ] Data layout change detection
-    - [ ] Asset loader
-        - [x] Hardcoded image loader
-        - [x] Generic image palettizer
     - [ ] Gameplay
         - [ ] 2D movement mechanics
             - [x] Basic 2D movement (walking, jumping, gravity, collision detection)
             - [ ] The rest of https://2dengine.com/doc/platformers.html
             - [ ] Wall climbing
             - [ ] Rocket boosting
+    - [X] Build system
+        - [X] Make cradle build script not dependent on native tools cmd prompt
+            - [X] Find and call vcvarsall.bat OR
+            - [ ] ~~Provide hardcoded paths to windows headers/libs~~
+    - [ ] Hot reload
+        - [x] Basic hot reload
+        - [ ] Data layout change detection
+    - [ ] Asset loader
+        - [x] Hardcoded image loader
+        - [x] Generic image palettizer
     - [ ] Artwork
         - [x] Indexed color framebuffer impl
         - [ ] Environments
