@@ -11,11 +11,25 @@ but in all likeliness its going to be running `build_<platform>.shell_script_ext
 ## Windows, MSVC
 Note: As of now this is a makeshift testing build
 - Download raylib-5.0_win64_msvc16 from the raylib git repo and extract it to a folder named `third_party`
+
+### Visual studio developer command prompt
 - Open the visual studio developer command prompt and navigate it to this directory
 - Execute `build_cradle.bat && build_application.bat`
 
+### Powershell
+- Execute ``.\set_win32_dev_env.bat `& .\build_cradle.bat``
+
 # TODO
+In an ever changing order of things to do:
 - [ ] Recreate the 1.0 demo
+    - [X] Build system
+        - [X] Make cradle build script not dependent on native tools cmd prompt
+            - [X] Find and call vcvarsall.bat OR
+            - [ ] ~~Provide hardcoded paths to windows headers/libs~~
+    - [ ] Implement the concept of a map
+        - [ ] Editable platforms
+        - [ ] Platform editor
+        - [ ] Level serializer (for saving/loading)
     - [ ] Hot reload
         - [x] Basic hot reload
         - [ ] Data layout change detection
@@ -28,10 +42,6 @@ Note: As of now this is a makeshift testing build
             - [ ] The rest of https://2dengine.com/doc/platformers.html
             - [ ] Wall climbing
             - [ ] Rocket boosting
-    - [ ] Implement the concept of a map
-        - [ ] Editable platforms
-            - [ ] Platform editor
-        - [ ] Level serializer (for saving/loading)
     - [ ] Artwork
         - [x] Indexed color framebuffer impl
         - [ ] Environments
@@ -47,3 +57,6 @@ Note: As of now this is a makeshift testing build
             - [ ] Implement touchscreen controls
         - [ ] Web
             - [ ] Do some stuff with uhh emscripten or something
+        - [ ] Other
+            - [ ] Mac
+            - [ ] PS3
